@@ -63,7 +63,9 @@ fun CardEditorScreen(
     onBack: () -> Unit,
 ) {
     var c by remember(initial) { mutableStateOf(initial) }
-    Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // 저장과 취소는 스크롤하지 않아도 보이도록 아래에 고정한다.
+    Column(page, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             T("집 주차 안내", Type.titleMedium, Modifier.weight(1f))
         }
@@ -103,6 +105,7 @@ fun CardEditorScreen(
         Field("주차장 안에서 찾아가는 방법", c.zone) { c = c.copy(zone = it) }
         Field("주차 시 유의사항", c.preferredSpot) { c = c.copy(preferredSpot = it) }
         Field("자리가 없을 때", c.fallback) { c = c.copy(fallback = it) }
+    }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton("취소", onBack, Modifier.weight(1f))
             IviButton("저장", { onSave(c) }, Modifier.weight(1f), filled = true)

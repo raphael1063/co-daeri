@@ -39,6 +39,13 @@ class DomainTest {
         assertEquals(listOf(GuideStep.FALLBACK), segs[2].steps)
     }
 
+    @Test fun detailGuidanceReadsContentOnlyWithoutFieldNames() {
+        val segs = Guidance.segments(card)
+        // 칸 이름까지 읽으면 "자리가 없으면. 자리가 없으면 …"처럼 겹친다.
+        GuideStep.values().forEach { step -> assertFalse(segs.drop(1).any { it.speech.startsWith(Guidance.label(step) + ".") }) }
+        assertEquals(1, Regex("자리가 없으면").findAll(segs[2].speech).count())
+    }
+
     @Test fun pillarNumbersAreReadVerbatim() {
         val segs = Guidance.segments(card)
         assertTrue(segs[1].speech.contains("B-17 기둥 근처에 주차해 주세요."))

@@ -18,11 +18,11 @@ object Guidance {
     const val END_LINE = "주차 안내는 여기까지입니다."
 
     fun label(step: GuideStep): String = when (step) {
-        GuideStep.ENTRANCE -> "차량 진입구"
-        GuideStep.ENTRY_METHOD -> "진입 방법"
-        GuideStep.ZONE -> "주차 구역"
-        GuideStep.PREFERRED_SPOT -> "선호 위치"
-        GuideStep.FALLBACK -> "자리가 없으면"
+        GuideStep.ENTRANCE -> "주차장 입구"
+        GuideStep.ENTRY_METHOD -> "차단기 통과 방법"
+        GuideStep.ZONE -> "주차 위치"
+        GuideStep.PREFERRED_SPOT -> "주차 시 유의사항"
+        GuideStep.FALLBACK -> "자리가 없을 때"
     }
 
     fun text(card: ParkingCard, step: GuideStep): String = when (step) {
@@ -69,7 +69,8 @@ object Guidance {
             val prefix = if (result.isEmpty() && index == 0) intro else ""
             result += GuideSegment(
                 steps = group,
-                speech = prefix + group.joinToString(" ") { "${label(it)}. ${sentence(text(card, it))}" },
+                // 칸 이름은 화면에만 쓴다. 내용이 이미 문장이라 이름까지 읽으면 같은 말이 겹친다.
+                speech = prefix + group.joinToString(" ") { sentence(text(card, it)) },
                 headline = text(card, group.first()),
             )
         }

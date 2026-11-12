@@ -143,7 +143,8 @@ fun HomecomingPanel(
 internal fun CompareTable(card: HomecomingCard, h: Handover) {
     val c = Ivi.colors
     val label = 230.dp
-    val states = card.compare.filter { it.before.isNotEmpty() }
+    // 문 잠금은 요약에서 마지막으로 확인한 시각과 함께 보여 주므로 종료 순간 값은 표에서 뺀다.
+    val states = card.compare.filter { it.before.isNotEmpty() && it.label != "문 잠금" }
     Column {
         TripPresentation.usageDetails(card.compare).forEach { (name, value) ->
             Divider()
