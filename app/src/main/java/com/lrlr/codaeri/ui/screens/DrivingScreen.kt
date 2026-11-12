@@ -85,7 +85,7 @@ fun DrivingScreen(
         )
         val description = when {
             booking == null -> "예약이 확인되면 이용 내역에 남깁니다."
-            card.isUsable -> "집 근처에서 주차 안내를 들려드립니다."
+            card.isUsable -> "등록한 집 근처에 도착하면 주차 안내를 들려드립니다."
             else -> null
         }
         description?.let {
