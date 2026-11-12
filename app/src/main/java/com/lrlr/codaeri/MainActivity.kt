@@ -1,0 +1,284 @@
+package com.lrlr.codaeri
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lrlr.codaeri.app.CallStage
+import com.lrlr.codaeri.domain.VoiceCall
+import com.lrlr.codaeri.ui.screens.BindScreen
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.ui.ButtonSize
+import com.lrlr.codaeri.ui.CallChoice
+import com.lrlr.codaeri.ui.PairColumns
+import com.lrlr.codaeri.ui.screens.CardEditorScreen
+import com.lrlr.codaeri.ui.screens.ClosedScreen
+import com.lrlr.codaeri.ui.DaeriTheme
+import com.lrlr.codaeri.ui.screens.DrivingScreen
+import com.lrlr.codaeri.ui.Fading
+import com.lrlr.codaeri.ui.screens.HandoverScreen
+import com.lrlr.codaeri.ui.screens.HomeScreen
+import com.lrlr.codaeri.ui.Ivi
+import com.lrlr.codaeri.ui.IviButton
+import com.lrlr.codaeri.ui.IviPopup
+import com.lrlr.codaeri.ui.Motion
+import com.lrlr.codaeri.ui.screens.OtherSpotScreen
+import com.lrlr.codaeri.ui.PopupTitle
+import com.lrlr.codaeri.ui.Route
+import com.lrlr.codaeri.ui.Screen
+import com.lrlr.codaeri.ui.Section
+import com.lrlr.codaeri.ui.screens.RecordsScreen
+import com.lrlr.codaeri.ui.screens.SettingsScreen
+import com.lrlr.codaeri.ui.screens.StopFirst
+import com.lrlr.codaeri.ui.T
+import com.lrlr.codaeri.ui.Type
+import com.lrlr.codaeri.ui.screens.WrapScreen
+
+class MainActivity : ComponentActivity() {
+
+    /** 지금 보여 줄 화면. 운행 상태가 화면을 정하고, 사람이 고르는 것은 주차 안내 편집뿐이다. */
+    private val controller get() = (application as DaeriApp).controller
+    private val noticeAllowed = mutableStateOf(true)
+    // 허락하지 않아도 한 번은 시도한다(인식은 차의 음성 서비스가 한다). 안 되면 화면에 "듣지 못했습니다"가 뜬다.
+    private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { controller.callByVoice() }
+    private val askNotice = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        noticeAllowed.value = controller.noticeAllowed()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        controller.visible.value = true
+        noticeAllowed.value = controller.noticeAllowed()
+    }
+
+    override fun onStop() {
+        controller.visible.value = false
+        super.onStop()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+        super.onCreate(savedInstanceState)
+        val c = controller
+
+        setContent {
+            DaeriTheme {
+                val state by c.state.collectAsStateWithLifecycle()
+                val guidance by c.guidance.collectAsStateWithLifecycle()
+                val restricted by c.restricted.collectAsStateWithLifecycle()
+                val speaking by c.speaking.collectAsStateWithLifecycle()
+                val uploading by c.uploading.collectAsStateWithLifecycle()
+                val busy by c.busy.collectAsStateWithLifecycle()
+                val location by c.position.collectAsStateWithLifecycle()
+                val pairing by c.pairing.collectAsStateWithLifecycle()
+                val voice by c.voice.collectAsStateWithLifecycle()
+                val emergencyUi by c.emergency.collectAsStateWithLifecycle()
+                val startArmed by c.startArmed.collectAsStateWithLifecycle()
+                val startReady by c.startReady.collectAsStateWithLifecycle()
+                val voicePartial by c.voicePartial.collectAsStateWithLifecycle()
+                var editing by rememberSaveable { mutableStateOf(false) }
+                var otherSpot by rememberSaveable { mutableStateOf(false) }
+                var confirmUnbind by rememberSaveable { mutableStateOf(false) }
+                var section by rememberSaveable { mutableStateOf(Section.MAIN) }
+                // 연결이 풀리면 해제 확인창도 닫는다(다시 연결했을 때 예전 창이 남아 있지 않게)
+                LaunchedEffect(state.bound) { if (!state.bound) confirmUnbind = false }
+
+                val trip = state.trip
+                val routed by c.routed.collectAsStateWithLifecycle()
+                // 예약의 유효 시간은 화면이 다시 그려질 때마다 본다(상태가 15초마다 갱신된다)
+                val pending = state.pendingBooking(System.currentTimeMillis())
+                val screen = Route.screen(
+                    tripPhase = trip?.phase, hasCard = state.lastCard != null, bound = state.bound, restricted = restricted,
+                    editing = editing, otherSpot = otherSpot, section = section, hasBooking = pending != null,
+                )
+                // 예약이 잡히거나 기사님이 바뀌면 대리 현황을 연다
+                LaunchedEffect(pending?.id, pending?.driver?.id) { section = Route.onBookingChanged(section, pending != null, restricted) }
+                // 기사님과 차주가 탄 것으로 판단되면 메인의 "운행 시작"을 보여 준다
+                LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false } }
+                // 운행이 시작되면 메인에서 열어 둔 화면은 닫는다
+                LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false } }
+                if (screen != Screen.OTHER_SPOT && screen != Screen.WRAP && screen != Screen.STOP_FIRST) otherSpot = false
+
+                Box(Modifier.fillMaxSize().background(Ivi.colors.backgroundPrimary).systemBarsPadding()) {
+                    AnimatedContent(
+                        targetState = screen,
+                        transitionSpec = {
+                            // 달리는 화면으로 넘어갈 때는 움직임을 쓰지 않는다
+                            if (targetState == Screen.DRIVING) fadeIn(tween(0)) togetherWith fadeOut(tween(0))
+                            else fadeIn(tween(Motion.ENTER)) togetherWith fadeOut(tween(Motion.EXIT))
+                        },
+                        label = "screen",
+                    ) { target ->
+                        when (target) {
+                            Screen.DRIVING -> trip?.let {
+                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide)
+                            }
+                            Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
+                            Screen.WRAP -> trip?.let {
+                                WrapScreen(
+                                    trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy, link = state.phoneLink,
+                                    emergencies = state.server.emergencyList,
+                                    onParking = c::chooseParking, onOtherSpot = { otherSpot = true }, onClose = c::closeByButton, onEmergency = c::showEmergency,
+                                )
+                            }
+                            Screen.OTHER_SPOT -> {
+                                BackHandler { otherSpot = false }
+                                OtherSpotScreen(state.card, c.handover, { c.chooseParking(it); otherSpot = false }, { otherSpot = false })
+                            }
+                            Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip) }
+                            Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode)
+                            Screen.EDITOR -> {
+                                BackHandler { editing = false }
+                                CardEditorScreen(
+                                    initial = state.card,
+                                    currentLocation = location?.let { it.lat to it.lng },
+                                    onSave = { c.saveCard(it); editing = false },
+                                    onBack = { editing = false },
+                                )
+                            }
+                            Screen.HANDOVER -> {
+                                BackHandler { section = Section.MAIN }
+                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, onStart = c::toggleStartByButton) { section = Section.MAIN } }
+                            }
+                            Screen.RECORDS -> {
+                                BackHandler { section = Section.MAIN }
+                                RecordsScreen(state, c.handover, uploading) { section = Section.MAIN }
+                            }
+                            Screen.SETTINGS -> {
+                                BackHandler { section = Section.MAIN }
+                                SettingsScreen(
+                                    state = state,
+                                    onBack = { section = Section.MAIN },
+                                    onEditCard = { editing = true },
+                                    onUnbind = { confirmUnbind = true },
+                                    onAllowNotice = if (noticeAllowed.value || Build.VERSION.SDK_INT < 33) null
+                                    else ({ askNotice.launch(Manifest.permission.POST_NOTIFICATIONS) }),
+                                )
+                            }
+                            Screen.HOME -> HomeScreen(
+                                booked = pending != null,
+                                restricted = restricted,
+                                onCall = c::startCall,
+                                onStatus = { section = Section.STATUS },
+                                onRecords = { section = Section.RECORDS },
+                                onSettings = { section = Section.SETTINGS },
+                                startLine = pending?.takeIf { startReady }?.let { "${it.driver.name} 기사님 · ${it.destination} · ${c.handover.fareText(it.fare)}" },
+                                armed = pending != null && startArmed == pending.id,
+                                onStart = c::toggleStartByButton,
+                            )
+                        }
+                    }
+
+                    Fading(voice.takeIf { it.stage != CallStage.OFF && screen == Screen.HOME }) { v ->
+                        val listening = v.stage == CallStage.LISTENING
+                        val confirm = v.stage == CallStage.CONFIRM
+                        val choosing = v.stage == CallStage.CHOOSE || v.stage == CallStage.PLACES
+                        // 마이크는 "음성 인식"을 고를 때 처음 허락을 받는다
+                        val byVoice = {
+                            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) c.callByVoice()
+                            else askMic.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                        IviPopup(
+                            onDismiss = c::cancelCall,
+                            width = if (choosing) 1000.dp else 760.dp,
+                            buttons = {
+                                IviButton("취소", c::cancelCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                when {
+                                    v.stage == CallStage.CHOOSE -> {}
+                                    v.stage == CallStage.PLACES -> IviButton("다른 방법", c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                    confirm && v.place != null -> IviButton("부르기", c::confirmCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    confirm && v.byVoice -> IviButton("다시 말하기", byVoice, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    confirm -> IviButton("다른 방법", c::startCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    else -> IviButton(if (listening) "듣는 중" else "확인 중", {}, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, loading = !listening, enabled = false)
+                                }
+                            },
+                        ) {
+                            PopupTitle(
+                                v.message,
+                                when {
+                                    v.stage == CallStage.CHOOSE -> "목적지를 정하는 방법을 골라 주세요."
+                                    v.stage == CallStage.PLACES -> "시연에서는 아래 장소만 고를 수 있습니다."
+                                    listening -> voicePartial.ifBlank { VoiceCall.EXAMPLE }
+                                    confirm && v.place != null && !v.byVoice -> VoiceCall.TAP_HINT
+                                    confirm && v.place != null -> if (v.retries == 0) VoiceCall.ANSWER_HINT else "${v.place.name} · 확정 요금 ${c.handover.fareText(v.fare ?: 0)}"
+                                    else -> null
+                                },
+                            )
+                            if (choosing) {
+                                Spacer(Modifier.height(28.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    if (v.stage == CallStage.CHOOSE) {
+                                        CallChoice("집", R.drawable.ic_call_home, c::callHome, Modifier.weight(1f))
+                                        CallChoice("장소 선택", R.drawable.ic_call_place, c::showPlaces, Modifier.weight(1f))
+                                        CallChoice("음성 인식", R.drawable.ic_call_voice, byVoice, Modifier.weight(1f))
+                                    } else {
+                                        VoiceCall.places.forEach { place -> CallChoice(place.name, R.drawable.ic_call_place, { c.callTo(place) }, Modifier.weight(1f)) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 비상연락처는 운행 중 마무리 화면에서만 보인다. 화면이 바뀌면(다시 출발, 운행 종료) 닫는다.
+                    LaunchedEffect(screen) { if (screen != Screen.WRAP) c.hideEmergency() }
+                    Fading(if (screen == Screen.WRAP) emergencyUi else null) { em ->
+                        IviPopup(
+                            onDismiss = c::hideEmergency,
+                            buttons = { IviButton("닫기", c::hideEmergency, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
+                        ) {
+                            if (em.contacts.isNotEmpty()) {
+                                PopupTitle("비상연락처", "차주님이 미리 등록한 번호입니다. 확인한 사실은 차주님께 알림으로 남습니다.")
+                                Spacer(Modifier.height(24.dp))
+                                PairColumns(em.contacts.map { it.label to it.dialText }, Type.titleSmall, Type.headlineLarge, gap = 16.dp)
+                            } else {
+                                PopupTitle("비상연락처", em.message)
+                            }
+                        }
+                    }
+
+                    Fading(if (confirmUnbind && screen == Screen.SETTINGS) pairing.status else null) { status ->
+                        IviPopup(
+                            onDismiss = { confirmUnbind = false; c.clearPairing() },
+                            buttons = {
+                                IviButton("취소", { confirmUnbind = false; c.clearPairing() }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                IviButton("연결 해제", c::unbind, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, loading = busy)
+                            },
+                        ) {
+                            PopupTitle(
+                                "번호 연결을 해제할까요?",
+                                status.ifBlank { "번호, 예약, 휴대폰 연결 정보가 삭제됩니다. 차에 저장된 귀가 카드는 남습니다." },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

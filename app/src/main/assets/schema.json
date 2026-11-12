@@ -1,0 +1,21 @@
+{
+  "packageName": "com.lrlr.codaeri",
+  "appDescription": "Records a substitute-driver (daeri) trip from the car's own signals: when it started and ended, the distance, and the state of the car before and after the handover.",
+  "invokeWord": "코대리",
+  "version": "0.2.0",
+  "actionCalls": [
+    {
+      "type": "function",
+      "function": {
+        "name": "GET_LAST_DAERI_TRIP",
+        "description": "Tell the owner about the most recent substitute-driver trip: when the car arrived, who drove, the distance and the duration.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "service"
+      }
+    }
+  ]
+}

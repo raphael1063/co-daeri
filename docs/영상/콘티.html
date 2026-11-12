@@ -1,0 +1,514 @@
+<title>코-대리 시연 콘티</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* layout: one 16:9 stage that plays the whole ride, a transport bar under it, then the shot list. Look follows the DON pilot web: white, ink, one orange. */
+:root{
+  --paper:#fff; --ink:#0b0b0b; --muted:#4a4a4a; --hair:#d9d9d9; --field:#f4f4f4; --accent:#e2862f; --on-accent:#0b0b0b;
+  --stage:#f4f4f4; --bezel:#0b0b0b; --screen:#fff;
+  --sans:"IBM Plex Sans KR",system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0b0b0b; --ink:#f5f5f5; --muted:#b5b5b5; --hair:#333; --field:#1a1a1a; --stage:#151515; --bezel:#000; --screen:#1a1a1a; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --paper:#0b0b0b; --ink:#f5f5f5; --muted:#b5b5b5; --hair:#333; --field:#1a1a1a; --stage:#151515; --bezel:#000; --screen:#1a1a1a; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.brand{font-family:var(--mono);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.brand i{width:10px;height:10px;background:var(--ink);display:block}
+h1{font-size:clamp(26px,4.4vw,40px);line-height:1.2;margin:0;font-weight:700;text-wrap:balance}
+h1 u{text-decoration:none;box-shadow:inset 0 -6px 0 var(--accent)}
+.lede{color:var(--muted);margin:0;max-width:62ch}
+#stageBox{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:var(--stage);border:2px solid var(--ink);overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0}
+.actor{position:absolute;left:0;top:0;will-change:transform,opacity}
+.phone{width:300px;height:620px;background:var(--bezel);padding:11px;border-radius:46px;box-shadow:inset 0 0 0 2px #3a3a3a}
+.phone::before{content:'';position:absolute;left:50%;top:21px;width:13px;height:13px;margin-left:-6.5px;border-radius:50%;background:#0d0d0d;z-index:3}
+.phone::after{content:'';position:absolute;left:50%;bottom:19px;width:96px;height:5px;margin-left:-48px;border-radius:3px;background:rgba(0,0,0,.55);z-index:3}
+.phone .btn{position:absolute;right:-4px;top:150px;width:4px;height:70px;background:var(--bezel);border-radius:0 3px 3px 0}
+.phone .btn.l{right:auto;left:-4px;top:120px;height:44px;border-radius:3px 0 0 3px;box-shadow:0 60px 0 var(--bezel)}
+.phone .scr{width:100%;height:100%;background:var(--screen);position:relative;overflow:hidden;border-radius:36px;border-top:34px solid var(--screen);border-bottom:18px solid var(--screen);box-sizing:border-box}
+.who{position:absolute;left:0;top:-34px;font-family:var(--mono);font-size:18px;color:var(--muted);white-space:nowrap}
+.car{width:1016px;height:578px;background:var(--bezel);padding:8px;border-radius:14px}
+.car .scr{width:100%;height:100%;background:var(--screen);position:relative;overflow:hidden;border-radius:7px}
+.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
+/* emulator captures are shown whole: vehicle panel on the left, app on the right, dock at the bottom */
+.car .scr img,.car .scr video{object-fit:fill!important}
+.ph{position:absolute;inset:14px;border:2px dashed var(--hair);display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px;color:var(--muted)}
+.ph b{font-family:var(--mono);font-weight:500;font-size:24px;color:var(--ink);word-break:break-all}
+.ph span{font-size:24px;line-height:1.45}
+.ph em{font-style:normal;font-family:var(--mono);font-size:15px}
+.sms{position:absolute;inset:0;padding:18px 14px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end;background:var(--screen)}
+.sms .hd{position:absolute;left:0;right:0;top:0;padding:12px 14px;border-bottom:1px solid var(--hair);font-family:var(--mono);font-size:15px;color:var(--muted);background:var(--screen)}
+.bub{word-break:keep-all;max-width:90%;padding:10px 12px;font-size:20px;line-height:1.38;border:2px solid var(--ink)}
+.bub.me{align-self:flex-end;background:var(--ink);color:var(--paper)}
+.bub.don{align-self:flex-start;background:var(--screen);color:var(--ink)}
+.note{position:absolute;left:14px;right:14px;bottom:6px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+svg text{font-family:var(--sans)}
+#title,#endc{width:1200px;text-align:left}
+#title .t,#endc .t{font-size:74px;font-weight:700;line-height:1.2}
+#title .t u,#endc .t u{text-decoration:none;box-shadow:inset 0 -12px 0 var(--accent)}
+#title .s,#endc .s{font-size:30px;color:var(--muted);margin-top:22px}
+#hud{left:48px;top:40px;display:flex;gap:18px;align-items:baseline}
+#hud .clk{font-family:var(--mono);font-size:30px}
+#hud .scn{font-size:30px;font-weight:700}
+#cap{left:48px;top:796px;width:1504px;font-size:34px;font-weight:500;line-height:1.3}
+#cap small{display:block;font-size:22px;color:var(--muted);font-weight:400;margin-top:4px}
+#gear{display:flex;gap:10px;font-family:var(--mono);font-size:34px}
+#gear b{width:56px;height:64px;display:flex;align-items:center;justify-content:center;border:2px solid var(--hair);color:var(--muted);font-weight:500}
+#gear b.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+#chips{display:flex;flex-direction:column;gap:12px;width:340px}
+.chip{border:2px solid var(--ink);padding:10px 14px;font-size:20px;background:var(--paper);display:flex;justify-content:space-between;gap:12px}
+.chip i{font-style:normal;font-family:var(--mono);color:var(--muted)}
+.chip.hot{box-shadow:inset 0 -6px 0 var(--accent)}
+#place{left:48px;top:86px;font-size:22px;color:var(--muted)}
+#logW{width:340px}
+#logW h4{margin:0 0 10px;font-family:var(--mono);font-weight:500;font-size:17px;color:var(--muted)}
+.lg{border-left:4px solid var(--hair);padding:6px 0 6px 12px;margin-bottom:8px;font-size:20px;line-height:1.35}
+.lg i{display:block;font-style:normal;font-family:var(--mono);font-size:14px;color:var(--muted)}
+.lg.lc{border-left-color:var(--ink)}
+.lg.ls{border-left-color:var(--accent)}
+.lg.new{background:var(--paper)}
+.lgk{display:flex;gap:14px;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:10px}
+.lgk span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;background:var(--ink)}
+.lgk span.s::before{background:var(--accent)}
+#flow{width:1600px;height:900px;pointer-events:none}
+.fn{position:absolute;border:3px solid var(--ink);background:var(--paper);padding:16px 18px;box-sizing:border-box}
+.fn.ghost{border:2px dashed var(--hair);color:var(--muted);background:transparent}
+.fn h5{margin:0;font-size:27px;font-weight:700;display:flex;gap:12px;align-items:center}
+.fn h5 i{width:16px;height:16px;background:var(--accent);display:block;flex:none}
+.fn.ghost h5 i{background:var(--hair)}
+.fn p{word-break:keep-all;margin:6px 0 12px;font-size:18px;line-height:1.35;color:var(--muted)}
+.fs{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:21px;padding:9px 8px;border-top:1px solid var(--hair)}
+.fs b{font-weight:500;display:flex;align-items:center;gap:10px}
+.fs b::before{content:"";width:12px;height:12px;border:2px solid var(--ink);background:var(--ink);box-sizing:border-box;flex:none}
+.fs i{font-style:normal;font-family:var(--mono);font-size:17px;color:var(--muted);white-space:nowrap}
+.fs.wait{color:var(--muted)}.fs.wait b::before{background:transparent;border-color:var(--hair)}
+.fs.hot{box-shadow:inset 0 -6px 0 var(--accent)}.fs.hot b::before{background:var(--accent)}
+.fs.shut{color:var(--muted)}.fs.shut b::before{background:transparent;border-color:var(--hair)}
+#flow svg{position:absolute;left:0;top:0}
+#flow svg text{font-family:var(--mono);font-size:19px;fill:currentColor}
+.fe{color:var(--hair)}.fe.on{color:var(--ink)}
+#agW{right:48px;left:auto;top:76px;display:flex;align-items:center;gap:12px;border:2px solid var(--ink);background:var(--paper);padding:8px 16px;font-size:21px;white-space:nowrap}
+#agW .d{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--ink);box-sizing:border-box;flex:none}
+#agW b{font-weight:700}#agW em{font-style:normal;font-family:var(--mono);font-size:15px;color:var(--muted)}
+#agW span{padding-left:12px;border-left:2px solid var(--hair)}
+#agW.hot{box-shadow:inset 0 -6px 0 var(--accent)}
+#fx{width:1600px;height:900px;pointer-events:none}
+#fx text{font-family:var(--mono);font-size:20px;fill:var(--ink)}
+.cam{position:absolute;inset:0;background:var(--bezel);color:#cfcfcf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:var(--mono);font-size:17px}.cam i{width:130px;height:130px;border:3px solid var(--accent);display:block}
+.off{position:absolute;inset:0;background:var(--bezel);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:22px;color:#8a8a8a}
+.qry{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:30px;font-weight:500}
+.qry small{font-family:var(--mono);font-size:16px;color:var(--muted);font-weight:400}
+.qry .bar3{display:flex;gap:8px}.qry .bar3 b{width:14px;height:14px;background:var(--hair)}.qry .bar3 b.on{background:var(--accent)}
+#tts{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:20px;border:2px solid var(--ink);background:var(--paper);padding:8px 14px}
+#tts .w{display:flex;gap:4px;align-items:center;height:28px}#tts .w b{width:5px;background:var(--accent);display:block}
+#cnt{font-family:var(--mono);font-size:22px;border:2px solid var(--ink);background:var(--paper);padding:6px 12px;white-space:nowrap}
+#demoTag{right:48px;left:auto;top:44px;font-family:var(--mono);font-size:18px;color:var(--muted)}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button{font:inherit;font-weight:700;background:var(--ink);color:var(--paper);border:2px solid var(--ink);padding:8px 18px;cursor:pointer;border-radius:0}
+button.ghost{background:var(--paper);color:var(--ink);font-weight:500;padding:6px 10px;font-size:14px}
+button.ghost.on{box-shadow:inset 0 -4px 0 var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#seek{flex:1;min-width:160px;accent-color:var(--accent)}
+#tt{font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:92px;text-align:right}
+#jump{display:flex;gap:6px;flex-wrap:wrap}
+h2{font-size:22px;margin:16px 0 0}
+.tblw{overflow-x:auto;border:2px solid var(--ink)}
+table{border-collapse:collapse;width:100%;min-width:1080px;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--hair)}
+th{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--field)}
+td.k{font-family:var(--mono);font-size:13px;white-space:nowrap}
+td code{font-family:var(--mono);font-size:13px;background:var(--field);padding:1px 5px;display:inline-block;margin:1px 0}
+tr:last-child td{border-bottom:0}
+.foot{color:var(--muted);font-size:14px;max-width:70ch;margin:0}
+.scn{display:flex;flex-direction:column;gap:18px}
+.scn article{border:1px solid var(--hair);padding:18px 20px;background:var(--paper);min-width:0}
+.scn header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:8px}
+.scn h3{margin:0;font-size:19px}
+.scn .k{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.scn .m{color:var(--muted)}
+.scn p.w{margin:0 0 12px;max-width:70ch}
+.scn dl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px 16px;margin:0}
+.scn dt{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:2px}
+.scn dd{margin:0;min-width:0}
+.scn ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.scn li{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px}
+@media (max-width:640px){.scn dl{grid-template-columns:1fr;gap:2px 0}.scn dt{margin-top:8px}.scn li{grid-template-columns:1fr;gap:0}}
+.fl{position:absolute;font-family:var(--mono);font-size:18px;color:var(--muted);white-space:nowrap}
+#stage[data-s="call"] #carD .who,#stage[data-s="call"] #phA .who{opacity:0}
+</style>
+
+<div class="wrap">
+  <div class="brand"><i></i>DON · 코-대리 시연 콘티 v1.1</div>
+  <h1>대리 호출부터 귀가까지, <u>코-대리</u>가 챙깁니다</h1>
+  <p class="lede">문자 예약부터 결제, 다음 날 아침까지 한 번의 대리 이용을 101초로 짠 콘티입니다. 위의 화면은 영상과 같은 시안이고, 차량 화면과 휴대폰 웹 화면은 에뮬레이터와 시연용 서버에서 찍은 실제 화면입니다. 아래 장면별 콘티에는 장면마다 화면 구성, 순서대로 일어나는 일, 화면에 나오는 문장, 자막, 내레이션을 그대로 적었습니다.</p>
+
+  <div id="stageBox" aria-label="시연 애니메이션">
+    <div id="stage">
+      <div class="actor" id="hud"><span class="clk" id="clk"></span><span class="scn" id="scn"></span></div>
+      <div class="actor" id="place"></div>
+      <div class="actor" id="demoTag">시연용 서버 · 화면 속 이름과 요금은 예시</div>
+
+      <div class="actor" id="title"><div class="t">호출부터 귀가까지 챙기는<br>대리 에이전트, <u>코-대리</u></div><div class="s">Pleos Connect 차량 앱</div></div>
+      <div class="actor" id="endc"><div class="t">대리 호출부터 귀가까지,<br><u>코-대리</u>가 챙깁니다</div><div class="s">코-대리 · Pleos Connect 차량 앱</div></div>
+
+      <div class="actor" id="map">
+        <svg width="700" height="500" viewBox="0 0 700 500">
+          <rect x="1" y="1" width="698" height="498" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+          <g stroke="var(--hair)" stroke-width="2" fill="none">
+            <path d="M0 120H700M0 260H700M0 400H700M140 0V500M330 0V500M540 0V500"/>
+          </g>
+          <path id="route" d="M110 90 L110 180 Q110 260 200 260 L330 260 Q420 260 420 330 L420 400 L590 400 L590 440" fill="none" stroke="var(--hair)" stroke-width="10"/>
+          <path id="routeDone" d="M110 90 L110 180 Q110 260 200 260 L330 260 Q420 260 420 330 L420 400 L590 400 L590 440" fill="none" stroke="var(--ink)" stroke-width="10"/>
+          <circle id="drv" r="11" fill="var(--paper)" stroke="var(--ink)" stroke-width="4" cx="0" cy="0"/>
+          <circle id="carDot" r="15" fill="var(--accent)" stroke="var(--ink)" stroke-width="3" cx="110" cy="90"/>
+          <rect x="60" y="34" width="100" height="36" fill="var(--ink)"/><text x="110" y="59" text-anchor="middle" font-size="20" fill="var(--paper)">강남역</text>
+          <rect x="520" y="452" width="150" height="36" fill="var(--ink)"/><text x="595" y="477" text-anchor="middle" font-size="20" fill="var(--paper)">판교 삼평동</text>
+          <text id="mapLbl" x="24" y="476" font-size="22" fill="var(--muted)" style="font-family:var(--mono)"></text>
+        </svg>
+      </div>
+
+      <div class="actor" id="flow">
+        <div id="flowN"></div>
+        <svg width="1600" height="900" viewBox="0 0 1600 900">
+          <g class="fe" id="fe1"><path d="M424 300C530 300 500 445 588 445" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="10 8"/><path d="M300 612C470 612 500 445 588 445" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="10 8"/><path d="M600 445l-16 -9v18z" fill="currentColor"/><text x="470" y="452" text-anchor="middle">호출</text></g>
+          <g class="fe" id="fe5"><path d="M1040 445H1168" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="10 8"/><path d="M1180 445l-16 -9v18z" fill="currentColor"/><text x="1108" y="429" text-anchor="middle">예약</text></g>
+          <circle id="fpk" r="11" fill="var(--accent)" stroke="var(--ink)" stroke-width="3" cx="0" cy="0"/>
+        </svg>
+      </div>
+
+      <div class="actor" id="cabin">
+        <svg width="420" height="640" viewBox="0 0 420 640">
+          <g fill="var(--ink)"><rect x="50" y="104" width="30" height="92" rx="12"/><rect x="340" y="104" width="30" height="92" rx="12"/><rect x="50" y="446" width="30" height="92" rx="12"/><rect x="340" y="446" width="30" height="92" rx="12"/>
+          <path d="M74 214 l-30 10 q-8 3 -6 12 l3 8 q3 7 11 5 l22 -6z"/><path d="M346 214 l30 10 q8 3 6 12 l-3 8 q-3 7 -11 5 l-22 -6z"/></g>
+          <path d="M210 16 C296 16 342 44 346 118 L348 524 C346 594 298 624 210 624 C122 624 74 594 72 524 L74 118 C78 44 124 16 210 16Z" fill="var(--paper)" stroke="var(--ink)" stroke-width="5"/>
+          <path d="M106 64 q-14 4 -16 22" fill="none" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"/><path d="M314 64 q14 4 16 22" fill="none" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"/>
+          <path d="M112 118 Q210 92 308 118" fill="none" stroke="var(--hair)" stroke-width="3"/>
+          <path d="M100 196 Q210 146 320 196 L300 240 Q210 214 120 240Z" fill="var(--field)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M124 512 Q210 534 296 512 L310 552 Q210 584 110 552Z" fill="var(--field)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M96 252 V500 M324 252 V500" stroke="var(--hair)" stroke-width="3"/>
+          <rect id="seatFL" x="110" y="270" width="92" height="100" rx="20" fill="var(--field)" stroke="var(--ink)" stroke-width="4"/>
+          <rect id="seatFR" x="218" y="270" width="92" height="100" rx="20" fill="var(--field)" stroke="var(--ink)" stroke-width="4"/>
+          <rect id="seatRL" x="110" y="394" width="92" height="100" rx="20" fill="var(--field)" stroke="var(--ink)" stroke-width="4"/>
+          <rect id="seatRR" x="218" y="394" width="92" height="100" rx="20" fill="var(--field)" stroke="var(--ink)" stroke-width="4"/>
+          <g fill="var(--ink)"><rect x="132" y="360" width="48" height="14" rx="7"/><rect x="240" y="360" width="48" height="14" rx="7"/><rect x="132" y="484" width="48" height="14" rx="7"/><rect x="240" y="484" width="48" height="14" rx="7"/></g>
+          <circle cx="156" cy="256" r="21" fill="var(--paper)" stroke="var(--ink)" stroke-width="6"/><circle cx="156" cy="256" r="5" fill="var(--ink)"/>
+          <text id="lblFL" x="156" y="330" text-anchor="middle" font-size="27" font-weight="700" fill="var(--on-accent)"></text>
+          <text id="lblRR" x="264" y="454" text-anchor="middle" font-size="27" font-weight="700" fill="var(--paper)"></text>
+        </svg>
+      </div>
+
+      <div class="actor" id="gearW"><div id="gear"><b data-g="P">P</b><b data-g="R">R</b><b data-g="N">N</b><b data-g="D">D</b></div></div>
+      <div class="actor" id="chipsW"><div id="chips"></div></div>
+      <div class="actor" id="logW"><h4>이 운행에서 알게 된 것</h4><div id="log"></div><div class="lgk"><span>차가 본 것</span><span class="s">코-대리가 알려 준 것</span></div></div>
+      <div class="actor" id="ttsW"><div id="tts"><span>음성 안내</span><span class="w" id="ttsBars"></span></div></div>
+      <div class="actor" id="alW"><span class="who" style="top:-34px">차주 휴대폰 페이지의 알림 칸 · 시연 서버에서 확인한 실제 화면</span><img src="screens/web_alert_box.png" alt="" style="width:660px;display:block;border:2px solid var(--ink)"></div>
+      <div class="actor" id="cntW"><div id="cnt"></div></div>
+
+      <div class="actor car" id="carD"><span class="who">차량 화면 · Pleos Connect 에뮬레이터</span><div class="scr" id="carScr"></div></div>
+      <div class="actor phone" id="phA"><span class="who">차주의 휴대폰</span><i class="btn"></i><i class="btn l"></i><div class="scr" id="phAScr"></div></div>
+      <div class="actor phone" id="phB"><span class="who">기사님의 휴대폰</span><i class="btn"></i><i class="btn l"></i><div class="scr" id="phBScr"></div></div>
+
+      <div class="actor" id="fx"><svg width="1600" height="900" viewBox="0 0 1600 900">
+        <path id="fx1" d="M690 230 C 760 110, 900 110, 1000 190" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="14 10"/>
+        <text id="fx1t" x="840" y="128" text-anchor="middle">결제 QR 찍기</text>
+        <path id="fx2" d="M868 420 C 900 100, 1260 60, 1340 208" fill="none" stroke="var(--ink)" stroke-width="4" stroke-dasharray="14 10"/>
+        <text id="fx2t" x="1040" y="98" text-anchor="middle">기사님 휴대폰으로 기록 보기</text>
+        <circle id="tap" cx="1320" cy="640" r="20" fill="none" stroke="var(--accent)" stroke-width="6"/>
+      </svg></div>
+      <div class="actor" id="agW"><i class="d" id="agD"></i><b>코-대리</b><em>실시간 관리</em><span id="agT"></span></div>
+      <div class="actor" id="cap"></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button id="play" type="button">멈춤</button>
+    <button id="snd" type="button" class="ghost" aria-pressed="false" hidden>소리 켜기</button>
+    <audio id="aud" src="audio/codaeri-mix.mp3" preload="auto"></audio>
+    <input id="seek" type="range" min="0" max="91" step="0.05" value="0" aria-label="재생 위치">
+    <span id="tt"></span>
+  </div>
+  <div id="jump" aria-label="장면으로 이동"></div>
+
+  <h2>장면별 콘티</h2>
+  <div id="rows" class="scn"></div>
+  <p class="foot">문자 대화 화면은 그림으로 그렸습니다. 대리운전 예약 문자는 아직 실제로 운영되지 않기 때문입니다. 차량 화면과 웹 화면은 에뮬레이터와 시연용 서버에서 찍은 실제 화면을 넣습니다. 지도, 좌석, 기어 그림은 차의 신호를 설명하는 그림입니다.</p>
+</div>
+
+<script>
+(function(){
+// ---------- 콘티 데이터 ----------
+var S=[
+ {id:'title', n:'여는 화면', d:4, clk:'', what:'흰 바탕에 코-대리가 무엇인지 한 문장으로 먼저 밝힌다.', cap:'', shots:[]},
+ {id:'call', place:'차 안에서 목소리로, 또는 문자로', sig:'없음(예약은 서버에서 차량으로 연결)', rec:'에뮬레이터: 목소리로 대리 부르기. 문자 화면은 그림', n:'1. 호출, 배정, 차에 전달', d:10, clk:'22:51', what:'어떻게 부르는지는 중요하지 않다. 차 안 코-대리 앱에서 목소리로 부르든 휴대폰 문자로 부르든, 호출은 코-대리 하나로 모인다. 코-대리가 호출을 접수하고, 기사님을 배정하고, 예약을 차량에 연결한다. 이 장면의 중심은 세 번째, 예약이 차로 전달되는 것이다.', cap:'호출을 받으면 코-대리가 기사님을 배정하고, 예약을 차량에 연결합니다.', sub:'차 안에서 목소리로 불러도, 문자로 불러도 같습니다', shots:[['s_voice','차 안 코-대리 앱: 목소리로 대리 부르기']]},
+ {id:'board', place:'식당 주차장, 차 안', sig:'좌석 착석(운전석, 뒷좌석), 시동 뒤 서버 조회', rec:'에뮬레이터 전체 화면: 예약 없는 홈 화면에서 인계 화면으로 바뀌는 것을 녹화', n:'2. 타면 예약이 나타난다', d:11, clk:'22:57', what:'기사님이 운전석에, 차주가 뒷자리에 앉고 시동이 걸린다. 차가 서버에 예약을 물어 인계 화면을 스스로 띄운다. 차 안에서는 아무도 화면을 누르지 않는다.', cap:'시동을 걸면 예약이 차량 화면에 나타납니다.', sub:'배정된 기사님, 목적지, 확정 요금. 차 안에서 다시 설명하거나 누를 것이 없습니다', shots:[['car_handover','인계 화면: 배정된 기사님 김○○ · 판교 삼평동 · 확정 25,000원 · 도착 후 자동 결제']]},
+ {id:'start', place:'주차장 출구', sig:'기어 P→D, 속도, 주행거리, 내비게이션 연동, 음성 안내(TTS)', rec:'에뮬레이터 전체 화면: 기어를 D로, 속도 0에서 40', n:'3. 달리면 기록이 남는다', d:7, clk:'22:58', what:'기사님이 기어를 D에 넣는 것만으로 운행 기록이 시작된다. 목적지는 순정 내비게이션으로 넘어가고, 차가 한 문장으로 기록 범위를 알린다.', cap:'"대리 운행을 기록합니다. 시각과 거리, 차 상태만 적습니다."', sub:'출발 버튼 없이, 기어를 D에 넣으면 기록을 시작합니다', shots:[['v_depart','출발 영상: P에서 D, 속도 0에서 40'],['car_navi','순정 내비게이션에 목적지가 들어간 화면']]},
+ {id:'drive', place:'강남에서 판교로', sig:'속도, 주행거리, 위치', rec:'에뮬레이터 전체 화면: 40에서 60km/h로 달리는 영상', n:'4. 주행', d:9, clk:'23:20', what:'강남에서 판교까지 달리는 구간을 9초로 줄여 보여 준다. 예약만으로는 알 수 없는 실제 움직임을 차가 알려 주고, 코-대리는 그 신호로 경로를 지켜본다.', cap:'예약만으로는 모르는 출발, 정차, 하차를 차가 알려 줍니다.', sub:'코-대리는 이 신호로 운행을 끝까지 지켜봅니다', shots:[['v_drive','주행 영상: 왼쪽 차량이 달리는 전체 화면']]},
+ {id:'guide', place:'집 근처', sig:'위치(집 반경 진입), 음성 안내(TTS)', rec:'에뮬레이터 전체 화면: 집 반경에 들어서 주차 안내 칸이 뜨는 영상', n:'5. 집 근처, 주차 안내', d:8, clk:'23:36', what:'집 근처에 들어서면 차주가 미리 적어 둔 주차 안내가 차량 화면에 뜨고 음성으로 읽힌다. 처음 오는 기사님도 차주에게 묻지 않고 주차장에 들어간다.', cap:'집 근처에 오면 차주가 적어 둔 주차 방법을 기사님께 안내합니다.', sub:'진입구, 주차 구역, 선호 위치를 화면과 음성으로', shots:[['v_guide','주차 안내 영상: 주행 화면에 안내 칸이 뜨고 넘어감']]},
+ {id:'gate', place:'아파트 차단기 앞', sig:'기어 D→P→D', rec:'에뮬레이터 전체 화면: 기어 P, 2초 뒤 D', n:'6. 정차는 종료가 아니다', d:5, clk:'23:38', what:'아파트 차단기 앞에서 잠깐 P단에 넣었다가 다시 D단으로 간다. 이때는 운행이 끝나지 않고 같은 운행으로 이어진다는 것을 보여 준다.', cap:'차단기 앞에서 잠깐 서도 같은 운행입니다.', sub:'P단에 넣어도 운전석에 사람이 있으면 정차로 봅니다', shots:[['car_stop','P단 정차 중 화면(마무리 화면이 열렸다 다시 닫힘)']]},
+ {id:'arrive', place:'지하 2층 주차장', sig:'기어 P, 주행거리, 창문 위치', rec:'에뮬레이터 전체 화면: 기어 P, 주차한 위치 선택. 웹: 기사용 QR로 여는 운행 기록 페이지', n:'7. 도착, 주차 위치 저장', d:9, clk:'23:40', what:'지하 2층에 주차하고 P단에 넣으면 마무리 화면에 운행 요약이 뜬다. 기사님이 실제로 세운 자리를 한 번 눌러 기록에 남기고, 화면의 QR로 자기 휴대폰에서 같은 기록을 본다.', cap:'기사님이 주차한 자리를 고르면 기록에 저장됩니다.', sub:'18 km · 42분 · 25,000원 · 지하 2층 B-17 근처', shots:[['car_finish','마무리 화면: 요약, 주차한 위치 선택, 기사용 QR'],['web_trip_pending','기사 휴대폰: 운행 기록, 마무리 중']]},
+ {id:'close', place:'지하 2층 주차장', sig:'운전석 비움 3초', rec:'에뮬레이터 전체 화면: 운전석 착석 해제 뒤 종료 화면. 웹: 기록 페이지가 최종 기록으로 바뀜', n:'8. 하차, 종료 확정, 자동 결제', d:9, clk:'23:40', what:'기사님이 내려 운전석이 3초 동안 비면 차가 종료 신호를 보낸다. 코-대리가 종료를 확정하고, 차주가 등록해 둔 결제수단으로 요금이 자동 결제된다. 기사님 정산도 플랫폼이 처리한다. 아무도 결제 단추를 누르지 않는다.', cap:'종료가 확정되면 결제와 정산은 자동입니다.', sub:'운전석이 비면 차가 알리고, 코-대리가 종료를 확정합니다', shots:[['car_final','종료 화면: 등록된 결제수단으로 자동 결제'],['web_trip_final','기사 휴대폰: 최종 기록, 플랫폼 자동 정산 예정']]},
+ {id:'pay', place:'차주의 휴대폰', sig:'문 잠금', rec:'그림(문자). 웹: 연결한 휴대폰 페이지의 결제 완료와 주차 위치. 에뮬레이터: 3분 뒤 문 잠금', n:'9. 차주에게 결과 전달', d:9, clk:'23:40', what:'코-대리가 결제 내역과 주차 위치를 차주 휴대폰으로 보낸다. 그 뒤에도 문 잠금을 지켜보다가, 3분 뒤 문이 잠기면 그 시각을 문자와 기록에 더한다.', cap:'결제 내역과 주차 위치를 차주에게 보냅니다.', sub:'23:40 자동 결제 · 지하 2층 B-17 근처 · 23:43 문 잠금 확인', shots:[['web_paid','차주 휴대폰: 자동 결제 완료와 주차 위치']]},
+ {id:'alert', place:'문제가 생겼을 때', sig:'운전석 착석, 위치, 기어, 문 잠금', rec:'웹: 차주 휴대폰 페이지의 알림 칸', n:'10. 문제가 생기면', d:7, clk:'만약', what:'일이 순조롭지 않을 때 코-대리가 무엇을 하는지 보여 준다. 기사님이 늦으면 다시 배정하고, 경로를 벗어나거나 엉뚱한 곳에 오래 서 있거나 문이 안 잠기면 차주에게 알린다. 네 가지 모두 앱 0.3.1과 시연 서버로 에뮬레이터에서 확인한 기능이고, 화면의 알림은 그때 실제로 뜬 것이다.', cap:'문제가 생기면 코-대리가 조치하고 차주에게 알립니다.', sub:'기사님이 늦으면 다시 배정. 경로 이탈, 오랜 정차, 문 안 잠김은 알림', shots:[['web_alert_box','차주 휴대폰 페이지의 알림 칸: 네 가지 알림이 쌓인 화면']]},
+ {id:'next', place:'다음 날 아침, 같은 주차장', sig:'부팅 뒤 자동 실행', rec:'에뮬레이터: 앱의 귀가 카드. 웹: 다음에도 이 기사님께 먼저를 누르는 것을 녹화', n:'11. 다음 날 아침', d:6, clk:'08:10', what:'다음 날 아침 차에 타면 어젯밤 귀가 기록이 차량 화면에 남아 있다. 차주는 누가 운전했고 어디에 세웠는지, 맡길 때와 돌려받을 때 차 상태가 어땠는지를 차와 휴대폰에서 확인한다.', cap:'다음 날 아침, 어젯밤 귀가 기록이 차에 남아 있습니다.', sub:'누가 운전했는지, 어디에 세웠는지, 맡길 때와 돌려받을 때의 차 상태', shots:[['car_card','차량 화면: 귀가 카드'],['web_card','차주 휴대폰: 귀가 카드']]},
+ {id:'end', n:'닫는 화면', d:5, clk:'', what:'흰 바탕에 한 문장으로 코-대리의 역할만 다시 말하고 끝낸다.', cap:'', shots:[]}
+];
+var T=0; S.forEach(function(s){s.t0=T;T+=s.d;s.t1=T;});
+var DUR=T;
+
+// ---------- 배우 위치(중심 x, y, 크기, 불투명도) ----------
+var A=['title','endc','alW','flow','map','cabin','gearW','chipsW','logW','ttsW','cntW','carD','phA','phB'];
+var SZ={alW:[660,546],flow:[1600,900],title:[1200,300],endc:[1200,500],map:[700,500],cabin:[420,640],gearW:[254,64],chipsW:[340,260],logW:[340,470],ttsW:[250,48],cntW:[250,44],carD:[1016,578],phA:[300,620],phB:[300,620]};
+var P={
+ title:{title:[800,430,1,1]},
+ call:{carD:[236,300,0.36,1],phA:[236,612,0.42,1],flow:[800,450,1,1]},
+ board:{cabin:[140,450,0.6,1],carD:[770,440,0.95,1],logW:[1425,440,1,1]},
+ start:{cabin:[140,410,0.6,1],carD:[770,440,0.95,1],logW:[1425,440,1,1],gearW:[140,650,0.85,1],ttsW:[820,128,1,1]},
+ drive:{map:[300,440,0.75,1],carD:[1075,440,0.95,1]},
+ guide:{carD:[610,440,0.95,1],chipsW:[1400,410,1,1],ttsW:[820,128,1,1]},
+ gate:{cabin:[140,410,0.6,1],carD:[770,440,0.95,1],logW:[1425,440,1,1],gearW:[140,650,0.85,1]},
+ arrive:{carD:[540,460,0.95,1],phB:[1340,480,0.85,1]},
+ close:{cabin:[140,430,0.6,1],carD:[690,430,0.72,1],phB:[1190,440,0.7,1],chipsW:[1445,400,0.88,1],cntW:[140,660,1,1]},
+ pay:{carD:[470,470,0.8,1],phA:[1040,490,0.85,1],chipsW:[1410,420,1,1]},
+ alert:{alW:[470,440,1,1],chipsW:[1200,440,1.15,1]},
+ next:{carD:[560,470,0.95,1],phA:[1340,480,0.9,1]},
+ end:{endc:[800,430,1,1]}
+};
+function pose(sid,a){var p=P[sid][a];return p||null;}
+function ease(x){x=Math.max(0,Math.min(1,x));return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;}
+var $=function(id){return document.getElementById(id);};
+
+// ---------- 화면 자리 ----------
+var SHOT={};S.forEach(function(s){s.shots.forEach(function(k){SHOT[k[0]]=k[1];});});
+var missing={},novid={},curT=0,VID={s_voice:1,s_board:1,s_start:1,s_drive:1,s_guide:1,s_gate:1,s_arrive:1,s_close:1,s_next:1},VOFF={},VFILE={},VSTART={s_voice:function(){return ST0.call;},s_board:function(){return ST0.board+2.2;},s_start:function(){return ST0.start;},s_drive:function(){return ST0.drive;},s_guide:function(){return ST0.guide;},s_gate:function(){return ST0.gate;},s_arrive:function(){return ST0.arrive;},s_close:function(){return ST0.close;},s_next:function(){return ST0.next;}};
+var FB={car_guide:'car_driving_mid',car_driving_mid:'car_driving',car_driving_late:'car_driving_mid',web_again_before:'web_card'};
+function rk(key){var n=0;while(missing[key]&&FB[key]&&n++<4)key=FB[key];return key;}
+Object.keys(FB).forEach(function(k){var im=new Image();im.onerror=function(){missing[k]=1;};im.src='screens/'+k+'.png';});
+var PRE=[];['car_card','car_driving','car_driving_mid','car_final','car_finish','car_handover','car_navi','car_stop','web_again','web_again_before','web_card','web_paid','web_pay','web_trip_final','web_trip_pending','web_alert_unlocked'].forEach(function(k){var im=new Image();im.src='screens/'+k+'.png';PRE.push(im);});
+Object.keys(VID).forEach(function(k){var v=document.createElement('video');v.muted=true;v.preload='auto';v.src='screens/'+k+'.mp4';PRE.push(v);});
+function setShot(scr,key){
+  if(scr.dataset.key===key)return; scr.dataset.key=key;
+  var keep=key&&key.charAt(0)!=='_'&&!missing[key]; if(!keep)scr.innerHTML='';
+  if(!key)return;
+  if(key==='_cam'){scr.innerHTML='<div class="cam"><i></i>QR 인식 중</div>';return;}
+  if(key==='_off'){scr.innerHTML='<div class="off">시동 꺼짐</div>';return;}
+  if(key.indexOf('_q')===0){var n=+key.slice(2);scr.innerHTML='<div class="qry"><div class="bar3"><b'+(n>0?' class="on"':'')+'></b><b'+(n>1?' class="on"':'')+'></b><b'+(n>2?' class="on"':'')+'></b></div>예약을 찾는 중<small>실제 차에서는 시동 뒤 15~30초</small></div>';return;}
+  function ph(){scr.innerHTML='<div class="ph"><em>실제 화면 자리</em><b>screens/'+key+'.png</b><span>'+(SHOT[key]||'')+'</span></div>';}
+  if(missing[key]){if(FB[key]){scr.dataset.key='';setShot(scr,rk(key));return;}ph();return;}
+  if(VID[key]&&!novid[key]){var v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';v.dataset.t0=(VSTART[key]?VSTART[key]():curT)-(VOFF[key]||0);v.onerror=function(){novid[key]=1;if(scr.dataset.key===key){scr.dataset.key='';setShot(scr,key);}};v.src='screens/'+(VFILE[key]||key)+'.mp4';var old=[].slice.call(scr.childNodes);v.addEventListener('loadeddata',function(){old.forEach(function(o){if(o.parentNode===scr)scr.removeChild(o);});});scr.appendChild(v);return;}
+  var im=new Image(); im.alt=''; function put(){if(scr.dataset.key===key){scr.innerHTML='';scr.appendChild(im);}}
+  im.onerror=function(){missing[key]=1;if(scr.dataset.key!==key)return;if(FB[key]){scr.dataset.key='';setShot(scr,rk(key));}else ph();};
+  im.onload=put; im.src='screens/'+key+'.png'; if(im.complete&&im.naturalWidth)put();
+}
+var MSG=[[0.8,'me','강남역에서 판교 삼평동 가요'],[4.4,'don','코-대리입니다. 강남역에서 판교 삼평동, 확정 25,000원이에요. 도착하면 등록된 카드로 자동 결제돼요. 1을 보내시면 기사님을 배정할게요.'],[5.8,'me','1'],[7.6,'don','확정됐어요. 기사님을 배정하고 있어요.'],[11.1,'don','김○○ 기사님이 배정됐어요. 4분 뒤 도착해요.'],[14.8,'don','기사님이 주차장에 도착했어요.']];
+var MSG2=[[0.9,'don','운행이 끝났어요. 23:40 도착, 18km 42분.'],[2.0,'don','등록된 카드로 25,000원이 결제됐어요.'],[3.1,'don','주차 위치: 지하 2층 B-17 근처 (기사님 확인). 기록 보기 링크'],[7.0,'don','23:43 문이 잠겼어요.']];
+function setSms2(scr,lt){
+  var n=MSG2.filter(function(m){return lt>=m[0];}).length, key='smsB'+n;
+  if(scr.dataset.key===key)return; scr.dataset.key=key;
+  var h='<div class="sms"><div class="hd">문자 · 코-대리 <span style="float:right">그림</span></div>';
+  MSG2.slice(0,n).forEach(function(m){h+='<div class="bub '+m[1]+'">'+m[2]+'</div>';});
+  scr.innerHTML=h+'</div>';
+}
+function setSms(scr,lt){
+  var n=MSG.filter(function(m){return lt>=m[0];}).length, key='sms'+n;
+  if(scr.dataset.key===key)return; scr.dataset.key=key;
+  var h='<div class="sms"><div class="hd">문자 · 코-대리 <span style="float:right">그림</span></div>';
+  MSG.slice(0,n).forEach(function(m){h+='<div class="bub '+m[1]+'">'+m[2]+'</div>';});
+  scr.innerHTML=h+'</div>';
+}
+var LOG=[
+ ['board',0.9,'car','운전석에 사람이 앉음','22:56'],['board',1.6,'car','뒷자리에 사람이 앉음','22:56'],['board',2.2,'car','시동. 서버에 예약을 물음','22:56'],
+ ['board',4.8,'svc','예약 1건. 배정된 기사님 김○○','확정 25,000원'],
+ ['start',2.2,'car','기어 P → D. 출발','22:58'],['start',2.6,'car','목적지를 내비게이션에 넘김','판교 삼평동'],['start',3.0,'car','운행 거리 기록 시작','0.0 km'],
+ ['gate',1.0,'car','기어 P. 정차','23:38'],['gate',3.4,'car','기어 D. 같은 운행으로 이어짐','23:38'],
+ ['arrive',1.2,'car','기어 P. 정차','23:40'],['arrive',1.8,'car','출발부터 18 km, 42분','23:40'],['arrive',2.6,'car','창문 닫힘','23:40'],['arrive',3.4,'car','주차 위치 저장','지하 2층 B-17 근처'],['arrive',5.8,'svc','기사님 휴대폰에 운행 기록을 보냄','마무리 중']
+];
+var ST0={};
+function drawLog(t){
+  var on=LOG.filter(function(l){return t>=ST0[l[0]]+l[1];}),last=on.slice(-6),h='';
+  last.forEach(function(l,i){h+='<div class="lg '+(l[2]==='car'?'lc':'ls')+(i===last.length-1?' new':'')+'">'+l[3]+'<i>'+l[4]+'</i></div>';});
+  if($('log').dataset.h!==h){$('log').dataset.h=h;$('log').innerHTML=h;}
+}
+var bars='';for(var bi=0;bi<9;bi++)bars+='<b></b>';
+var route=$('route'),routeDone=$('routeDone'),RL=route.getTotalLength();
+routeDone.style.strokeDasharray=RL;
+
+function chips(list){var h='';list.forEach(function(c){h+='<div class="chip'+(c[2]?' hot':'')+'"><span>'+c[0]+'</span><i>'+c[1]+'</i></div>';});if($('chips').dataset.h!==h){$('chips').dataset.h=h;$('chips').innerHTML=h;}}
+function gear(g){[].forEach.call(document.querySelectorAll('#gear b'),function(b){b.className=b.dataset.g===g?'on':'';});}
+function seat(id,mode){var e=$(id);e.setAttribute('fill',mode==='drv'?'var(--accent)':mode==='own'?'var(--ink)':'var(--field)');}
+
+S.forEach(function(s){ST0[s.id]=s.t0;});$('ttsBars').innerHTML=bars;
+function mm(a,b,k){var x=Math.round(a+(b-a)*k);return (Math.floor(x/60)%24<10?'0':'')+(Math.floor(x/60)%24)+':'+(x%60<10?'0':'')+(x%60);}
+// ---------- 흐름도: 문자 → 코-대리 → 기사님 배정 → 차 ----------
+var FSTEP=[[2.0,'호출 접수','22:51'],[4.5,'기사님 배정','김○○ 기사님'],[6.5,'예약을 차량에 연결','전달']];
+function drawFlow(u,t){
+  var hot=-1;FSTEP.forEach(function(f,i){if(u>=f[0])hot=i;});
+  var h='<div class="fl" style="left:53px;top:150px">차 안 코-대리 앱 · 목소리로</div><div class="fl" style="left:173px;top:452px">휴대폰 · 문자로</div>';
+  h+='<div class="fn" style="left:600px;top:290px;width:440px;height:310px"><h5><i></i>코-대리</h5><p>호출부터 귀가까지 관리합니다</p>';
+  FSTEP.forEach(function(f,i){h+='<div class="fs'+(u<f[0]?' wait':i===hot?' hot':'')+'"><b>'+f[1]+'</b><i>'+(u<f[0]?'':f[2])+'</i></div>';});
+  h+='</div>';
+  var cOn=u>=7.4;
+  h+='<div class="fn'+(cOn?'':' ghost')+'" style="left:1180px;top:350px;width:370px;height:190px"><h5><i></i>차 · Pleos Connect</h5><p>'+(cOn?'예약이 준비됐습니다. 시동이 켜지면 차량 화면에 나타납니다':'예약을 기다리는 중')+'</p></div>';
+  var n=$('flowN');if(n.dataset.h!==h){n.dataset.h=h;n.innerHTML=h;}
+  var on={fe1:u>=0.4,fe5:u>=6.5};
+  ['fe1','fe5'].forEach(function(id){var g=$(id);g.setAttribute('class','fe'+(on[id]?' on':''));[].forEach.call(g.querySelectorAll('path[stroke-dasharray]'),function(q){q.style.strokeDashoffset=on[id]?(-t*60):0;});});
+  $('fpk').style.opacity=0;
+}
+// ---------- 한 프레임 그리기 ----------
+function render(t){
+  t=Math.max(0,Math.min(DUR-0.001,t));curT=t;
+  var i=0;while(i<S.length-1&&t>=S[i].t1)i++;
+  var s=S[i];$('stage').dataset.s=s.id;var lt=t-s.t0,prev=S[i-1],k=prev?ease(lt/0.8):1,kq=prev?Math.min(1,lt/0.8):1,kin=prev?ease((kq-0.45)/0.55):1,kout=prev?ease(kq/0.45):1;
+  A.forEach(function(a){
+    var to=pose(s.id,a),from=prev?pose(prev.id,a):null,x,y,sc,o;
+    if(to&&from){x=from[0]+(to[0]-from[0])*k;y=from[1]+(to[1]-from[1])*k;sc=from[2]+(to[2]-from[2])*k;o=1;}
+    else if(to){x=to[0];y=to[1]+(1-kin)*30;sc=to[2];o=kin;}
+    else if(from){x=from[0];y=from[1];sc=from[2];o=1-kout;}
+    else{x=800;y=450;sc=1;o=0;}
+    var el=$(a),w=SZ[a][0],h=SZ[a][1];
+    el.style.transform='translate('+(x-w/2)+'px,'+(y-h/2)+'px) scale('+sc+')';
+    if(a==='phB'&&s.id==='arrive')o=ease((lt-5.0)/0.5);
+    if(a!=='ttsW'&&a!=='cntW')el.style.opacity=o; el.style.visibility=o<0.01?'hidden':'visible';
+  });
+  $('clk').textContent=s.id==='drive'?mm(1378,1416,ease(lt/8.2)):s.id==='call'?mm(1371,1375,ease((lt-3.5)/3.5)):s.id==='pay'?(lt>7?'23:43':'23:40'):s.clk; $('scn').textContent=s.clk?s.n:'';
+  $('place').textContent=s.place||'';drawLog(t);
+  $('demoTag').style.opacity=s.clk?1:0;
+  $('cap').innerHTML=s.cap?(s.cap+(s.sub?'<small>'+s.sub+'</small>':'')):'';
+  $('cap').style.opacity=Math.min(1,lt/0.5);
+
+  // 문자
+  if(s.id==='call')setSms($('phAScr'),lt*1.6);
+  else if(s.id==='pay'){if(lt<4.6||lt>=7)setSms2($('phAScr'),lt);else setShot($('phAScr'),'web_paid');}
+  else if(s.id==='next')setShot($('phAScr'),'web_card');
+  else if(s.id==='title'){setSms($('phAScr'),0);}
+  // 기사 휴대폰
+  if(s.id==='arrive')setShot($('phBScr'),lt<6.8?'_cam':'web_trip_pending');
+  else if(s.id==='close')setShot($('phBScr'),lt<4.6?'web_trip_pending':'web_trip_final');
+  else if(s.id==='pay'||s.id==='next')setShot($('phBScr'),'web_trip_final');
+  // 차량 화면
+  var ck={call:'s_voice',board:lt<2.2?'_off':'s_board',start:'s_start',drive:'s_drive',guide:'s_guide',gate:'s_gate',arrive:'s_arrive',close:'s_close',pay:'s_close',next:'s_next'}[s.id];
+  if(ck!==undefined)setShot($('carScr'),ck);
+
+  [].forEach.call(document.querySelectorAll('#stage video'),function(v){var x=Math.max(0,t-parseFloat(v.dataset.t0));if(v.readyState>0){x=Math.min(x,(v.duration||x)-0.05);if(Math.abs(v.currentTime-x)>0.08)v.currentTime=x;}});
+  // 좌석
+  var drv=false,own=false;
+  if(s.id==='board'){drv=lt>0.9;own=lt>1.6;}
+  else if(s.id==='start'||s.id==='drive'||s.id==='guide'||s.id==='gate'||s.id==='arrive'){drv=own=true;}
+  else if(s.id==='close'){drv=lt<1.6;own=true;}
+  seat('seatFL',drv?'drv':'');seat('seatRR',own?'own':'');
+  $('lblFL').textContent=drv?'기사님':'';$('lblRR').textContent=own?'차주':'';
+  // 기어
+  gear(s.id==='start'?(lt<2.2?'P':'D'):(s.id==='drive'||s.id==='guide')?'D':s.id==='gate'?((lt>1&&lt<3.4)?'P':'D'):s.id==='arrive'?(lt<1.2?'D':'P'):'P');
+  // 지도
+  var prog=0,lbl='';
+  $('drv').style.opacity=0;
+  if(s.id==='call')drawFlow(lt,t);
+  var e9=ease(lt/8.2);
+  if(s.id==='drive'){prog=e9*0.72;lbl=(e9>0.995?'14':(14*e9).toFixed(1))+' km · '+Math.round(37*e9)+'분';}
+  else if(s.id==='guide'){prog=0.72;lbl='14 km · 37분';}
+  else if(s.id==='gate'){prog=0.775;lbl='15 km · 39분';}
+  else if(i>S.findIndex(function(x){return x.id==='gate';})){prog=0.93;lbl='18 km · 42분';}
+  var pt=route.getPointAtLength(RL*prog);
+  $('carDot').setAttribute('cx',pt.x);$('carDot').setAttribute('cy',pt.y);
+  routeDone.style.strokeDashoffset=RL*(1-prog);
+  $('mapLbl').textContent=lbl;
+  // 종료 단계
+  if(s.id==='close'){
+    var c=[['P단 정차','23:40']];
+    if(lt>1.6)c.push(['운전석이 비었음','23:40',lt<3.4]);
+    if(lt>3.4)c.push(['차가 종료 신호를 보냄','23:40',lt<4.6]);
+    if(lt>4.6)c.push(['코-대리가 종료를 확정','23:40',lt<5.8]);
+    if(lt>5.8)c.push(['등록 결제수단 자동 결제','23:40',lt<7]);
+    if(lt>7)c.push(['기사님 정산','자동 예정',true]);
+    chips(c);
+  } else if(s.id==='pay'){
+    var c2=[['자동 결제 완료 (시연용)','23:40']];
+    if(lt>3.1)c2.push(['주차 위치 전송','23:40',lt<7]);
+    if(lt>7)c2.push(['문 잠금 신호 받음','23:43',true]);
+    chips(c2);
+  } else if(s.id==='voice'){
+    var c5=[['대리를 부르는 방법','']];
+    c5.push(['차 안에서 목소리로','코-대리 앱',true]);
+    if(lt>1.5)c5.push(['문자로','다음 장면']);
+    if(lt>2.5)c5.push(['휴대폰의 AI 비서','앞으로']);
+    chips(c5);
+  } else if(s.id==='alert'){
+    var c4=[['코-대리가 지켜보는 것','']];
+    if(lt>0.8)c4.push(['기사님이 늦음','다시 배정',lt<2.2]);
+    if(lt>2.2)c4.push(['경로 이탈','차주에게 알림',lt<3.6]);
+    if(lt>3.6)c4.push(['오랜 정차','차주에게 알림',lt<5]);
+    if(lt>5)c4.push(['문이 안 잠김','차주에게 알림',true]);
+    chips(c4);
+  } else if(s.id==='guide'){
+    var c3=[['차주가 적어 둔 주차 안내','']];
+    if(lt>1.2)c3.push(['진입구','동쪽 지하주차장',lt<2.6]);
+    if(lt>2.6)c3.push(['진입 방법','차단기 자동',lt<4.2]);
+    if(lt>4.2)c3.push(['주차 구역','지하 2층 B구역',lt<5.2]);
+    if(lt>5.2)c3.push(['선호 위치','B-17 기둥 근처',lt<6.4]);
+    if(lt>6.4)c3.push(['자리가 없으면','지하 3층',true]);
+    chips(c3);
+  }
+  // 에이전트 실시간 관리 표시: [문구, 지켜보는 중인지]
+  var ag={
+    board:lt<0.9?['운전석 착석을 기다리는 중. 늦어지면 다시 배정',1]:lt<4.8?['운전석 착석 확인 22:56',0]:['예약을 차량 화면에 연결',0],
+    start:lt<2.2?['출발 대기',1]:['출발 확인 22:58',0],
+    drive:['경로를 지켜보는 중. 벗어나면 차주에게 알림',1],
+    guide:['집 근처 진입 확인 · 기사님께 주차 안내',0],
+    gate:(lt>1&&lt<3.4)?['일시 정차 · 운행 유지',1]:['경로를 지켜보는 중. 정상',1],
+    arrive:lt<1.2?['경로를 지켜보는 중. 정상',1]:lt<3.5?['도착 확인 23:40',0]:['주차 위치 받음 · 지하 2층 B-17 근처',0],
+    close:lt<3.4?['운전석 비움 신호 대기',1]:lt<4.6?['종료 신호 받음',0]:lt<5.8?['종료 확정 23:40',0]:['자동 결제 처리 · 기사님 정산 예정',0],
+    pay:lt<3.6?['결제 내역과 주차 위치를 차주에게 전달',0]:lt<7?['문 잠금을 지켜보는 중. 안 잠기면 차주에게 알림',1]:['문 잠금 확인 23:43',0],
+    alert:['문제를 발견하면 조치하고 차주에게 알림',1],
+    next:['어젯밤 귀가 기록을 차량에 표시',0]}[s.id];
+  var agw=$('agW');agw.style.opacity=ag?Math.min(1,lt/0.5+(prev&&P[prev.id].carD?1:0)):0;agw.style.visibility=ag?'visible':'hidden';
+  if(ag){if($('agT').textContent!==ag[0])$('agT').textContent=ag[0];agw.className='actor'+(ag[1]?' hot':'');$('agD').style.opacity=ag[1]?(0.35+0.65*Math.abs(Math.sin(t*3.2))):1;}
+  // 3초 비움 확인
+  var cn=(s.id==='close'&&lt>1.6&&lt<3.4);$('cntW').style.opacity=cn?1:0;
+  if(cn)$('cnt').textContent='운전석 비움 확인 '+Math.min(3,1+Math.floor((lt-1.6)/0.6))+'초';
+  // 음성 안내 막대
+  var sp=(s.id==='start'&&lt>2.4&&lt<6.2)||(s.id==='guide'&&lt>1.2&&lt<6.6);$('ttsW').style.opacity=sp?1:0;
+  if(sp)[].forEach.call($('ttsBars').children,function(b,i){b.style.height=(6+18*Math.abs(Math.sin(t*9+i*1.3)))+'px';});
+  // QR 찍기와 누르기
+  var f2=(s.id==='arrive'&&lt>5.4&&lt<6.8);
+  $('fx1').style.opacity=$('fx1t').style.opacity=0;$('fx2').style.opacity=$('fx2t').style.opacity=f2?1:0;
+  $('fx2').style.strokeDashoffset=-t*60;
+  var tp=false,tk=0,tx=0,ty=0;
+  if(s.id==='arrive'&&lt>2.6&&lt<3.5){tp=true;tk=(lt-2.6)/0.9;tx=440;ty=490;}
+  $('tap').setAttribute('cx',tx);$('tap').setAttribute('cy',ty);
+  $('tap').style.opacity=tp?(1-tk):0;$('tap').setAttribute('r',16+40*Math.max(0,tk));
+}
+
+// ---------- 재생 ----------
+var box=$('stageBox'),stage=$('stage');
+function fit(){stage.style.transform='scale('+(box.clientWidth/1600)+')';}
+window.addEventListener('resize',fit);fit();
+var t=0,playing=true,last=null,seek=$('seek'),tt=$('tt'),play=$('play');
+seek.max=DUR;
+function fmt(x){var m=Math.floor(x/60),s=Math.floor(x%60);return m+':'+(s<10?'0':'')+s;}
+function ui(){seek.value=t;tt.textContent=fmt(t)+' / '+fmt(DUR);play.textContent=playing?'멈춤':'재생';
+  [].forEach.call(document.querySelectorAll('#jump button'),function(b,i){b.className='ghost'+((t>=S[i].t0&&t<S[i].t1)?' on':'');});}
+/* sound: Korean narration + music in one file. While it is really playing, the audio clock drives the picture so they cannot drift. */
+var aud=$('aud'),snd=$('snd'),sndOn=false;
+function audSync(){if(!aud)return;if(!sndOn||!playing){if(!aud.paused)aud.pause();return;}
+  if(aud.paused){if(Math.abs(aud.currentTime-t)>0.15){try{aud.currentTime=Math.min(t,DUR-0.05);}catch(e){}}var pr=aud.play();if(pr&&pr.catch)pr.catch(function(){sndOn=false;sndUi();});}
+  else if(Math.abs(aud.currentTime-t)>0.35){try{aud.currentTime=Math.min(t,DUR-0.05);}catch(e){}}
+  else if(aud.readyState>2){t=aud.currentTime;}}
+function sndUi(){snd.textContent=sndOn?'소리 끄기':'소리 켜기';snd.setAttribute('aria-pressed',sndOn?'true':'false');}
+snd.addEventListener('click',function(){sndOn=!sndOn;sndUi();if(sndOn&&!playing){if(t>=DUR-0.05)t=0;playing=true;}audSync();});
+function tick(now){if(playing){if(last!==null)t+=(now-last)/1000;if(t>=DUR){t=DUR-0.01;playing=false;}}last=now;audSync();render(t);ui();requestAnimationFrame(tick);}
+play.addEventListener('click',function(){if(!playing&&t>=DUR-0.05)t=0;playing=!playing;});
+seek.addEventListener('input',function(){t=parseFloat(seek.value);playing=false;});
+S.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='ghost';b.textContent=s.n;b.addEventListener('click',function(){t=s.t0+0.01;playing=true;});$('jump').appendChild(b);});
+var NARR={"title": "호출부터 귀가까지 챙기는 대리 에이전트, 코-대리입니다.", "call": "차 안에서 목소리로 부르든 문자로 부르든, 코-대리가 호출을 받아 기사님을 배정하고 예약을 차량에 연결합니다.", "board": "시동을 걸면 예약이 차량 화면에 나타납니다. 배정된 기사님과 목적지, 요금을 차 안에서 다시 설명할 필요가 없습니다.", "start": "기어를 드라이브에 넣으면 운행 기록이 시작됩니다.", "drive": "예약만으로는 알 수 없는 출발과 정차, 하차를 차가 알려 줍니다. 코-대리는 이 신호로 운행을 지켜봅니다.", "guide": "집 근처에 오면 차주가 적어 둔 주차 방법을 기사님께 안내합니다.", "gate": "차단기 앞에서 잠깐 서도 운행은 이어집니다.", "arrive": "주차하면 기사님이 세운 자리를 기록에 남깁니다.", "close": "운전석이 비면 차가 알리고, 코-대리가 종료를 확정합니다. 요금은 자동으로 결제됩니다.", "pay": "결제 내역과 주차 위치를 차주에게 보냅니다. 문이 잠긴 것까지 확인합니다.", "alert": "문제가 생기면 코-대리가 조치하고 차주에게 알립니다.", "next": "다음 날 아침, 어젯밤 귀가 기록이 차에 남아 있습니다.", "end": "대리 호출부터 귀가까지, 코-대리가 챙깁니다."};
+var DET={"title": {"what": "흰 바탕에 코-대리가 무엇인지 한 문장으로 먼저 밝힌다.", "lay": "화면 가운데에 큰 글자 두 줄, 그 아래 작은 글자 한 줄. 다른 요소는 없다.", "beats": [["0:00", "큰 글자 \"호출부터 귀가까지 챙기는 / 대리 에이전트, 코-대리\"가 뜬다. \"코-대리\"에 주황 밑줄."], ["0:00", "그 아래 작은 글자 \"Pleos Connect 차량 앱\"."], ["0:04", "제목이 사라지고 장면 2로 넘어간다."]], "src": "실제 화면 없음. 글자만.", "cue": "0:00~0:04"}, "call": {"what": "어떻게 부르는지는 중요하지 않다. 차 안 코-대리 앱에서 목소리로 부르든 휴대폰 문자로 부르든, 호출은 코-대리 하나로 모인다. 코-대리가 호출을 접수하고, 기사님을 배정하고, 예약을 차량에 연결한다. 이 장면의 중심은 세 번째, 예약이 차로 전달되는 것이다.", "lay": "왼쪽에 호출 화면 두 개가 작게 놓인다. 위는 차량 화면(\"차 안 코-대리 앱 · 목소리로\", 실제 에뮬레이터 화면이 스스로 재생됨), 아래는 휴대폰(\"휴대폰 · 문자로\", 문자 대화가 스스로 흘러감). 두 화면에서 나온 점선이 하나로 모여 가운데 \"코-대리\" 상자로 들어간다(글자 \"호출\", 점선이 흐른다). 코-대리 상자에는 세 단계: 호출 접수, 기사님 배정, 예약을 차량에 연결. 오른쪽에 \"차 · Pleos Connect\" 상자. 코-대리에서 차로 가는 점선 화살표(글자 \"예약\"). 시각 22:51에서 22:55로. 문자 답장이나 요금 안내 같은 세부 흐름은 따로 짚지 않는다.", "beats": [["0:04", "왼쪽 두 화면이 재생되기 시작한다. 차량 화면에서는 \"목소리로 대리 부르기\" 창이 뜨고, 휴대폰에서는 문자가 오간다. 두 화면에서 코-대리로 가는 점선이 흐른다."], ["0:06", "코-대리 단계 1 \"호출 접수 22:51\"에 불이 들어온다."], ["0:08", "단계 2 \"기사님 배정: 김○○ 기사님\"."], ["0:10", "단계 3 \"예약을 차량에 연결: 전달\". 코-대리에서 차 상자로 가는 점선 화살표가 흐르기 시작한다."], ["0:11", "차 상자가 \"예약을 기다리는 중\"에서 \"예약이 준비됐습니다. 시동이 켜지면 차량 화면에 나타납니다\"로 바뀐다. 시각 22:55."]], "src": "s_voice.mp4 (차 안 음성 호출, 앱 0.4.1 에뮬레이터 확인 화면, 작게 재생). 문자 화면과 흐름도는 그림. 작게 보이는 음성 호출 화면의 목적지와 요금은 본편 값과 다르다(확인 때의 값).", "cue": "0:05~0:12"}, "board": {"what": "기사님이 운전석에, 차주가 뒷자리에 앉고 시동이 걸린다. 차가 서버에 예약을 물어 인계 화면을 스스로 띄운다. 차 안에서는 아무도 화면을 누르지 않는다.", "lay": "왼쪽에 위에서 본 차 그림(좌석 네 칸, 운전석 \"기사님\", 뒷자리 \"차주\"). 가운데에 실제 차량 화면(Pleos Connect 에뮬레이터). 오른쪽에 \"이 운행에서 알게 된 것\" 목록(검은 줄은 차가 본 것, 주황 줄은 코-대리가 알려 준 것). 오른쪽 위에 \"코-대리 · 실시간 관리\" 표시줄. 시각 22:57, 장소 \"식당 주차장, 차 안\".", "beats": [["0:14", "표시줄 \"운전석 착석을 기다리는 중. 늦어지면 다시 배정\". 차량 화면은 예약이 없는 코-대리 첫 화면."], ["0:15", "차 그림의 운전석에 \"기사님\"이 앉는다. 목록 \"운전석에 사람이 앉음 22:56\". 표시줄 \"운전석 착석 확인 22:56\"."], ["0:16", "뒷자리에 \"차주\"가 앉는다. 목록 \"뒷자리에 사람이 앉음 22:56\"."], ["0:16", "목록 \"시동. 서버에 예약을 물음 22:56\"."], ["0:19", "차량 화면이 인계 화면으로 바뀐다: \"배정된 기사님 김○○ 기사님\", 목적지 판교 삼평동, 확정 요금 25,000원 · 도착 후 자동 결제, 예약한 번호 010-****-5678, 오른쪽에 \"운행 기록 안내\" 카드. 목록에 주황 줄 \"예약 1건. 배정된 기사님 김○○ · 확정 25,000원\". 표시줄 \"예약을 차량 화면에 연결\"."], ["0:19~0:25", "인계 화면을 그대로 보여 준다."]], "src": "s_board.mp4 (4차 녹화). 에뮬레이터에서 예약 없는 첫 화면이 인계 화면으로 바뀌는 것을 그대로 찍었다.", "cue": "0:14~0:23"}, "start": {"what": "기사님이 기어를 D에 넣는 것만으로 운행 기록이 시작된다. 목적지는 순정 내비게이션으로 넘어가고, 차가 한 문장으로 기록 범위를 알린다.", "lay": "장면 2과 같은 배치. 차 그림 아래에 기어 표시 P R N D가 추가된다. 차량 화면 위에 \"음성 안내\" 막대가 뜬다. 시각 22:58, 장소 \"주차장 출구\".", "beats": [["0:25", "표시줄 \"출발 대기\". 기어 표시는 P."], ["0:27", "기어 표시가 P에서 D로 옮겨 간다. 목록 \"기어 P → D. 출발 22:58\". 표시줄 \"출발 확인 22:58\"."], ["0:28", "\"음성 안내\" 막대가 움직이며 차가 말한다: \"대리 운행을 기록합니다. 시각과 거리, 차 상태만 적습니다.\" 같은 문장이 자막으로 나온다."], ["0:28", "차량 화면에 순정 내비게이션이 열리고 판교 삼평동까지 경로가 그려진다. 목록 \"목적지를 내비게이션에 넘김: 판교 삼평동\"."], ["0:28", "목록 \"운행 거리 기록 시작 0.0 km\". 차량 화면 왼쪽의 속도가 0에서 15 km/h 위로 오른다."]], "src": "s_start.mp4 (4차 녹화). 에뮬레이터에서 기어를 D로 바꾸고 속도를 올린 화면.", "cue": "0:25~0:29"}, "drive": {"what": "강남에서 판교까지 달리는 구간을 9초로 줄여 보여 준다. 예약만으로는 알 수 없는 실제 움직임을 차가 알려 주고, 코-대리는 그 신호로 경로를 지켜본다.", "lay": "왼쪽에 작은 지도(위 \"강남역\", 아래 \"판교 삼평동\", 주황 점이 길을 따라 움직이고 아래에 달린 거리와 시간). 가운데에 실제 차량 화면. 오른쪽 위에 코-대리 표시줄. 장소 \"강남에서 판교로\".", "beats": [["0:32", "표시줄 \"경로를 지켜보는 중. 벗어나면 차주에게 알림\"(주황 테두리)."], ["0:32~0:41", "지도에서 주황 점이 강남역에서 판교 삼평동 쪽으로 움직이고, 화면 속 시각이 22:58에서 23:36까지 빠르게 흐른다."], ["0:32~0:41", "차량 화면: 속도 50 km/h 안팎, \"기록 중\" 표시, \"판교 삼평동까지 운행 중\", 작은 글자 \"도착 후 P단을 넣으면 마무리 화면이 열립니다\", 단추 \"주차 안내 듣기\"."]], "src": "s_drive.mp4 (4차 녹화). 에뮬레이터에서 40~60 km/h로 달리는 화면.", "cue": "0:32~0:40"}, "guide": {"what": "집 근처에 들어서면 차주가 미리 적어 둔 주차 안내가 차량 화면에 뜨고 음성으로 읽힌다. 처음 오는 기사님도 차주에게 묻지 않고 주차장에 들어간다.", "lay": "왼쪽에 실제 차량 화면, 그 위에 \"음성 안내\" 막대. 오른쪽에 \"차주가 적어 둔 주차 안내\" 목록이 한 줄씩 쌓인다. 시각 23:36, 장소 \"집 근처\".", "beats": [["0:41", "표시줄 \"집 근처 진입 확인 · 기사님께 주차 안내\". 차량 화면의 운행 중 화면 아래에 주차 안내 칸이 열린다."], ["0:42", "안내 1쪽: \"동쪽 지하주차장 입구로 들어갑니다 / 차단기는 등록 차량이라 자동으로 열립니다\". 단추 \"다음 안내\", \"다시 듣기\". 음성 안내 막대가 움직인다."], ["0:42, 0:44", "오른쪽 목록에 \"진입구: 동쪽 지하주차장\", \"진입 방법: 차단기 자동\"."], ["0:45", "안내 2쪽: \"지하 2층 B구역입니다 / B-17 기둥 근처가 좋습니다\". 목록에 \"주차 구역: 지하 2층 B구역\", \"선호 위치: B-17 기둥 근처\"."], ["0:47", "안내 3쪽: \"자리가 없으면 지하 3층 아무 곳에나 세워 주세요\". 단추 \"처음부터 다시\". 목록에 \"자리가 없으면: 지하 3층\"."]], "src": "s_guide.mp4 (6차 녹화, 앱 0.3.1). v_guide.mp4에서 안내 1쪽, 2쪽, 3쪽이 뜨는 부분만 잘라 붙였다.", "cue": "0:41~0:46"}, "gate": {"what": "아파트 차단기 앞에서 잠깐 P단에 넣었다가 다시 D단으로 간다. 이때는 운행이 끝나지 않고 같은 운행으로 이어진다는 것을 보여 준다.", "lay": "왼쪽에 차 그림(기사님, 차주 착석)과 기어 표시. 가운데에 실제 차량 화면. 오른쪽에 \"이 운행에서 알게 된 것\" 목록. 시각 23:38, 장소 \"아파트 차단기 앞\".", "beats": [["0:49", "표시줄 \"경로를 지켜보는 중. 정상\"."], ["0:50", "기어 표시가 P로. 차량 화면에 \"운행 마무리\" 화면이 열린다(15km, 39분, 25,000원). 목록 \"기어 P. 정차 23:38\". 표시줄 \"일시 정차 · 운행 유지\"."], ["0:52", "기어 표시가 다시 D로. 차량 화면이 운행 중 화면으로 돌아간다. 목록 \"기어 D. 같은 운행으로 이어짐 23:38\". 표시줄이 \"경로를 지켜보는 중. 정상\"으로 돌아온다."]], "src": "s_gate.mp4 (4차 녹화). 에뮬레이터에서 P단에 넣고 2초 뒤 D단으로 바꾼 화면.", "cue": "0:49~0:52"}, "arrive": {"what": "지하 2층에 주차하고 P단에 넣으면 마무리 화면에 운행 요약이 뜬다. 기사님이 실제로 세운 자리를 한 번 눌러 기록에 남기고, 화면의 QR로 자기 휴대폰에서 같은 기록을 본다.", "lay": "왼쪽에 실제 차량 화면. 뒤쪽 절반에 오른쪽으로 \"기사님의 휴대폰\"(실제 웹 화면)이 들어온다. 시각 23:40, 장소 \"지하 2층 주차장\".", "beats": [["0:54", "차량 화면에 \"운행 마무리 · 판교 삼평동\": 달린 거리 18km, 달린 시간 42분, 확정 요금 25,000원. 그 아래 \"주차한 위치(선택)\"에 \"지하 2층 B-17 근처\"와 \"다른 자리\", 단추 \"운행 종료\", 오른쪽에 \"기사님용 운행 기록\" QR과 \"결제(시연용)\" 칸."], ["0:55", "표시줄 \"도착 확인 23:40\"."], ["0:57", "기사님이 \"지하 2층 B-17 근처\"를 누른다(주황 동그라미로 누르는 자리를 표시). 선택된 칸이 검게 바뀐다."], ["0:58", "표시줄 \"주차 위치 받음 · 지하 2층 B-17 근처\"."], ["0:59", "QR에서 휴대폰 쪽으로 화살표와 \"기사님 휴대폰으로 기록 보기\" 글자가 뜬다. 오른쪽에 기사님의 휴대폰이 나타난다."], ["0:59~1:03", "기사님 휴대폰 화면 \"기사님용 운행 기록\": 딱지 \"마무리 중\", \"11월 11일 판교 삼평동\", 출발 22:58, 지금까지 23:40, 달린 시간 42분, 달린 거리 \"종료 후 표시\", 확정 요금 25,000원, 정산 \"운행 종료 후 자동 정산\"."]], "src": "s_arrive.mp4 (4차 녹화)와 web_trip_pending.png (기사님용 운행 기록 페이지, 0.3.1에서 다시 찍음).", "cue": "0:54~0:58"}, "close": {"what": "기사님이 내려 운전석이 3초 동안 비면 차가 종료 신호를 보낸다. 코-대리가 종료를 확정하고, 차주가 등록해 둔 결제수단으로 요금이 자동 결제된다. 기사님 정산도 플랫폼이 처리한다. 아무도 결제 단추를 누르지 않는다.", "lay": "왼쪽에 차 그림(운전석이 비고 뒷자리 \"차주\"만 남는다)과 \"운전석 비움 확인\" 초 세기. 가운데에 실제 차량 화면, 그 오른쪽에 기사님의 휴대폰, 맨 오른쪽에 일어난 일 목록이 한 줄씩 쌓인다. 시각 23:40.", "beats": [["1:03", "표시줄 \"운전석 비움 신호 대기\". 목록 \"P단 정차 23:40\"."], ["1:04", "차 그림에서 운전석의 \"기사님\"이 사라진다. 목록 \"운전석이 비었음 23:40\"."], ["1:04~1:06", "차 그림 아래 \"운전석 비움 확인 1초\", \"2초\", \"3초\"."], ["1:06", "목록 \"차가 종료 신호를 보냄 23:40\". 표시줄 \"종료 신호 받음\"."], ["1:07", "목록 \"코-대리가 종료를 확정 23:40\". 표시줄 \"종료 확정 23:40\". 이 무렵 차량 화면이 \"운행이 종료됐습니다\" 화면으로 바뀌고 귀가 카드 \"오늘 23:40 도착 · 배정된 기사님 김○○\"가 나온다."], ["1:07", "기사님 휴대폰이 \"최종 기록\"으로 바뀐다: 종료 23:40 (운전석 하차), 확정 23:40, 달린 시간 42분, 달린 거리 18km, 확정 요금 25,000원, 정산 \"플랫폼에서 자동 정산 예정\"."], ["1:09", "목록 \"등록 결제수단 자동 결제 23:40\". 표시줄 \"자동 결제 처리 · 기사님 정산 예정\"."], ["1:10", "목록 \"기사님 정산: 자동 예정\"."]], "src": "s_close.mp4 (5차 녹화 v_final), web_trip_pending.png에서 web_trip_final.png로 바뀜.", "cue": "1:03~1:10"}, "pay": {"what": "코-대리가 결제 내역과 주차 위치를 차주 휴대폰으로 보낸다. 그 뒤에도 문 잠금을 지켜보다가, 3분 뒤 문이 잠기면 그 시각을 문자와 기록에 더한다.", "lay": "왼쪽에 실제 차량 화면(종료 화면). 가운데에 \"차주의 휴대폰\"(문자 대화, 머리글 \"문자 · 코-대리\"). 오른쪽에 일어난 일 목록. 시각 23:40에서 23:43으로. 장소 \"차주의 휴대폰\".", "beats": [["1:12", "표시줄 \"결제 내역과 주차 위치를 차주에게 전달\". 목록 \"자동 결제 완료 (시연용) 23:40\"."], ["1:13", "문자 1: \"운행이 끝났어요. 23:40 도착, 18km 42분.\""], ["1:14", "문자 2: \"등록된 카드로 25,000원이 결제됐어요.\""], ["1:15", "문자 3: \"주차 위치: 지하 2층 B-17 근처 (기사님 확인). 기록 보기 링크\". 목록 \"주차 위치 전송 23:40\"."], ["1:16", "표시줄이 \"문 잠금을 지켜보는 중. 안 잠기면 차주에게 알림\"(주황 테두리)으로 바뀐다."], ["1:15~1:19", "차량 화면에는 종료 화면의 귀가 카드가 그대로 보인다: 맡길 때와 돌려받을 때의 주행거리(12,480 km, 12,498 km), 배터리, 문·트렁크, 문 잠금, 창문, 주차 위치 \"기사 확인: 지하 2층 B-17 근처\"."], ["1:19", "시각이 23:43으로 바뀐다. 차량 화면에 문 잠금 표시가 뜬다. 문자 4: \"23:43 문이 잠겼어요.\" 목록 \"문 잠금 신호 받음 23:43\". 표시줄 \"문 잠금 확인 23:43\"."]], "src": "s_close.mp4의 뒷부분(문이 잠기는 부분). 문자 대화는 그림. 연결한 휴대폰 페이지는 web_paid.png로 따로 찍어 두었다.", "cue": "1:12~1:18"}, "alert": {"what": "일이 순조롭지 않을 때 코-대리가 무엇을 하는지 보여 준다. 기사님이 늦으면 다시 배정하고, 경로를 벗어나거나 엉뚱한 곳에 오래 서 있거나 문이 안 잠기면 차주에게 알린다. 네 가지 모두 앱 0.3.1과 시연 서버로 에뮬레이터에서 확인한 기능이고, 화면의 알림은 그때 실제로 뜬 것이다.", "lay": "왼쪽에 차주 휴대폰 페이지의 \"알림\" 칸을 크게 확대한 실제 화면(위에 \"차주 휴대폰 페이지의 알림 칸 · 시연 서버에서 확인한 실제 화면\"). 오른쪽에 \"코-대리가 지켜보는 것\" 목록이 한 줄씩 쌓인다. 시각 자리에는 \"만약\", 장소 \"문제가 생겼을 때\". 이 화면의 시각(22:43~23:18)은 확인할 때의 값이라 앞 장면의 이야기 시각과 다르다.", "beats": [["1:21", "표시줄 \"문제를 발견하면 조치하고 차주에게 알림\"(주황 테두리). 알림 칸에 네 줄이 보인다."], ["1:22", "목록 \"기사님이 늦음: 다시 배정\". 알림 칸 첫 줄 \"22:43 운전석 착석이 확인되지 않아 기사님을 다시 배정했습니다. 박○○ → 김○○\"."], ["1:23", "목록 \"경로 이탈: 차주에게 알림\". 알림 칸 둘째 줄 \"22:53 차가 목적지로 가는 길에서 벗어났습니다. 지금 위치로는 약 52km를 돌아갑니다. (23:01 목적지로 가는 길로 돌아옴)\"."], ["1:25", "목록 \"오랜 정차: 차주에게 알림\". 알림 칸 셋째 줄 \"23:07 차가 목적지가 아닌 곳에 6분째 서 있습니다. (23:12 목적지 근처 도착)\"."], ["1:26", "목록 \"문이 안 잠김: 차주에게 알림\". 알림 칸 넷째 줄(굵은 글자) \"23:18 운행 종료 뒤 5분 동안 문 잠금 신호가 없습니다. 문이 잠겼는지 확인해 주세요.\""]], "src": "web_alert_box.png (web_alert_unlocked.png에서 알림 칸만 자른 것). 에뮬레이터 확인 녹화는 demo/verify/ 에 있다.", "cue": "1:21~1:25"}, "next": {"what": "다음 날 아침 차에 타면 어젯밤 귀가 기록이 차량 화면에 남아 있다. 차주는 누가 운전했고 어디에 세웠는지, 맡길 때와 돌려받을 때 차 상태가 어땠는지를 차와 휴대폰에서 확인한다.", "lay": "왼쪽에 실제 차량 화면(코-대리 첫 화면의 귀가 카드). 오른쪽에 \"차주의 휴대폰\"(실제 웹 화면). 시각 08:10, 장소 \"다음 날 아침, 같은 주차장\".", "beats": [["1:28", "표시줄 \"어젯밤 귀가 기록을 차량에 표시\". 차량 화면: 귀가 카드 \"어제 23:40 도착 · 배정된 기사님 김○○\", \"판교 삼평동 · 18km · 42분 · 확정 25,000원\", 맡길 때와 돌려받을 때 표(주행거리 12,480 km, 12,498 km, 배터리, 문·트렁크, 문 잠금, 창문), 주차 위치 \"기사 확인: 지하 2층 B-17 근처\"."], ["1:28~1:34", "차주 휴대폰에 같은 귀가 카드: \"어제 23:40 도착 · 배정된 기사님 김○○\", \"주차 위치 · 기사 확인: 지하 2층 B-17 근처\", 맡길 때와 돌려받을 때 표."]], "src": "s_next.mp4 (5차 녹화 v_card)의 앞 6초, web_card.png. \"다음에도 이 기사님께 먼저\" 단추는 영상에서 뺐다(기능은 앱에 그대로 있다).", "cue": "1:28~1:33"}, "end": {"what": "흰 바탕에 한 문장으로 코-대리의 역할만 다시 말하고 끝낸다.", "lay": "화면 가운데에 큰 글자 두 줄, 그 아래 작은 글자 한 줄. 다른 요소는 없다.", "beats": [["1:34", "큰 글자 \"대리 호출부터 귀가까지, / 코-대리가 챙깁니다\". \"코-대리\"에 주황 밑줄."], ["1:34", "그 아래 작은 글자 \"코-대리 · Pleos Connect 차량 앱\"."], ["1:39", "끝."]], "src": "실제 화면 없음. 글자만.", "cue": "1:34~1:38"}};
+var rows='';S.forEach(function(s){var d=DET[s.id]||{beats:[]};rows+='<article><header><h3>'+s.n+'</h3><span class="k">'+fmt(s.t0)+'~'+fmt(s.t1)+(s.clk?' · 화면 속 시각 '+s.clk:'')+(s.place?' · '+s.place:'')+'</span></header><p class="w">'+s.what+'</p><dl><dt>화면 구성</dt><dd>'+(d.lay||'')+'</dd><dt>순서</dt><dd><ol>'+d.beats.map(function(b){return '<li><span class="k">'+b[0]+'</span> '+b[1]+'</li>';}).join('')+'</ol></dd>'+(s.cap?'<dt>자막</dt><dd>'+s.cap+(s.sub?'<br><span class="m">작은 글자: '+s.sub+'</span>':'')+'</dd>':'')+'<dt>내레이션</dt><dd><span class="k">'+(d.cue||'')+'</span> '+(NARR[s.id]||'')+'</dd>'+(s.sig?'<dt>쓰는 차 신호</dt><dd>'+s.sig+'</dd>':'')+'<dt>실제 화면</dt><dd>'+(d.src||'')+'</dd></dl></article>';});
+$('rows').innerHTML=rows;
+if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){playing=false;t=S[3].t0+5;}
+// 녹화용: 프레임 단위로 시각을 정해 그릴 수 있게 열어 둠
+window.__duration=DUR;window.__seek=function(x){playing=false;t=x;render(t);ui();};
+requestAnimationFrame(tick);
+})();
+</script>

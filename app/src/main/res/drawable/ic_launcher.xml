@@ -1,0 +1,2 @@
+<!-- 시작 화면에 쓰는 둥근 아이콘 -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android" android:src="@drawable/ic_app" android:gravity="fill" />
