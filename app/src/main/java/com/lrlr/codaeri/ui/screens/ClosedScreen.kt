@@ -61,15 +61,17 @@ fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uplo
     Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                T(if (card.confirmedAt != null) "운행이 종료됐습니다" else "종료 확정을 기다리는 중입니다", Type.titleLarge)
+                T(if (card.confirmedAt != null) "운행을 마쳤습니다" else "운행 종료를 확인하고 있습니다", Type.titleLarge)
                 T(
-                    if (card.confirmedAt != null) "${handover.time(card.endedAt)} ${card.closedBy} · 요금은 등록된 결제수단으로 자동 결제됩니다."
-                    else "운행 종료를 서비스에 보냈습니다. 통신이 끊긴 경우 연결되면 다시 보냅니다.",
+                    if (card.confirmedAt != null) "${handover.time(card.endedAt)}에 운행을 마쳤습니다. 이용 내역을 확인해 주세요."
+                    else if (state.uploadPending) "종료 내역은 차에 저장했습니다. 연결되면 종료 확인과 결제를 진행합니다. (시연용)"
+                    else "종료 내역을 확인한 뒤 결제를 진행합니다. (시연용)",
                     Type.bodySmall, color = Ivi.colors.textSecondary,
                 )
             }
-            IviButton("확인", onDone, filled = true)
+            IviButton("메인으로", onDone, filled = true)
         }
-        HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading, handover, now), paidAt = state.lastPaidAt)
+        HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt)
     }
 }
+

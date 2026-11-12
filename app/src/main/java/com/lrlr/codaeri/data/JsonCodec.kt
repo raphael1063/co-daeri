@@ -22,11 +22,13 @@ object Json {
         (json.parseToJsonElement(text) as? kotlinx.serialization.json.JsonObject)?.get("fare")
             ?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.toIntOrNull() }
     } catch (e: Exception) { null }
-    /** 비상연락처 목록. 서버가 하나만 주면(contacts 없음) 그 하나를 목록으로 읽는다. 읽을 것이 없으면 null. */
+    /** 비상연락처 목록. 서버가 하나만 주면(contacts 없음) 그 하나를 목록으로 읽는다. 빈 contacts 목록은 등록된 번호 없음, 형식 오류는 null로 구분한다. */
     fun decodeContacts(text: String): List<EmergencyContact>? = try {
         val o = json.parseToJsonElement(text) as? kotlinx.serialization.json.JsonObject
-        val items = (o?.get("contacts") as? kotlinx.serialization.json.JsonArray)?.map { it as? kotlinx.serialization.json.JsonObject } ?: listOf(o)
-        items.mapNotNull(::contact).take(com.lrlr.codaeri.domain.Emergency.MAX).ifEmpty { null }
+        val contacts = o?.get("contacts") as? kotlinx.serialization.json.JsonArray
+        val items = contacts?.map { it as? kotlinx.serialization.json.JsonObject } ?: listOf(o)
+        val parsed = items.mapNotNull(::contact).take(com.lrlr.codaeri.domain.Emergency.MAX)
+        if (contacts?.isEmpty() == true) emptyList() else parsed.ifEmpty { null }
     } catch (e: Exception) { null }
     private fun contact(o: kotlinx.serialization.json.JsonObject?): EmergencyContact? {
         val label = (o?.get("label") as? kotlinx.serialization.json.JsonPrimitive)?.content
@@ -35,3 +37,4 @@ object Json {
     }
     fun decodeServer(text: String): ServerState = json.decodeFromString(ServerState.serializer(), text)
 }
+

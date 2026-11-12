@@ -45,10 +45,25 @@ class DomainTest {
     }
 
     @Test fun blankItemsAreSkippedAndNoHintWithoutDetails() {
-        val onlyBasic = card.copy(zone = "", preferredSpot = "", fallback = "")
+        val onlyBasic = card.copy(zone = "", preferredSpot = "", fallback = "", floorLabel = "", spotLabel = "")
         val segs = Guidance.segments(onlyBasic)
         assertEquals(1, segs.size)
         assertFalse(segs[0].speech.contains(Guidance.MORE_HINT))
+    }
+
+    @Test fun parkingLabelsAloneAreUsableAndReadWithoutDuplicatingInput() {
+        val labels = ParkingCard(floorLabel = "지하 2층", spotLabel = "B-17")
+        assertTrue(labels.isUsable)
+        val speech = Guidance.segments(labels).joinToString(" ") { it.speech }
+        assertTrue(speech.contains("지하 2층"))
+        assertTrue(speech.contains("B-17 근처에 주차해 주세요"))
+    }
+
+    @Test fun parkingLabelsKeepLegacyNotesAndAvoidRepeatingTheirLocation() {
+        val saved = ParkingCard(floorLabel = "지하 2층", spotLabel = "B-17", zone = "지하 2층 204동 방향입니다", preferredSpot = "B-17 기둥 근처에 주차해 주세요")
+        assertEquals(saved.zone, Guidance.text(saved, GuideStep.ZONE))
+        assertEquals(saved.preferredSpot, Guidance.text(saved, GuideStep.PREFERRED_SPOT))
+        assertTrue(Guidance.text(saved.copy(zone = "204동 방향입니다"), GuideStep.ZONE).contains("지하 2층. 204동 방향입니다"))
     }
 
     @Test fun detailOnlyCardStillStartsWithIntro() {
@@ -217,7 +232,7 @@ class DomainTest {
         assertEquals("18km", h.distanceText(18f))
         assertEquals("3.5km", h.distanceText(3.5f))
         assertEquals("3km", h.distanceText(3.0f))
-        assertEquals("거리 산출 불가", h.distanceText(null))
+        assertEquals("이동 거리 정보 없음", h.distanceText(null))
     }
 
     @Test fun elapsedIsButtonToButton() {
@@ -441,6 +456,12 @@ class DomainTest {
         assertEquals(emptyList<String>(), s.pruned(at(23, 0) + AppState.KEEP_MILLIS + 1).history.map { it.tripId })
     }
 
+    @Test fun explicitEmptyContactsAreDifferentFromAMalformedResponse() {
+        assertEquals(emptyList<EmergencyContact>(), Json.decodeContacts("""{"contacts":[]}"""))
+        assertNull(Json.decodeContacts("""{"contacts":[{"label":"배우자"}]}"""))
+        assertNull(Json.decodeContacts("not json"))
+    }
+
     @Test fun emergencyContactsAreReadAsAListOfUpToThree() {
         // 목록을 주는 서버
         val many = Json.decodeServer("""{"emergency":{"label":"배우자","masked":"010-****-5678"},"emergencies":[{"label":"배우자","masked":"010-****-5678"},{"label":"부모님","masked":"010-****-0001"},{"label":"친구","masked":"010-****-0002"},{"label":"넷째","masked":"010-****-0003"}]}""")
@@ -457,3 +478,4 @@ class DomainTest {
         assertEquals(null, Json.decodeContacts("""{"error":"no_contact"}"""))
     }
 }
+

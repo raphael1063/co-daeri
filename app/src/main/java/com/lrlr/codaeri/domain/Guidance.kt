@@ -28,10 +28,17 @@ object Guidance {
     fun text(card: ParkingCard, step: GuideStep): String = when (step) {
         GuideStep.ENTRANCE -> card.entrance
         GuideStep.ENTRY_METHOD -> card.entryMethod
-        GuideStep.ZONE -> card.zone
-        GuideStep.PREFERRED_SPOT -> card.preferredSpot
+        GuideStep.ZONE -> locationWithNote(card.floorLabel, card.zone)
+        GuideStep.PREFERRED_SPOT -> locationWithNote(card.spotLabel.takeIf { it.isNotBlank() }?.let { "$it 근처에 주차해 주세요" }.orEmpty(), card.preferredSpot, card.spotLabel)
         GuideStep.FALLBACK -> card.fallback
     }.trim()
+
+    /** 위치는 한 번 입력하고 음성 안내와 이용 내역에 함께 쓴다. 기존의 상세 안내도 보존한다. */
+    private fun locationWithNote(location: String, note: String, match: String = location): String = when {
+        note.isBlank() -> location
+        location.isBlank() || (match.isNotBlank() && note.contains(match)) -> note
+        else -> "$location. $note"
+    }
 
     /** 순서대로 읽을 덩어리. 비어 있는 항목은 건너뛴다. 첫 덩어리가 기본 안내다. */
     fun segments(card: ParkingCard): List<GuideSegment> {
@@ -98,3 +105,4 @@ data class GuidanceState(
     fun start(): GuidanceState = if (started || segments.isEmpty()) this else copy(position = 0)
     fun next(): GuidanceState = if (hasNext) copy(position = position + 1) else this
 }
+

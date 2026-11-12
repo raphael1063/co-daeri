@@ -458,7 +458,7 @@ class FlowsTest {
         r.c.agreeToCollection(); runCurrent()
         assertNotNull(r.state.consentAt)
         assertNull(r.c.pairing.value.url)
-        assertTrue(r.c.pairing.value.status.contains("연결하지 못했습니다"))
+        assertTrue(r.c.pairing.value.status.contains("연결 코드를 만들지 못했습니다"))
         assertFalse(r.keepAlive.isOn)
 
         r.service.online = true
@@ -511,6 +511,22 @@ class FlowsTest {
         assertEquals(true, r.service.calls.last().second)
         assertEquals("called", r.state.pendingBooking(r.clock())?.id)
         assertTrue(r.announcer.said.last().contains("기사님이 배정됐습니다"))
+    }
+
+    @Test fun voiceRetryInstructionsMatchWhetherTheMicrophoneIsListening() = runTest {
+        val r = rig()
+        r.c.callByVoice()
+        r.listener.hear(null); runCurrent()
+        assertFalse(r.listener.listening)
+        assertTrue(r.c.voice.value.message.contains("다시 말하기를 눌러"))
+
+        r.c.callByVoice()
+        r.listener.hear("강남역"); runCurrent()
+        r.pass(1_000)
+        repeat(3) { r.listener.hear("음"); runCurrent() }
+        assertFalse(r.listener.listening)
+        assertTrue(r.c.voice.value.message.contains("화면에서 부르기 또는 취소"))
+        assertEquals(listOf(false), r.service.calls.map { it.second })
     }
 
     @Test fun voiceCallStopsWhenRefusedOrWhenTheCarMoves() = runTest {
@@ -616,6 +632,20 @@ class FlowsTest {
 
     // ---------- 비상연락처 ----------
 
+    @Test fun emergencyContactDistinguishesNoRegisteredContactFromConnectionFailure() = runTest {
+        val r = rig()
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        r.gear(GearState.PARK)
+        r.service.emergency = emptyList()
+        r.c.showEmergency(); runCurrent()
+        assertEquals("등록된 비상연락처가 없습니다.", r.c.emergency.value?.message)
+        r.c.hideEmergency()
+        r.service.online = false
+        r.c.showEmergency(); runCurrent()
+        assertTrue(r.c.emergency.value?.message?.contains("다시 시도") == true)
+    }
+
     @Test fun emergencyContactIsShownOnlyDuringABookedTripAndNeverSaved() = runTest {
         val r = rig()
         r.service.emergency = listOf(EmergencyContact("배우자", "01012345678"), EmergencyContact("부모님", "0212345678"), EmergencyContact("친구", "01000000001"))
@@ -648,3 +678,4 @@ class FlowsTest {
         const val BASE = 1_794_664_800_000L
     }
 }
+

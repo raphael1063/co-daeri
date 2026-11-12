@@ -25,9 +25,14 @@ class EmergencyViewer(private val store: AppStateStore, private val service: Dae
         env.scope.launch {
             val contacts = withContext(env.io) { service.viewEmergency(link, booking.id) }
             if (_ui.value == null) return@launch
-            _ui.value = if (!contacts.isNullOrEmpty()) EmergencyUi(contacts) else EmergencyUi(message = "비상연락처를 불러오지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요.")
+            _ui.value = when {
+                contacts == null -> EmergencyUi(message = "연락처를 불러오지 못했습니다. 닫은 뒤 다시 시도해 주세요.")
+                contacts.isEmpty() -> EmergencyUi(message = "등록된 비상연락처가 없습니다.")
+                else -> EmergencyUi(contacts)
+            }
         }
     }
 
     fun hide() { _ui.value = null }
 }
+

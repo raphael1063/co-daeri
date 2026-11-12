@@ -65,9 +65,9 @@ fun HomeScreen(
     onStatus: () -> Unit,
     onRecords: () -> Unit,
     onSettings: () -> Unit,
-    /** 기사님과 차주가 탄 것으로 판단되면 단추 셋 대신 "운행 시작" 하나만 보여 준다. 한 줄 요약(기사님, 목적지, 요금)을 준다. */
+    /** 동승 신호가 있으면 출발하기를 크게 보여 주고 기사님·목적지·요금을 요약한다. 탑승자의 신원은 확인하지 않는다. */
     startLine: String? = null,
-    /** "운행 시작"을 이미 눌렀는지 */
+    /** "출발하기"를 이미 눌렀는지 */
     armed: Boolean = false,
     onStart: () -> Unit = {},
 ) {
@@ -81,18 +81,18 @@ fun HomeScreen(
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
                 Spacer(Modifier.height(20.dp))
                 Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    if (armed) HomeButton("운행 시작 취소", R.drawable.ic_home_call, onStart, Modifier.weight(1f))
-                    else HomeButton("운행 시작", R.drawable.ic_home_call, onStart, Modifier.weight(1f), filled = true)
+                    HomeButton(if (armed) "출발 대기 중" else "출발하기", R.drawable.ic_home_call, onStart, Modifier.weight(1f), filled = !armed, enabled = !armed && !restricted)
                 }
                 Spacer(Modifier.height(20.dp))
                 T(
-                    if (armed) "D단을 넣으면 운행이 시작되고 내비게이션 안내가 켜집니다." else "기사님과 차주님이 타셨습니다. \"운행 시작\"을 누른 뒤 D단을 넣어 주세요.",
+                    if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다." else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
                     Type.labelLarge, color = Ivi.colors.textTertiary, align = TextAlign.Center,
                 )
+                if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
             } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 if (booked) HomeButton("대리 현황", R.drawable.ic_home_status, onStatus, Modifier.weight(1f), filled = true)
                 else HomeButton("대리 부르기", R.drawable.ic_home_call, onCall, Modifier.weight(1f), filled = true, enabled = !restricted)
-                HomeButton("대리 기록", R.drawable.ic_home_records, onRecords, Modifier.weight(1f), enabled = !restricted)
+                HomeButton("이용 내역", R.drawable.ic_home_records, onRecords, Modifier.weight(1f), enabled = !restricted)
                 HomeButton("설정", R.drawable.ic_home_settings, onSettings, Modifier.weight(1f), enabled = !restricted)
             }
             if (restricted && startLine == null) {
@@ -133,7 +133,7 @@ internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modi
 }
 
 /**
- * 대리 기록: 지금까지 마무리한 운행의 귀가 카드를 최근 것부터 보여 준다.
+ * 이용 내역: 마무리한 대리 이용을 최근 것부터 보여 준다.
  * 화면 제목은 위에 고정하고 카드만 스크롤한다. 카드는 제목 줄을 눌러 접고 펼친다(가장 최근 것만 펼쳐 둔다).
  */
 @Composable
@@ -141,14 +141,15 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
     val now = rememberNow()
     var open by rememberSaveable { mutableStateOf(state.history.firstOrNull()?.tripId) }
     Column(page) {
-        TopBar("대리 기록", onBack, Modifier.appear(0))
+        TopBar("이용 내역", onBack, Modifier.appear(0))
+        T("최근 30일의 이용 내역을 최대 20건 보관합니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
         Spacer(Modifier.height(28.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (state.history.isEmpty()) {
             Panel(Modifier.fillMaxWidth().appear(1)) {
-                T("완료한 대리 운행이 없습니다", Type.titleSmall)
+                T("아직 이용 내역이 없습니다", Type.titleSmall)
                 Spacer(Modifier.height(12.dp))
-                T("운행이 끝나면 귀가 카드가 여기에 쌓입니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
+                T("대리 이용을 마치면 시간, 요금, 주차 위치를 확인할 수 있습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
             }
         }
         state.history.forEachIndexed { i, card ->
@@ -157,7 +158,7 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                 val expanded = open == card.tripId
                 HomecomingPanel(
                     card, handover, now, Modifier.weight(1f),
-                    delivery = if (latest) deliveryLine(state, uploading, handover, now) else null,
+                    delivery = if (latest) deliveryLine(state, uploading) else null,
                     paidAt = card.paidAt ?: if (latest) state.lastPaidAt else null,
                     expanded = expanded,
                     onToggle = { open = if (expanded) null else card.tripId },
@@ -188,14 +189,14 @@ fun SettingsScreen(
         )
         SettingRow(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
-            null, null, Modifier.appear(1), note = "차주님 휴대폰 페이지에서 3명까지 등록합니다.",
+            null, null, Modifier.appear(1), note = "연결한 휴대폰에서 3명까지 등록할 수 있습니다.",
             pairs = state.server.emergencyList.map { it.label to it.masked },
         )
         SettingRow(
-            "먼저 요청할 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
-            null, null, Modifier.appear(2), note = "운행이 끝난 뒤 대리 기록의 QR로 정합니다.",
+            "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
+            null, null, Modifier.appear(2), note = "이용 내역의 QR로 연결한 휴대폰에서 설정합니다.",
         )
-        SettingRow("예약 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 예약이 잡히면 차 화면에 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
+        SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
         T("코-대리 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
     }
@@ -218,3 +219,4 @@ internal fun SettingRow(title: String, value: String, action: String?, onClick: 
         }
     }
 }
+
