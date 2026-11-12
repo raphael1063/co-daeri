@@ -76,7 +76,7 @@ class CallFlow(
     /** 장소 선택: 고를 수 있는 장소 목록을 보여 준다. */
     fun places() {
         if (!canStart()) return
-        _ui.value = CallUi(CallStage.PLACES, message = "장소를 골라 주세요")
+        _ui.value = CallUi(CallStage.PLACES, message = "목적지를 골라 주세요")
     }
 
     /** 장소 목록에서 하나를 눌렀다. */
@@ -99,7 +99,7 @@ class CallFlow(
         when (val heard = text?.let { VoiceCall.destination(it, VoiceCall.home(store.value.card)) } ?: Heard.Unknown) {
             is Heard.Destination -> quote(heard.place, byVoice = true)
             Heard.HomeMissing -> _ui.value = CallUi(CallStage.CONFIRM, null, message = HOME_MISSING, byVoice = true)
-            else -> _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = true, message = if (text.isNullOrBlank()) "말씀을 듣지 못했습니다. 다시 말씀해 주세요." else "\"$text\" 목적지를 찾지 못했습니다. 다시 말씀해 주세요.")
+            else -> _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = true, message = if (text.isNullOrBlank()) "말씀을 듣지 못했습니다. 다시 말하기를 눌러 주세요." else "\"$text\" 목적지를 찾지 못했습니다. 다시 말하기를 눌러 주세요.")
         }
     }
 
@@ -113,7 +113,7 @@ class CallFlow(
             val fare = withContext(env.io) { service.call(link, place, from?.lat, from?.lng, confirm = false) }
             if (_ui.value.stage != CallStage.QUOTING) return@launch
             if (fare == null) {
-                _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = "통신 문제로 요금을 확인하지 못했습니다. " + if (byVoice) "다시 말씀해 주세요." else "다시 골라 주세요.")
+                _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = "통신 문제로 요금을 확인하지 못했습니다. " + if (byVoice) "다시 말하기를 눌러 주세요." else "다른 방법을 눌러 다시 선택해 주세요.")
                 return@launch
             }
             val line = VoiceCall.confirmLine(place, handover.fareText(fare))
@@ -138,7 +138,7 @@ class CallFlow(
             else -> {
                 // 들은 말을 보여 주고 두 번까지 다시 듣는다. 그 뒤에는 단추로 고른다.
                 val v = _ui.value
-                _ui.value = v.copy(message = VoiceCall.retryLine(text), retries = v.retries + 1)
+                _ui.value = v.copy(message = if (v.retries < 2) VoiceCall.retryLine(text) else "대답을 확인하지 못했습니다. 화면에서 부르기 또는 취소를 눌러 주세요.", retries = v.retries + 1)
                 if (v.retries < 2) listener.listen { answer -> onAnswerHeard(answer) }
             }
         }
@@ -175,3 +175,4 @@ class CallFlow(
         const val HOME_MISSING = "집 위치가 등록되어 있지 않습니다. 집 주차 안내를 먼저 등록해 주세요."
     }
 }
+

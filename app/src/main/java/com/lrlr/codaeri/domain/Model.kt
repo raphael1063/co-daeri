@@ -31,7 +31,7 @@ data class ParkingCard(
 ) {
     val hasLocation: Boolean get() = latitude != null && longitude != null
     val isUsable: Boolean
-        get() = listOf(entrance, entryMethod, zone, preferredSpot, fallback).any { it.isNotBlank() }
+        get() = listOf(entrance, entryMethod, zone, preferredSpot, fallback, floorLabel, spotLabel).any { it.isNotBlank() }
 }
 
 /** 주차 결과의 출처. 사람이 확정한 사실과 확인하지 못한 것을 구분한다. */
@@ -287,3 +287,4 @@ data class CarReport(
 
 @Serializable
 enum class CardStage { DRIVING, ARRIVED, DONE }
+

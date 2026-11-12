@@ -55,9 +55,9 @@ class PairingFlow(
         env.scope.launch {
             val ok = withContext(env.io) { service.registerPair(link, code, short) }
             _pairing.value = if (ok) {
-                Pairing(Links.pairUrl(server, link, code), "QR과 연결 코드는 10분 동안, 한 번만 쓸 수 있습니다.", short)
+                Pairing(Links.pairUrl(server, link, code), "10분 안에 연결해 주세요. 연결 코드는 한 번만 사용할 수 있습니다.", short)
             } else {
-                Pairing(null, "서버에 연결하지 못했습니다. 통신 상태를 확인하고 다시 시도해 주세요.")
+                Pairing(null, "연결 코드를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.")
             }
             if (ok) onRegistered()
         }
@@ -83,3 +83,4 @@ class PairingFlow(
 
     fun clear() { _pairing.value = Pairing(null, "") }
 }
+

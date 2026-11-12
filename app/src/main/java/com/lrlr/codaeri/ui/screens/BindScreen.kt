@@ -90,12 +90,12 @@ fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairSho
                     // QR을 찍을 휴대폰이 없을 때(PC의 심사용 콘솔) 입력하는 코드. 세 글자씩 띄워 읽기 쉽게 한다.
                     T("연결 코드  ${pairShort.take(3)} ${pairShort.drop(3)}", Type.titleMedium, align = TextAlign.Center)
                     Spacer(Modifier.height(6.dp))
-                    T("QR을 찍을 수 없으면 심사용 콘솔에 입력합니다", Type.labelSmall, color = Ivi.colors.textTertiary, align = TextAlign.Center)
+                    T("휴대폰 없이 시연할 때 심사용 콘솔에 입력합니다", Type.labelSmall, color = Ivi.colors.textTertiary, align = TextAlign.Center)
                     Spacer(Modifier.height(14.dp))
                 }
                 T(pairStatus, Type.labelLarge, color = Ivi.colors.textSecondary, align = TextAlign.Center)
                 Spacer(Modifier.height(16.dp))
-                IviButton("새 QR", onNewCode, size = ButtonSize.SMALL)
+                IviButton("코드 새로 받기", onNewCode, size = ButtonSize.SMALL)
             }
         }
     }
@@ -123,10 +123,10 @@ internal fun ConsentScreen(onAgree: () -> Unit) {
         T("연결 전에 확인해 주세요", Type.headlineSmall, Modifier.appear(1))
         Spacer(Modifier.height(24.dp))
         Panel(Modifier.fillMaxWidth().appear(2)) {
-            ConsentRow("모으는 정보", "휴대폰 번호, 차의 위치, 기어·운전석 착석·문·창문·배터리 상태, 주행거리")
-            ConsentRow("쓰는 곳", "대리 예약 확인, 운행 기록(귀가 카드), 기사님께 차 위치 안내, 운행 중 알림")
-            ConsentRow("보관", "차와 서버에 30일. 영상과 음성은 기록하지 않습니다.")
-            ConsentRow("동의 철회", "설정의 \"연결 해제\"를 누르면 철회되고 서버의 번호, 예약, 비상연락처, 차 위치가 바로 지워집니다. 귀가 카드는 휴대폰에서 더 열 수 없게 되고 30일 뒤 지워집니다.", last = true)
+            ConsentRow("수집하는 정보", "휴대폰 번호, 차의 위치, 기어·운전석 착석·문·창문·배터리 상태, 주행거리")
+            ConsentRow("사용 목적", "대리 예약 확인, 이용 내역 저장, 기사님께 차 위치 안내, 운행 중 알림")
+            ConsentRow("보관 기간", "차와 서버에 30일. 영상과 음성은 기록하지 않습니다.")
+            ConsentRow("동의 철회", "설정의 \"연결 해제\"를 누르면 철회되고 서버의 번호, 예약, 비상연락처, 차 위치가 바로 지워집니다. 이용 내역은 휴대폰에서 더 열 수 없게 되고 30일 뒤 지워집니다.", last = true)
         }
         Spacer(Modifier.height(28.dp))
         IviButton("동의하고 연결", onAgree, Modifier.fillMaxWidth().appear(3), filled = true, size = ButtonSize.LARGE)
@@ -141,3 +141,4 @@ private fun ConsentRow(label: String, text: String, last: Boolean = false) {
     }
     if (!last) Spacer(Modifier.height(14.dp))
 }
+

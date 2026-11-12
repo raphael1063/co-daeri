@@ -120,7 +120,7 @@ class MainActivity : ComponentActivity() {
                 )
                 // 예약이 잡히거나 기사님이 바뀌면 대리 현황을 연다
                 LaunchedEffect(pending?.id, pending?.driver?.id) { section = Route.onBookingChanged(section, pending != null, restricted) }
-                // 기사님과 차주가 탄 것으로 판단되면 메인의 "운행 시작"을 보여 준다
+                // 동승 신호가 있으면 메인의 "출발하기"를 크게 보여 준다
                 LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false } }
                 // 운행이 시작되면 메인에서 열어 둔 화면은 닫는다
                 LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false } }
@@ -200,7 +200,7 @@ class MainActivity : ComponentActivity() {
                         val listening = v.stage == CallStage.LISTENING
                         val confirm = v.stage == CallStage.CONFIRM
                         val choosing = v.stage == CallStage.CHOOSE || v.stage == CallStage.PLACES
-                        // 마이크는 "음성 인식"을 고를 때 처음 허락을 받는다
+                        // 마이크는 "말로 입력"을 고를 때 처음 허락을 받는다
                         val byVoice = {
                             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) c.callByVoice()
                             else askMic.launch(Manifest.permission.RECORD_AUDIO)
@@ -223,7 +223,7 @@ class MainActivity : ComponentActivity() {
                             PopupTitle(
                                 v.message,
                                 when {
-                                    v.stage == CallStage.CHOOSE -> "목적지를 정하는 방법을 골라 주세요."
+                                    v.stage == CallStage.CHOOSE -> "편한 방법으로 목적지를 입력해 주세요."
                                     v.stage == CallStage.PLACES -> "시연에서는 아래 장소만 고를 수 있습니다."
                                     listening -> voicePartial.ifBlank { VoiceCall.EXAMPLE }
                                     confirm && v.place != null && !v.byVoice -> VoiceCall.TAP_HINT
@@ -236,8 +236,8 @@ class MainActivity : ComponentActivity() {
                                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                     if (v.stage == CallStage.CHOOSE) {
                                         CallChoice("집", R.drawable.ic_call_home, c::callHome, Modifier.weight(1f))
-                                        CallChoice("장소 선택", R.drawable.ic_call_place, c::showPlaces, Modifier.weight(1f))
-                                        CallChoice("음성 인식", R.drawable.ic_call_voice, byVoice, Modifier.weight(1f))
+                                        CallChoice("목적지 선택", R.drawable.ic_call_place, c::showPlaces, Modifier.weight(1f))
+                                        CallChoice("말로 입력", R.drawable.ic_call_voice, byVoice, Modifier.weight(1f))
                                     } else {
                                         VoiceCall.places.forEach { place -> CallChoice(place.name, R.drawable.ic_call_place, { c.callTo(place) }, Modifier.weight(1f)) }
                                     }
@@ -254,7 +254,7 @@ class MainActivity : ComponentActivity() {
                             buttons = { IviButton("닫기", c::hideEmergency, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
                         ) {
                             if (em.contacts.isNotEmpty()) {
-                                PopupTitle("비상연락처", "차주님이 미리 등록한 번호입니다. 확인한 사실은 차주님께 알림으로 남습니다.")
+                                PopupTitle("비상연락처", "차주님이 등록한 연락처입니다. 번호를 확인하면 차주님께 알림이 남습니다.")
                                 Spacer(Modifier.height(24.dp))
                                 PairColumns(em.contacts.map { it.label to it.dialText }, Type.titleSmall, Type.headlineLarge, gap = 16.dp)
                             } else {
@@ -273,7 +273,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             PopupTitle(
                                 "번호 연결을 해제할까요?",
-                                status.ifBlank { "번호, 예약, 휴대폰 연결 정보가 삭제됩니다. 차에 저장된 귀가 카드는 남습니다." },
+                                status.ifBlank { "번호, 예약, 휴대폰 연결 정보가 삭제됩니다. 차에 저장된 이용 내역은 남습니다." },
                             )
                         }
                     }
@@ -282,3 +282,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

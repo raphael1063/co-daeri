@@ -57,12 +57,11 @@ import com.lrlr.codaeri.domain.Trip
 import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
-internal fun deliveryLine(state: AppState, uploading: Boolean, h: Handover, now: Long): String = when {
-    state.phoneLink == null -> "차에만 저장됨"
-    uploading -> "휴대폰으로 보내는 중"
-    state.uploadPending -> "전송 실패 · 통신이 연결되면 다시 보냅니다"
-    state.lastUploadAt != null -> "휴대폰에서 볼 수 있음 (${h.dayTime(state.lastUploadAt, now)} 전송)"
-    else -> "차에만 저장됨"
+internal fun deliveryLine(state: AppState, uploading: Boolean): String? = when {
+    state.phoneLink == null -> "이 내역은 차에만 저장돼 있습니다."
+    uploading -> "휴대폰에서 볼 수 있도록 이용 내역을 저장하고 있습니다."
+    state.uploadPending -> "차에 저장했습니다. 연결되면 휴대폰에서도 확인할 수 있습니다."
+    else -> null
 }
 
 @Composable
@@ -72,32 +71,34 @@ internal fun rememberNow(): Long {
     return now
 }
 
-/** 귀가 카드: 언제 누가 모셔다 드렸는지, 맡길 때와 돌려받을 때의 차 상태. 값만 적고 판단하지 않는다. */
+/** 이용 시간·요금·주차 위치를 먼저 보여 주고 차량 관측은 필요할 때만 펼친다. */
 @Composable
 fun HomecomingPanel(
     card: HomecomingCard, h: Handover, now: Long, modifier: Modifier = Modifier, delivery: String? = null, paidAt: Long? = null,
-    /** 접으면 제목 줄(누가 언제, 목적지와 거리, 요금)만 남는다 */
     expanded: Boolean = true,
-    /** 주면 제목 줄을 눌러 접고 펼칠 수 있다 */
     onToggle: (() -> Unit)? = null,
 ) {
+    var showDetails by rememberSaveable(card.tripId) { mutableStateOf(false) }
+    val parking = TripPresentation.parking(card)
     Panel(modifier) {
         Row(
             if (onToggle != null) Modifier.fillMaxWidth().pressable(onClick = onToggle) else Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Column(Modifier.weight(1f)) {
-                T("귀가 카드", Type.labelLarge, color = Ivi.colors.textTertiary)
+                T(
+                    listOf(h.dayTime(card.endedAt, now), card.destination).filter { it.isNotBlank() }.joinToString(" · "),
+                    Type.titleMedium,
+                )
                 Spacer(Modifier.height(10.dp))
-                T(h.headline(card, now), Type.titleMedium)
-                Spacer(Modifier.height(10.dp))
-                val bits = buildList {
-                    if (card.destination.isNotBlank()) add(card.destination)
-                    add(h.distanceText(card.distanceKm))
-                    add(h.elapsedText(card.elapsedMinutes))
-                    if (card.fare > 0) add("확정 ${h.fareText(card.fare)}")
+                T(
+                    "${h.time(card.startedAt)}–${h.time(card.endedAt)} · ${h.elapsedText(card.elapsedMinutes)} · ${h.distanceText(card.distanceKm)}",
+                    Type.bodySmall, color = Ivi.colors.textSecondary,
+                )
+                if (!expanded && card.fare > 0) {
+                    Spacer(Modifier.height(6.dp))
+                    T(h.fareText(card.fare), Type.bodySmall, color = Ivi.colors.textSecondary)
                 }
-                T(bits.joinToString(" · "), Type.bodySmall, color = Ivi.colors.textSecondary)
             }
             if (onToggle != null) {
                 Image(
@@ -108,34 +109,33 @@ fun HomecomingPanel(
             }
         }
         if (!expanded) return@Panel
-        if (card.compare.isNotEmpty()) {
-            Spacer(Modifier.height(24.dp))
-            CompareTable(card, h)
-        }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
         Divider()
-        Spacer(Modifier.height(8.dp))
-        if (card.parkingLine.isNotBlank()) {
-            Fact("주차 위치", card.parkingLine, valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
+        if (card.fare > 0) {
+            val payment = if (paidAt != null) "결제 완료" else "결제 대기"
+            Fact("요금", "${h.fareText(card.fare)} · $payment (시연용)")
         }
-        if (card.memo.isNotBlank()) Fact("기사 메모", card.memo)
-        card.lockLines.drop(1).takeIf { it.size > 1 }?.let { Fact("이후 문 잠금", it.joinToString(" · ")) }
-        // 차가 본 끝과 서비스가 확정한 끝을 나눠 적는다
-        if (card.closedBy.isNotBlank()) Fact("종료 신호", "${h.time(card.endedAt)} ${card.closedBy}")
-        if (card.bookingId.isNotBlank()) {
-            Fact(
-                "종료 확정",
-                card.confirmedAt?.let { "${h.time(it)} 확정" } ?: "확정 대기 중",
-                valueColor = if (card.confirmedAt != null) Ivi.colors.textPrimary else Ivi.colors.textTertiary,
-            )
-            if (card.fare > 0) Fact(
-                "결제",
-                paidAt?.let { "${h.time(it)} 자동 결제 완료 (시연용)" } ?: "자동 결제 대기 (시연용)",
-                valueColor = if (paidAt != null) Ivi.colors.textPrimary else Ivi.colors.textTertiary,
-            )
+        Fact("주차 위치", parking.location, valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
+        parking.note?.let { T(it, Type.labelSmall, color = Ivi.colors.textTertiary) }
+        if (card.memo.isNotBlank()) Fact("기사님 메모", TripPresentation.parkingMemo(card.memo))
+        Fact("문 잠금", TripPresentation.lockStatus(card, h))
+        if (card.driverName.isNotBlank()) Fact("배정 기사님", "${card.driverName} 기사님")
+        if (card.gapNote != null) {
+            Spacer(Modifier.height(10.dp))
+            T("운행 중 일부 정보를 기록하지 못했습니다. 차량 정보가 빠져 있을 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
         }
-        card.gapNote?.let { Fact("참고", it, valueColor = Ivi.colors.textTertiary) }
-        delivery?.let { Fact("전달", it, valueColor = Ivi.colors.textTertiary) }
+        delivery?.let {
+            Spacer(Modifier.height(10.dp))
+            T(it, Type.labelSmall, color = Ivi.colors.textTertiary)
+        }
+        if (card.compare.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            IviButton(if (showDetails) "차량 상태 접기" else "차량 상태 자세히", { showDetails = !showDetails }, size = ButtonSize.SMALL, quiet = true)
+            if (showDetails) {
+                Spacer(Modifier.height(12.dp))
+                CompareTable(card, h)
+            }
+        }
     }
 }
 
@@ -143,31 +143,29 @@ fun HomecomingPanel(
 internal fun CompareTable(card: HomecomingCard, h: Handover) {
     val c = Ivi.colors
     val label = 230.dp
-    val (used, states) = card.compare.partition { it.before.isEmpty() }
+    val states = card.compare.filter { it.before.isNotEmpty() }
     Column {
-        // 이번 운행에서 달라진 양(주행거리, 배터리)
-        used.forEach { line ->
+        TripPresentation.usageDetails(card.compare).forEach { (name, value) ->
             Divider()
             Row(Modifier.fillMaxWidth().padding(vertical = 14.dp)) {
-                T(line.label, Type.labelLarge, Modifier.width(label), color = c.textTertiary)
-                T(line.after, Type.bodySmall, Modifier.weight(1f))
+                T(name, Type.labelLarge, Modifier.width(label), color = c.textTertiary)
+                T(value, Type.bodySmall, Modifier.weight(1f))
             }
         }
         if (states.isNotEmpty()) {
             Divider()
             Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 8.dp)) {
                 Spacer(Modifier.width(label))
-                T("맡길 때 ${h.time(card.startedAt)}", Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
-                T("돌려받을 때 ${h.time(card.endedAt)}", Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
+                T("출발 시 ${h.time(card.startedAt)}", Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
+                T("종료 시 ${h.time(card.endedAt)}", Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
             }
         }
         states.forEach { line ->
             Divider()
             Row(Modifier.fillMaxWidth().padding(vertical = 14.dp)) {
                 T(line.label, Type.labelLarge, Modifier.width(label), color = c.textTertiary)
-                T(line.before, Type.bodySmall, Modifier.weight(1f), color = c.textSecondary)
-                // 달라진 값만 또렷하게 보인다. 좋고 나쁨은 말하지 않는다.
-                T(line.after, Type.bodySmall, Modifier.weight(1f), color = if (line.after != line.before) c.textPrimary else c.textSecondary)
+                T(TripPresentation.vehicleValue(line.label, line.before), Type.bodySmall, Modifier.weight(1f), color = c.textSecondary)
+                T(TripPresentation.vehicleValue(line.label, line.after), Type.bodySmall, Modifier.weight(1f), color = if (line.after != line.before) c.textPrimary else c.textSecondary)
             }
         }
     }
@@ -179,14 +177,14 @@ internal fun DriverCard(state: AppState, card: HomecomingCard, modifier: Modifie
     val regular = state.server.regular?.id == card.driverId
     val link = state.phoneLink ?: return
     Panel(modifier) {
-        T(if (regular) "먼저 요청할 기사님" else "배정됐던 기사님", Type.labelLarge, color = Ivi.colors.textTertiary)
+        T(if (regular) "우선 요청 기사님" else "다음에도 이 기사님께", Type.labelLarge, color = Ivi.colors.textTertiary)
         Spacer(Modifier.height(10.dp))
         T("${card.driverName} 기사님", Type.titleMedium)
         Spacer(Modifier.height(12.dp))
         if (regular) {
             T("다음 예약 때 이 기사님께 먼저 요청합니다. 배정이 어려우면 다른 기사님이 배정됩니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
         } else {
-            T("다음에도 이 기사님께 먼저 요청하려면 QR을 찍어 주세요. 기사님에게 번호는 전달되지 않습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
+            T("연결한 휴대폰으로 QR을 찍어 우선 요청을 설정할 수 있습니다. 기사님께 휴대폰 번호는 전달되지 않습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
             Spacer(Modifier.height(20.dp))
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 QrImage(Links.ownerUrl(BuildConfig.CARD_SERVER, link), 240.dp)
@@ -196,3 +194,4 @@ internal fun DriverCard(state: AppState, card: HomecomingCard, modifier: Modifie
         }
     }
 }
+

@@ -62,26 +62,17 @@ fun CardEditorScreen(
     onSave: (ParkingCard) -> Unit,
     onBack: () -> Unit,
 ) {
-    var c by remember { mutableStateOf(initial) }
+    var c by remember(initial) { mutableStateOf(initial) }
     Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             T("집 주차 안내", Type.titleMedium, Modifier.weight(1f))
-            IviButton("예시로 채우기", { c = sampleCard(c) }, size = ButtonSize.SMALL, quiet = true)
         }
         T(
             "집 근처에 도착하면 기사님께 읽어 드리는 안내입니다. 이 내용은 차에만 저장됩니다.",
             Type.labelLarge, color = Ivi.colors.textTertiary,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Field("장소 이름", c.placeName, Modifier.weight(1f)) { c = c.copy(placeName = it) }
-            Field("층 (귀가 카드 표시)", c.floorLabel, Modifier.weight(1f)) { c = c.copy(floorLabel = it) }
-            Field("선호 자리 (귀가 카드 표시)", c.spotLabel, Modifier.weight(1f)) { c = c.copy(spotLabel = it) }
-        }
-        Field("차량 진입구", c.entrance) { c = c.copy(entrance = it) }
-        Field("진입 방법", c.entryMethod) { c = c.copy(entryMethod = it) }
-        Field("주차 구역", c.zone) { c = c.copy(zone = it) }
-        Field("선호 위치", c.preferredSpot) { c = c.copy(preferredSpot = it) }
-        Field("자리가 없으면", c.fallback) { c = c.copy(fallback = it) }
+        T("집 위치", Type.titleSmall)
+        Field("장소 이름", c.placeName) { c = c.copy(placeName = it) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton(
                 "현재 위치를 집으로 설정",
@@ -90,13 +81,28 @@ fun CardEditorScreen(
             )
             T(
                 when {
-                    c.hasLocation -> "집 위치가 저장돼 있습니다. 근처에 도착하면 안내를 시작합니다."
+                    c.hasLocation && (c.latitude != initial.latitude || c.longitude != initial.longitude) -> "집 위치를 선택했습니다. 저장을 눌러 완료해 주세요."
+                    c.hasLocation -> "등록된 집 위치 근처에서 주차 안내를 시작합니다."
                     currentLocation == null -> "현재 위치를 확인할 수 없습니다. 집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
                     else -> "집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
                 },
                 Type.labelSmall, Modifier.weight(1f), color = Ivi.colors.textTertiary,
             )
         }
+        Spacer(Modifier.height(12.dp))
+        T("주차할 위치", Type.titleSmall)
+        T("아래 위치를 기사님께 안내하고, 이용 내역에서도 확인할 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Field("주차 층", c.floorLabel, Modifier.weight(1f)) { c = c.copy(floorLabel = it) }
+            Field("구역·자리 또는 기둥 번호", c.spotLabel, Modifier.weight(1f)) { c = c.copy(spotLabel = it) }
+        }
+        Spacer(Modifier.height(12.dp))
+        T("기사님께 전달할 안내 (선택)", Type.titleSmall)
+        Field("주차장 입구", c.entrance) { c = c.copy(entrance = it) }
+        Field("차단기 통과 방법", c.entryMethod) { c = c.copy(entryMethod = it) }
+        Field("주차장 안에서 찾아가는 방법", c.zone) { c = c.copy(zone = it) }
+        Field("주차 시 유의사항", c.preferredSpot) { c = c.copy(preferredSpot = it) }
+        Field("자리가 없을 때", c.fallback) { c = c.copy(fallback = it) }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton("취소", onBack, Modifier.weight(1f))
             IviButton("저장", { onSave(c) }, Modifier.weight(1f), filled = true)
@@ -116,13 +122,3 @@ internal fun Field(label: String, value: String, modifier: Modifier = Modifier.f
     )
 }
 
-internal fun sampleCard(c: ParkingCard) = c.copy(
-    placeName = "집",
-    entrance = "동쪽 지하주차장 입구로 들어갑니다",
-    entryMethod = "차단기는 등록 차량이라 자동으로 열립니다",
-    zone = "지하 2층 B구역입니다",
-    preferredSpot = "B-17 기둥 근처가 좋습니다",
-    fallback = "자리가 없으면 지하 3층 아무 곳에나 세워 주세요",
-    floorLabel = "지하 2층",
-    spotLabel = "B-17",
-)

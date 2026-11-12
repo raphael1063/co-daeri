@@ -95,7 +95,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
     }
 
     fun distanceText(km: Float?): String = when {
-        km == null -> "거리 산출 불가"
+        km == null -> "이동 거리 정보 없음"
         km < 10f -> "${(km * 10).roundToInt() / 10.0}km".replace(".0km", "km")
         else -> "${km.roundToInt()}km"
     }
@@ -307,3 +307,4 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         const val UNKNOWN = "확인하지 못함"
     }
 }
+

@@ -73,7 +73,7 @@ class FakeService(private val clock: () -> Long) : DaeriService {
         return price
     }
 
-    override fun viewEmergency(link: PhoneLink, bookingId: String): List<EmergencyContact>? = if (online) emergency.ifEmpty { null } else null
+    override fun viewEmergency(link: PhoneLink, bookingId: String): List<EmergencyContact>? = if (online) emergency else null
 
     override fun unlinkAll(link: PhoneLink): Boolean {
         if (online) unlinked++
@@ -173,3 +173,4 @@ class FakeConnectivity : Connectivity {
     override fun onAvailable(block: () -> Unit) { this.block = block }
     fun comeBack() { block?.invoke() }
 }
+

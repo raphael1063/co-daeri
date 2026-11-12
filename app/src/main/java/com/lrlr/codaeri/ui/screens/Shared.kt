@@ -59,7 +59,7 @@ internal val Gutter = 48.dp
 internal val page = Modifier.fillMaxSize().padding(horizontal = Gutter, vertical = 40.dp)
 
 /** 시연에서는 대리운전 서비스의 예약 서버 대신 같은 모양의 시연용 서버를 쓴다. 화면에 늘 밝힌다. */
-const val DEMO_TAG = "시연용 서버"
+const val DEMO_TAG = "시연용"
 
 /** 주행 중(화면 제한)일 때 입력 화면 대신 보여 준다. */
 @Composable
@@ -72,3 +72,4 @@ fun StopFirst(what: String) {
         }
     }
 }
+

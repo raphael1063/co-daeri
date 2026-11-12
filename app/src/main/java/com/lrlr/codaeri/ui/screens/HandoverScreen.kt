@@ -79,11 +79,11 @@ fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed:
             Column(Modifier.appear(2)) {
                 Fact("목적지", booking.destination, valueStyle = Type.titleSmall)
                 Divider()
-                Fact("확정 요금", "${handover.fareText(booking.fare)} · 도착 후 자동 결제", valueStyle = Type.titleSmall)
+                Fact("이용 요금", "${handover.fareText(booking.fare)} · 도착 후 자동 결제", valueStyle = Type.titleSmall)
                 if (phone != null) { Divider(); Fact("예약한 번호", phone, valueStyle = Type.titleSmall) }
             }
             Spacer(Modifier.height(16.dp))
-            T("차주님께: 기사님 정보는 대리운전 서비스에서 받은 것입니다. 본인인지 직접 확인해 주세요.", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
+            T("탑승 전에 배정된 기사님이 맞는지 확인해 주세요.", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
         }
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
             Panel(Modifier.fillMaxWidth().appear(3)) {
@@ -91,16 +91,19 @@ fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed:
                 Spacer(Modifier.height(12.dp))
                 T("운행 기록 안내", Type.titleMedium)
                 Spacer(Modifier.height(12.dp))
-                T("출발과 도착 시각, 달린 거리, 차 상태만 기록합니다. 영상과 음성은 기록하지 않습니다. 도착 후 QR로 같은 기록을 확인하실 수 있습니다.", Type.bodyMedium, color = Ivi.colors.textSecondary)
+                T("출발·종료 시각과 이동 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다. 운행 후 QR로 내역을 확인하실 수 있습니다.", Type.bodyMedium, color = Ivi.colors.textSecondary)
                 Spacer(Modifier.height(16.dp))
                 T(
-                    if (armed) "D단을 넣으면 운행이 시작되고 내비게이션 안내가 켜집니다."
-                    else "차주님과 함께 탄 뒤 D단을 넣으면 운행이 시작되고 내비게이션 안내가 켜집니다. 시작되지 않으면 \"운행 시작\"을 누르고 D단을 넣어 주세요.",
+                    if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다."
+                    else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
                     Type.bodyLarge,
                 )
                 Spacer(Modifier.height(20.dp))
-                IviButton(if (armed) "운행 시작 취소" else "운행 시작", onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted)
+                IviButton(if (armed) "출발 대기 중" else "출발하기", onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted && !armed)
+                if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
+
             }
         }
     }
 }
+

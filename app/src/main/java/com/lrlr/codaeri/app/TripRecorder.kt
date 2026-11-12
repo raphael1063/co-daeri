@@ -330,7 +330,7 @@ class TripRecorder(
     companion object {
         /** 기사님은 화면을 보지 않아도 기록된다는 사실을 한 번 듣는다. */
         const val DRIVER_NOTICE =
-            "대리 운행을 기록합니다. 출발과 도착 시각, 달린 거리, 차 상태만 기록하고 영상과 음성은 기록하지 않습니다."
+            "대리 운행의 시간과 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다."
         const val SEAT_SETTLE_MS = 3_000L
         private const val HEARTBEAT_MS = 60_000L
         /** 운행 중에 앱이 이보다 오래 꺼져 있었으면 시동을 끄고 내린 것으로 본다 */
@@ -338,3 +338,4 @@ class TripRecorder(
         private const val LOCK_WATCH_MS = 10 * 60_000L
     }
 }
+

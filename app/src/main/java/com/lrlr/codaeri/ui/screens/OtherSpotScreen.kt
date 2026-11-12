@@ -56,7 +56,7 @@ import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
 internal val FLOORS = listOf("지하 1층", "지하 2층", "지하 3층", "지하 4층", "지하 5층")
-internal val MEMOS = listOf("선호 구역 만차로 인근에 주차", "자리가 없어 대체 구역에 주차")
+internal val MEMOS = listOf("요청하신 곳에 자리가 없어 근처에 주차했습니다.")
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -94,10 +94,11 @@ fun OtherSpotScreen(card: ParkingCard, handover: Handover, onResult: (ParkingRes
             MEMOS.forEach { m -> Choice(m, memo == m, { memo = if (memo == m) "" else m }) }
         }
         val result = handover.driverInput(choice, floor, pillar, memo, System.currentTimeMillis())
-        T(handover.parkingLine(card, result), Type.bodyMedium, color = Ivi.colors.positiveText)
+        T(TripPresentation.parkingLocation(handover.parkingLine(card, result)), Type.bodyMedium, color = Ivi.colors.positiveText)
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton("취소", onBack, Modifier.weight(1f))
             IviButton("저장", { onResult(result) }, Modifier.weight(1f), filled = true, enabled = choice != SpotChoice.OTHER_FLOOR || floor.isNotEmpty())
         }
     }
 }
+

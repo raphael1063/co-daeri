@@ -77,7 +77,7 @@ fun WrapScreen(
     val booking = trip.booking
     Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
         Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
-            T("운행 마무리", Type.headlineLarge, Modifier.appear(0))
+            T("정차 중", Type.headlineLarge, Modifier.appear(0))
             Spacer(Modifier.height(8.dp))
             T(
                 booking?.destination.orEmpty(),
@@ -85,13 +85,13 @@ fun WrapScreen(
             )
             Spacer(Modifier.height(28.dp))
             Row(Modifier.appear(1), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Tile("달린 거리", handover.distanceText(handover.distanceKm(trip.startOdometerKm, trip.endOdometerKm)), Modifier.weight(1f))
-                Tile("달린 시간", handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
-                if (booking != null) Tile("확정 요금", handover.fareText(booking.fare), Modifier.weight(1f))
+                Tile("이동 거리", handover.distanceText(handover.distanceKm(trip.startOdometerKm, trip.endOdometerKm)), Modifier.weight(1f))
+                Tile("이용 시간", handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
+                if (booking != null) Tile("이용 요금", handover.fareText(booking.fare), Modifier.weight(1f))
             }
             if (card.isUsable) {
                 Spacer(Modifier.height(28.dp))
-                T("주차한 위치 (선택)", Type.labelLarge, Modifier.appear(2), color = c.textTertiary)
+                T("주차를 마치셨다면 위치를 남겨 주세요 (선택)", Type.labelLarge, Modifier.appear(2), color = c.textTertiary)
                 Spacer(Modifier.height(12.dp))
                 val chosen = trip.parking
                 FlowRow(Modifier.appear(2), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -100,7 +100,7 @@ fun WrapScreen(
                         onParking(if (chosen?.source == ResultSource.DRIVER_CONFIRMED) null else handover.confirmedAsGuided(System.currentTimeMillis()))
                     })
                     Choice(
-                        if (chosen?.source == ResultSource.DRIVER_INPUT) handover.parkingLine(card, chosen).removePrefix("기사 입력: ") else "다른 자리",
+                        if (chosen?.source == ResultSource.DRIVER_INPUT) TripPresentation.parkingLocation(handover.parkingLine(card, chosen)) else "다른 자리",
                         chosen?.source == ResultSource.DRIVER_INPUT, onOtherSpot,
                     )
                 }
@@ -115,20 +115,20 @@ fun WrapScreen(
             }
             Spacer(Modifier.height(16.dp))
             T(
-                if (seatCloses) "운전석에서 내리시면 운행이 종료됩니다. 다시 출발하면 운행이 이어집니다."
-                else "착석 신호를 확인할 수 없습니다. 운행 종료 버튼을 눌러 주세요.",
+                if (seatCloses) "잠시 정차한 경우 그대로 출발하시면 됩니다. 운행을 마친 뒤 운전석에서 내리면 자동으로 종료됩니다."
+                else "자동 종료를 확인할 수 없습니다. 주차를 마치셨다면 운행 종료를 눌러 주세요.",
                 Type.labelLarge, Modifier.appear(3), color = c.textTertiary,
             )
             if (booking != null && emergencies.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
-                T("비상연락처는 차주님을 깨울 수 없을 때 연락할 분(${emergencies.joinToString(", ") { it.label }})입니다.", Type.labelLarge, Modifier.appear(4), color = c.textTertiary)
+                T("차주님과 의사소통이 어려울 때 연락할 분(${emergencies.joinToString(", ") { it.label }})입니다.", Type.labelLarge, Modifier.appear(4), color = c.textTertiary)
             }
         }
         if (link != null) {
             Column(Modifier.width(480.dp).fillMaxHeight().appear(2, scaleFrom = 0.97f), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
                 QrPanel(
-                    "기사님용 운행 기록", Links.tripUrl(BuildConfig.CARD_SERVER, link, trip.shareId),
-                    "기사님 휴대폰으로 찍어 주세요. 종료가 확정되면 최종 기록으로 바뀝니다.",
+                    "기사님 운행 내역 보기", Links.tripUrl(BuildConfig.CARD_SERVER, link, trip.shareId),
+                    "휴대폰으로 QR을 찍으면 이 운행의 내역을 볼 수 있습니다.",
                 )
                 if (booking != null) Panel(Modifier.fillMaxWidth(), pad = 24.dp) {
                     T("결제 (시연용)", Type.labelLarge)
@@ -162,3 +162,4 @@ internal fun Tile(label: String, value: String, modifier: Modifier = Modifier) {
         T(value, Type.headlineMedium, maxLines = 1)
     }
 }
+
