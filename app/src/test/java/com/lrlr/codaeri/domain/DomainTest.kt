@@ -43,7 +43,8 @@ class DomainTest {
         val segs = Guidance.segments(card)
         // 칸 이름까지 읽으면 "자리가 없으면. 자리가 없으면 …"처럼 겹친다.
         GuideStep.values().forEach { step -> assertFalse(segs.drop(1).any { it.speech.startsWith(Guidance.label(step) + ".") }) }
-        assertEquals(1, Regex("자리가 없으면").findAll(segs[2].speech).count())
+        val again = Guidance.segments(card.copy(fallback = "자리가 없으면 지하 3층에 세워 주세요"))
+        assertEquals(1, Regex("자리가 없으면").findAll(again[2].speech).count())
     }
 
     @Test fun pillarNumbersAreReadVerbatim() {
