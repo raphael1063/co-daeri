@@ -35,7 +35,7 @@
 
 ## 심사위원용 빠른 시작 (5분)
 
-1. Pleos Connect Emulator(API 34)에 `apk/테오로빈_코-대리_release.apk` 를 `adb install` 로 설치하고 코-대리를 엽니다. 위치와 알림 권한을 허용합니다(마이크 권한은 "말로 입력"을 처음 고를 때 묻습니다). 위치가 잡히지 않으면 `adb shell pm grant com.lrlr.codaeri pleos.car.permission.FUSED_LOCATION` 을 한 번 실행합니다. 운행 중 내비게이션 위에 운행 상태를 띄우려면 `adb shell appops set com.lrlr.codaeri SYSTEM_ALERT_WINDOW allow` 도 한 번 실행합니다.
+1. Pleos Connect Emulator(API 34)에 `apk/테오로빈_코-대리_release.apk` 를 `adb install` 로 설치하고 코-대리를 엽니다. 위치와 알림 권한을 허용합니다(마이크 권한은 "말로 입력"을 처음 고를 때 묻습니다). 위치가 잡히지 않으면 `adb shell pm grant com.lrlr.codaeri pleos.car.permission.FUSED_LOCATION` 을 한 번 실행합니다. (선택) 내비게이션 위에 운행 상태를 작게 띄우는 표시는 부가 기능입니다. 이 에뮬레이터 이미지에는 "다른 앱 위에 표시"를 켜는 설정 화면이 없어 `adb shell appops set com.lrlr.codaeri SYSTEM_ALERT_WINDOW allow` 로만 켤 수 있고, 실차 적용에는 플랫폼의 허용이 필요합니다. 켜지 않아도 모든 흐름은 그대로 동작합니다.
 2. PC 브라우저에서 심사용 콘솔 **https://lrlr-master.com/daeri/console/** 을 열고, 차 화면 QR 아래의 연결 코드 여섯 글자를 입력합니다. 휴대폰과 계정, API 키는 필요 없습니다.
 3. 콘솔에서 "대리 부르기"를 누르면 15초 안에 차 화면에 "배차 현황"이 뜹니다.
 4. Virtual Console에서 운전석과 조수석(또는 뒷좌석)을 같은 착석 상태로 두면 메인 화면에 "출발하기" 버튼가 크게 표시됩니다(착석 값의 방향은 차가 한 번 움직인 뒤에 알 수 있습니다). 버튼를 누르고 기사님 PIN(시연용은 항상 1234)을 입력한 뒤 기어를 D로 바꾸면 운행이 시작됩니다. 기어를 P로 바꾸고 차 화면의 "운행 종료"를 누르면 운행이 종료되고 이용 내역이 남습니다.
