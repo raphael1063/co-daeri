@@ -140,20 +140,6 @@ fun WrapScreen(
 }
 
 @Composable
-internal fun QrPanel(title: String, url: String, note: String) {
-    Panel(Modifier.fillMaxWidth(), pad = 24.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            QrImage(url, 168.dp)
-            Column(Modifier.weight(1f)) {
-                T(title, Type.labelLarge)
-                Spacer(Modifier.height(6.dp))
-                T(note, Type.labelSmall, color = Ivi.colors.textTertiary)
-            }
-        }
-    }
-}
-
-@Composable
 internal fun Tile(label: String, value: String, modifier: Modifier = Modifier) {
     Panel(modifier, pad = 24.dp) {
         T(label, Type.labelLarge, color = Ivi.colors.textTertiary)
