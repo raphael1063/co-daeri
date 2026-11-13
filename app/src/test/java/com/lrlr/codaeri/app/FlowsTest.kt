@@ -674,6 +674,35 @@ class FlowsTest {
         assertFalse(r.listener.listening)
     }
 
+    @Test fun callIsOnlyPossibleInParkAndABookingCanBeCancelledBeforeDeparture() = runTest {
+        val r = rig()
+        r.service.fare = 25_000
+        assertTrue(r.c.canCall.value)
+        // 부르는 도중에 P단을 벗어나면 그만둔다. D단에서는 열리지도 않는다.
+        r.c.startCall()
+        assertEquals(CallStage.CHOOSE, r.c.voice.value.stage)
+        r.gear(GearState.NOT_PARK)
+        assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        assertFalse(r.c.canCall.value)
+        r.c.startCall()
+        assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        r.gear(GearState.PARK)
+        assertTrue(r.c.canCall.value)
+
+        // 잡힌 호출은 출발 전에 취소할 수 있다. 통신이 안 되면 그대로 둔다.
+        r.book()
+        assertNotNull(r.state.pendingBooking(r.clock()))
+        r.service.online = false
+        r.c.cancelBooking(); r.pass(1)
+        assertEquals(CallFlow.CANCEL_FAILED, r.c.cancelBookingMessage.value)
+        assertNotNull(r.state.pendingBooking(r.clock()))
+        r.service.online = true
+        r.c.cancelBooking(); r.pass(1)
+        assertNull(r.state.pendingBooking(r.clock()))
+        assertEquals(1, r.service.cancelled)
+        assertFalse(r.c.cancellingBooking.value)
+    }
+
     @Test fun voiceCallIsUnavailableWhenUnboundOrAlreadyBooked() = runTest {
         val unbound = rig(AppState())
         unbound.c.callByVoice()

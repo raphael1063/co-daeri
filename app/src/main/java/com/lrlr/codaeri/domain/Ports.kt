@@ -34,6 +34,9 @@ interface DaeriService {
     /** 운행 상태 자동 공유를 켜거나 끈다. 바뀐 상태를 돌려주고, 실패는 null. */
     fun setShareAuto(link: PhoneLink, on: Boolean): ServerState?
 
+    /** 출발하기 전의 예약(호출)을 취소한다. 실패는 false. */
+    fun cancelBooking(link: PhoneLink): Boolean
+
     /** 연락처를 더한다(같은 번호면 관계만 바꾼다). 번호는 서비스에만 두고, 돌려받는 상태에는 가린 번호만 있다. 실패는 null. */
     fun addContact(link: PhoneLink, kind: ContactKind, label: String, phone: String): ServerState?
 

@@ -95,6 +95,8 @@ class HttpDaeriService(private val server: String) : DaeriService {
         return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
     }
 
+    override fun cancelBooking(link: PhoneLink): Boolean = call("DELETE", "/ride", link, null)
+
     override fun addContact(link: PhoneLink, kind: com.lrlr.codaeri.domain.ContactKind, label: String, phone: String): ServerState? {
         var answer: String? = null
         val body = kotlinx.serialization.json.buildJsonObject {

@@ -107,6 +107,10 @@ class MainActivity : ComponentActivity() {
                 val judgesBoarding by c.judgesBoarding.collectAsStateWithLifecycle()
                 val voicePartial by c.voicePartial.collectAsStateWithLifecycle()
                 var editing by rememberSaveable { mutableStateOf(false) }
+                val canCall by c.canCall.collectAsStateWithLifecycle()
+                val cancellingBooking by c.cancellingBooking.collectAsStateWithLifecycle()
+                val cancelBookingMessage by c.cancelBookingMessage.collectAsStateWithLifecycle()
+                var confirmCancel by rememberSaveable { mutableStateOf(false) }
                 // 설정에서 고치고 있는 연락처 묶음
                 var contacts by rememberSaveable { mutableStateOf<com.lrlr.codaeri.domain.ContactKind?>(null) }
                 val contactBusy by c.contactBusy.collectAsStateWithLifecycle()
@@ -179,7 +183,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Screen.HANDOVER -> {
                                 BackHandler { section = Section.MAIN }
-                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, manualStart = !judgesBoarding, onStart = c::toggleStartByButton) { section = Section.MAIN } }
+                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, manualStart = !judgesBoarding, onStart = c::toggleStartByButton, cancelling = cancellingBooking, cancelMessage = cancelBookingMessage, onCancel = { confirmCancel = true }, onBack = { section = Section.MAIN }) }
                             }
                             Screen.RECORDS -> {
                                 BackHandler { section = Section.MAIN }
@@ -220,7 +224,22 @@ class MainActivity : ComponentActivity() {
                                 startLine = pending?.takeIf { startReady }?.let { "${it.driver.name} 기사님 · ${it.destination} · ${c.handover.fareText(it.fare)}" },
                                 armed = pending != null && startArmed == pending.id,
                                 onStart = c::toggleStartByButton,
+                                canCall = canCall,
                             )
+                        }
+                    }
+
+                    // 호출 취소는 한 번 더 묻는다. 예약이 사라지면(취소됨, 출발함) 창도 닫는다.
+                    LaunchedEffect(pending?.id, trip?.id) { if (pending == null || trip != null) confirmCancel = false }
+                    Fading(pending?.takeIf { confirmCancel && screen == Screen.HANDOVER }) { b ->
+                        IviPopup(
+                            onDismiss = { confirmCancel = false },
+                            buttons = {
+                                IviButton("돌아가기", { confirmCancel = false }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                IviButton("호출 취소", { confirmCancel = false; c.cancelBooking() }, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE)
+                            },
+                        ) {
+                            PopupTitle("호출을 취소할까요?", "${b.driver.name} 기사님 배정이 취소됩니다. ${b.destination}까지의 예약이 없어집니다.")
                         }
                     }
 

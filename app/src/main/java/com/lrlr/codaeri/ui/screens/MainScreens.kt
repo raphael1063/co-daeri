@@ -70,6 +70,8 @@ fun HomeScreen(
     /** "출발하기"를 이미 눌렀는지 */
     armed: Boolean = false,
     onStart: () -> Unit = {},
+    /** P단에 서 있을 때만 대리를 부를 수 있다 */
+    canCall: Boolean = true,
 ) {
     Box(page) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -91,13 +93,16 @@ fun HomeScreen(
                 if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
             } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 if (booked) HomeButton("대리 현황", R.drawable.ic_home_status, onStatus, Modifier.weight(1f), filled = true)
-                else HomeButton("대리 부르기", R.drawable.ic_home_call, onCall, Modifier.weight(1f), filled = true, enabled = !restricted)
+                else HomeButton("대리 부르기", R.drawable.ic_home_call, onCall, Modifier.weight(1f), filled = true, enabled = !restricted && canCall)
                 HomeButton("이용 내역", R.drawable.ic_home_records, onRecords, Modifier.weight(1f), enabled = !restricted)
                 HomeButton("설정", R.drawable.ic_home_settings, onSettings, Modifier.weight(1f), enabled = !restricted)
             }
             if (restricted && startLine == null) {
                 Spacer(Modifier.height(20.dp))
                 T("정차 중에만 누를 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
+            } else if (!canCall && !booked && startLine == null) {
+                Spacer(Modifier.height(20.dp))
+                T("대리 부르기는 P단에서만 할 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
             }
         }
         T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.BottomCenter), color = Ivi.colors.textTertiary)

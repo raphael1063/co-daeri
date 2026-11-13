@@ -2,6 +2,7 @@ package com.lrlr.codaeri.app
 
 import com.lrlr.codaeri.domain.AppState
 import com.lrlr.codaeri.domain.GearState
+import com.lrlr.codaeri.domain.callable
 import com.lrlr.codaeri.domain.TripRules
 import com.lrlr.codaeri.domain.GeoPoint
 import com.lrlr.codaeri.domain.GuidanceState
@@ -111,7 +112,7 @@ class DaeriController(
         env.scope.launch { ports.location.entered.collect { guide.onNearHome() } }
         env.scope.launch {
             var previous = ports.car.gear.value
-            ports.car.gear.collect { current -> recorder.onGear(previous, current); previous = current }
+            ports.car.gear.collect { current -> recorder.onGear(previous, current); voiceCall.onGearChanged(); previous = current }
         }
         env.scope.launch { ports.car.driverSeated.collect { recorder.onSeatChanged() } }
         env.scope.launch { ports.car.passengerSeats.collect { recorder.onPassengersChanged() } }
@@ -143,6 +144,12 @@ class DaeriController(
 
     /** "대리 부르기": 방법(집, 장소 선택, 음성 인식)을 고르는 창을 연다 */
     fun startCall() = voiceCall.start()
+    /** P단에 서 있을 때만 대리를 부를 수 있다 */
+    val canCall: StateFlow<Boolean> = combine(ports.car.gear, ports.restriction.restricted) { gear, restricted -> gear.callable && !restricted }
+        .stateIn(env.scope, SharingStarted.Eagerly, ports.car.gear.value.callable && !ports.restriction.restricted.value)
+    fun cancelBooking() = voiceCall.cancelBooking()
+    val cancellingBooking: StateFlow<Boolean> = voiceCall.cancelling
+    val cancelBookingMessage: StateFlow<String> = voiceCall.cancelMessage
     fun callHome() = voiceCall.home()
     fun showPlaces() = voiceCall.places()
     fun callTo(place: Place) = voiceCall.pick(place)
