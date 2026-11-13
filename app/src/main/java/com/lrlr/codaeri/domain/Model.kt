@@ -10,6 +10,8 @@ import kotlinx.serialization.Serializable
 data class ParkingCard(
     val id: String = "home",
     val placeName: String = "",
+    /** 집 주소. 차에만 저장하고 기사님 화면에는 보내지 않는다. */
+    val address: String = "",
     /** 안내를 시작할 장소. 지오펜스 중심. */
     val latitude: Double? = null,
     val longitude: Double? = null,
