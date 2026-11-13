@@ -1,5 +1,8 @@
 package com.lrlr.codaeri.ui.screens
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
@@ -80,6 +83,7 @@ fun HomecomingPanel(
 ) {
     var showDetails by rememberSaveable(card.tripId) { mutableStateOf(false) }
     val parking = TripPresentation.parking(card)
+    val turn by animateFloatAsState(if (expanded) 180f else 0f, tween(Motion.FOLD, easing = FastOutSlowInEasing), label = "chevron")
     Panel(modifier) {
         Row(
             if (onToggle != null) Modifier.fillMaxWidth().pressable(onClick = onToggle) else Modifier.fillMaxWidth(),
@@ -95,7 +99,7 @@ fun HomecomingPanel(
                     "${h.time(card.startedAt)}–${h.time(card.endedAt)} · ${h.elapsedText(card.elapsedMinutes)} · ${h.distanceText(card.distanceKm)}",
                     Type.bodySmall, color = Ivi.colors.textSecondary,
                 )
-                if (!expanded && card.fare > 0) {
+                Reveal(!expanded && card.fare > 0) {
                     Spacer(Modifier.height(6.dp))
                     T(h.fareText(card.fare), Type.bodySmall, color = Ivi.colors.textSecondary)
                 }
@@ -103,12 +107,12 @@ fun HomecomingPanel(
             if (onToggle != null) {
                 Image(
                     painterResource(R.drawable.ic_expand), contentDescription = if (expanded) "접기" else "펼치기",
-                    modifier = Modifier.size(64.dp).graphicsLayer { rotationZ = if (expanded) 180f else 0f },
+                    modifier = Modifier.size(64.dp).graphicsLayer { rotationZ = turn },
                     colorFilter = ColorFilter.tint(Ivi.colors.textSecondary),
                 )
             }
         }
-        if (!expanded) return@Panel
+        Reveal(expanded) {
         Spacer(Modifier.height(20.dp))
         Divider()
         if (card.fare > 0) {
@@ -116,7 +120,8 @@ fun HomecomingPanel(
             Fact("요금", "${h.fareText(card.fare)} · $payment (시연용)")
         }
         Fact("주차 위치", parking.location, valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
-        parking.note?.let { T(it, Type.labelSmall, color = Ivi.colors.textTertiary) }
+        // 이름표 칸만큼 들여 값과 같은 줄에 맞춘다.
+        parking.note?.let { T(it, Type.labelSmall, Modifier.padding(start = FACT_LABEL), color = Ivi.colors.textTertiary) }
         if (card.memo.isNotBlank()) Fact("기사님 메모", TripPresentation.parkingMemo(card.memo))
         Fact("문 잠금", TripPresentation.lockStatus(card, h))
         if (card.driverName.isNotBlank()) Fact("배정 기사님", "${card.driverName} 기사님")
@@ -131,10 +136,11 @@ fun HomecomingPanel(
         if (card.compare.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
             IviButton(if (showDetails) "차량 상태 접기" else "차량 상태 자세히", { showDetails = !showDetails }, size = ButtonSize.SMALL, quiet = true)
-            if (showDetails) {
+            Reveal(showDetails) {
                 Spacer(Modifier.height(12.dp))
                 CompareTable(card, h)
             }
+        }
         }
     }
 }
@@ -142,7 +148,7 @@ fun HomecomingPanel(
 @Composable
 internal fun CompareTable(card: HomecomingCard, h: Handover) {
     val c = Ivi.colors
-    val label = 230.dp
+    val label = FACT_LABEL
     // 문 잠금은 요약에서 마지막으로 확인한 시각과 함께 보여 주므로 종료 순간 값은 표에서 뺀다.
     val states = card.compare.filter { it.before.isNotEmpty() && it.label != "문 잠금" }
     Column {

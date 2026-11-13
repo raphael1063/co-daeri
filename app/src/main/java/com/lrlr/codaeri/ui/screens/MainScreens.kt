@@ -164,7 +164,11 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     onToggle = { open = if (expanded) null else card.tripId },
                 )
                 // 가장 최근 운행의 기사님만 "다음에도 먼저 요청"으로 이을 수 있다
-                if (expanded && latest && card.driverId.isNotBlank() && state.phoneLink != null) DriverCard(state, card, Modifier.width(460.dp))
+                androidx.compose.animation.AnimatedVisibility(
+                    expanded && latest && card.driverId.isNotBlank() && state.phoneLink != null,
+                    enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(Motion.FOLD, delayMillis = 80)) + androidx.compose.animation.expandHorizontally(androidx.compose.animation.core.tween(Motion.FOLD)),
+                    exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(Motion.EXIT)) + androidx.compose.animation.shrinkHorizontally(androidx.compose.animation.core.tween(Motion.FOLD)),
+                ) { DriverCard(state, card, Modifier.width(460.dp)) }
             }
         }
         }

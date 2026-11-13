@@ -6,6 +6,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.LaunchedEffect
@@ -177,19 +180,20 @@ fun IviButton(
     val pressed by source.collectIsPressedAsState()
     val active = enabled && !loading
     val scale by animateFloatAsState(if (pressed && active) 0.95f else 1f, tween(100), label = "press")
-    val bg = when {
+    // 고른 것이 바뀌거나 켜고 꺼질 때 색이 툭 바뀌지 않고 짧게 넘어간다.
+    val bg by animateColorAsState(when {
         !active -> c.buttonBasicEnabled
         danger -> if (pressed) c.negative.copy(alpha = 0.8f) else c.negative
         filled -> if (pressed) c.buttonFilledPressed else c.buttonFilledEnabled
         else -> if (pressed) c.buttonBasicPressed else c.buttonBasicEnabled
-    }
-    val fg = when {
+    }, tween(Motion.EXIT), label = "buttonBg")
+    val fg by animateColorAsState(when {
         !active -> if (quiet) c.textTertiary else c.textQuaternary
         danger -> Color.White
         filled -> c.onButtonFilled
         quiet -> c.textTertiary
         else -> c.textPrimary
-    }
+    }, tween(Motion.EXIT), label = "buttonFg")
     Box(
         modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
@@ -210,6 +214,18 @@ object Motion {
     const val ENTER = 280
     const val EXIT = 140
     const val STEP = 70
+    /** 펼치고 접는 길이 */
+    const val FOLD = 240
+}
+
+/** 펼쳐지고 접히는 자리. 아래 내용이 밀려 내려가고 올라오면서, 안의 내용은 옅게 나타나고 사라진다. */
+@Composable
+fun Reveal(visible: Boolean, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    AnimatedVisibility(
+        visible, modifier,
+        enter = expandVertically(tween(Motion.FOLD, easing = FastOutSlowInEasing), expandFrom = Alignment.Top) + fadeIn(tween(Motion.FOLD, delayMillis = 60)),
+        exit = shrinkVertically(tween(Motion.FOLD, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Top) + fadeOut(tween(Motion.EXIT)),
+    ) { Column(content = content) }
 }
 
 /** 나타날 때 한 번: 옅게 떠오르며 자리를 잡는다. order가 클수록 조금 늦게 나타나 위에서 아래로 차례가 생긴다. */
@@ -335,11 +351,14 @@ fun Tag(text: String, modifier: Modifier = Modifier) {
     }
 }
 
+/** 이름표 칸의 너비. 같은 카드 안의 표도 이 너비에 맞춰 값이 한 줄로 선다. */
+val FACT_LABEL = 230.dp
+
 /** 이름표와 값 한 줄 */
 @Composable
 fun Fact(label: String, value: String, modifier: Modifier = Modifier, valueColor: Color = Ivi.colors.textPrimary, valueStyle: TextStyle = Type.bodySmall) {
     Row(modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.Top) {
-        T(label, Type.labelLarge, Modifier.width(190.dp), color = Ivi.colors.textTertiary)
+        T(label, Type.labelLarge, Modifier.width(FACT_LABEL), color = Ivi.colors.textTertiary)
         T(value, valueStyle, Modifier.weight(1f), color = valueColor)
     }
 }

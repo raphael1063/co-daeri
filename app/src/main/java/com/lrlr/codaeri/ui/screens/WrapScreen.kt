@@ -110,9 +110,12 @@ fun WrapScreen(
                     )
                 }
                 // 기사님이 남긴 메모(말로 남긴 것 포함)는 고른 자리 아래에 그대로 보여 준다.
-                chosen?.memo?.takeIf { it.isNotBlank() }?.let { memo ->
+                val memo = chosen?.memo?.takeIf { it.isNotBlank() }
+                var lastMemo by remember { mutableStateOf(memo.orEmpty()) }
+                if (memo != null) lastMemo = memo
+                Reveal(memo != null) {
                     Spacer(Modifier.height(10.dp))
-                    T("메모: ${TripPresentation.parkingMemo(memo)}", Type.bodyMedium, color = c.textSecondary, maxLines = 2)
+                    T("메모: ${TripPresentation.parkingMemo(lastMemo)}", Type.bodyMedium, color = c.textSecondary, maxLines = 2)
                 }
             }
             Spacer(Modifier.height(40.dp))
