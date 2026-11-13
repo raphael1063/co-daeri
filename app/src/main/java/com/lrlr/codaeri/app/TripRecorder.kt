@@ -24,6 +24,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+/** 목적지에서 먼 곳에서 운행을 끝내려 할 때 화면에 묻는 내용 */
+data class CloseAsk(val destination: String, val km: Float)
+
 /**
  * 한 번의 대리 운행을 차 신호로 기록한다. 아무도 단추를 누르지 않는다.
  * 시작: 운전석과 다른 자리에 사람이 앉은 채 기어가 P를 벗어남. 정차: 기어 P(다시 출발하면 같은 운행). 종료: 기어 P에서 운전석이 잠시 비어 있음.
@@ -52,6 +55,9 @@ class TripRecorder(
     private val _busy = MutableStateFlow(false)
     /** 시작·종료처럼 차량 값을 읽는 중인지. 읽는 동안 같은 신호가 다시 와도 한 번만 처리한다. */
     val busy: StateFlow<Boolean> = _busy
+    private val _closeAsk = MutableStateFlow<CloseAsk?>(null)
+    /** 목적지에서 먼 곳에서 "운행 종료"를 눌러 확인을 기다리는 중이면 그 내용 */
+    val closeAsk: StateFlow<CloseAsk?> = _closeAsk
     private var heartbeat: Job? = null
     private var lockWatch: Job? = null
     private var seatJob: Job? = null
@@ -252,8 +258,23 @@ class TripRecorder(
     /** "운행 종료" 단추. 운행은 이 단추로만 끝낸다(차 전원이 꺼진 경우만 예외). */
     fun closeByButton() {
         if (restriction.restricted.value || car.gear.value.moving) return
+        val trip = store.value.trip ?: return
+        if (trip.phase != TripPhase.WRAPPING_UP || _busy.value) return
+        // 목적지에서 먼 곳이면 바로 끝내지 않고 한 번 더 묻는다. 위치나 목적지 좌표를 모르면 묻지 않는다.
+        val far = TripRules.farFromDestination(trip.booking, location.position.value)
+        if (far != null) { _closeAsk.value = CloseAsk(trip.booking?.destination.orEmpty(), far); return }
         close(ClosedBy.BUTTON)
     }
+
+    /** "목적지에서 먼데 종료할까요?"에 종료한다고 답했다. */
+    fun confirmClose() {
+        if (_closeAsk.value == null) return
+        _closeAsk.value = null
+        if (restriction.restricted.value || car.gear.value.moving) return
+        close(ClosedBy.BUTTON)
+    }
+
+    fun dismissCloseAsk() { _closeAsk.value = null }
 
     /** 차가 본 운행의 끝(종료 후보)을 적고 서비스에 보낸다. 종료 확정은 서비스의 답으로 온다. */
     private fun close(by: ClosedBy) {

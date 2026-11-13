@@ -938,6 +938,31 @@ class FlowsTest {
         assertTrue(r.c.lastTripAnswer()!!.contains(Handover().distanceText(18f)))
     }
 
+    @Test fun closingFarFromTheDestinationAsksFirstAndClosesOnlyAfterConfirm() = runTest {
+        val r = rig()
+        // 목적지는 차의 위치(37.4, 127.1)에서 10km 넘게 떨어진 곳
+        r.service.server = r.service.server.copy(booking = r.service.booking("b1").copy(lat = 37.4979, lng = 127.0276))
+        r.pass(BookingSync.POLL_MS)
+        r.gear(GearState.NOT_PARK); r.gear(GearState.PARK)
+        r.c.closeByButton(); r.pass(1)
+        assertTrue(r.c.closeAsk.value!!.km > TripRules.FAR_KM)
+        assertNotNull(r.c.state.value.trip)
+        r.c.dismissCloseAsk(); r.pass(1)
+        assertNull(r.c.closeAsk.value)
+        assertEquals(TripPhase.WRAPPING_UP, r.c.state.value.trip!!.phase)
+        r.c.closeByButton(); r.c.confirmClose(); r.pass(1)
+        assertNull(r.c.closeAsk.value)
+        assertNotNull(r.c.state.value.lastCard)
+        // 목적지 근처에서는 묻지 않는다
+        val near = rig()
+        near.service.server = near.service.server.copy(booking = near.service.booking("b2").copy(lat = 37.401, lng = 127.101))
+        near.pass(BookingSync.POLL_MS)
+        near.gear(GearState.NOT_PARK); near.gear(GearState.PARK)
+        near.c.closeByButton(); near.pass(1)
+        assertNull(near.c.closeAsk.value)
+        assertNotNull(near.c.state.value.lastCard)
+    }
+
     private companion object {
         /** 2026-11-14 23:00 KST 무렵 */
         const val BASE = 1_794_664_800_000L

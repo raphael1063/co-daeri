@@ -269,6 +269,24 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    // 목적지에서 먼 곳에서 누른 운행 종료는 한 번 더 묻는다.
+                    val closeAsk by c.closeAsk.collectAsStateWithLifecycle()
+                    LaunchedEffect(trip?.id, screen) { if (trip == null || screen != Screen.WRAP) c.dismissCloseAsk() }
+                    Fading(closeAsk) { ask ->
+                        IviPopup(
+                            onDismiss = c::dismissCloseAsk,
+                            buttons = {
+                                IviButton("돌아가기", c::dismissCloseAsk, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                IviButton("운행 종료", c::confirmClose, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE)
+                            },
+                        ) {
+                            PopupTitle(
+                                "목적지에서 먼 곳입니다. 정말 운행을 종료할까요?",
+                                "목적지 ${ask.destination}까지 직선거리로 약 ${c.handover.distanceText(ask.km)} 남았습니다. 잠깐 선 것이라면 돌아가기를 눌러 주세요. 종료하면 이 운행은 여기서 끝납니다.",
+                            )
+                        }
+                    }
+
                     // 호출 취소는 한 번 더 묻는다. 예약이 사라지면(취소됨, 출발함) 창도 닫는다.
                     LaunchedEffect(pending?.id, trip?.id) { if (pending == null || trip != null) confirmCancel = false }
                     Fading(pending?.takeIf { confirmCancel && (screen == Screen.HANDOVER || screen == Screen.HOME) }) { b ->

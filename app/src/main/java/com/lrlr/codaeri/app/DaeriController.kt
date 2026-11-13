@@ -180,6 +180,9 @@ class DaeriController(
     val startArmed: StateFlow<String?> = recorder.startArmed
     fun toggleStartByButton() = recorder.toggleStartByButton()
     fun closeByButton() = recorder.closeByButton()
+    val closeAsk: StateFlow<CloseAsk?> = recorder.closeAsk
+    fun confirmClose() = recorder.confirmClose()
+    fun dismissCloseAsk() = recorder.dismissCloseAsk()
     fun closeTrip() = recorder.dismissClosed()
     fun seatCloses(): Boolean = recorder.seatCloses()
 

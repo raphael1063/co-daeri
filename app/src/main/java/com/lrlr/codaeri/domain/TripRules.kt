@@ -116,6 +116,17 @@ object TripRules {
     }
 
     /** P로 선 뒤 운전석이 비면 닫는다. */
+    /** 이 거리보다 멀면 목적지에서 먼 곳으로 본다(직선거리) */
+    const val FAR_KM = 1.0f
+
+    /** 목적지에서 먼 곳이면 그 직선거리(km). 가깝거나, 예약·목적지 좌표·현재 위치 가운데 하나라도 모르면 null. */
+    fun farFromDestination(booking: Booking?, at: GeoPoint?): Float? {
+        val lat = booking?.lat ?: return null
+        val lng = booking.lng ?: return null
+        val here = at ?: return null
+        return VoiceCall.straightKm(here.lat, here.lng, lat, lng).takeIf { it > FAR_KM }
+    }
+
     fun closesOnSeat(trip: Trip, gear: GearState, seatRaw: Boolean?): Boolean =
         trip.phase == TripPhase.WRAPPING_UP && gear == GearState.PARK && driverLeft(trip, seatRaw) == true
 
