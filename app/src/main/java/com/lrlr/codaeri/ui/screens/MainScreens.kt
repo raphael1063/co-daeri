@@ -97,12 +97,9 @@ fun HomeScreen(
                 HomeButton("이용 내역", R.drawable.ic_home_records, onRecords, Modifier.weight(1f), enabled = !restricted)
                 HomeButton("설정", R.drawable.ic_home_settings, onSettings, Modifier.weight(1f), enabled = !restricted)
             }
-            if (restricted && startLine == null) {
+            if (startLine == null && (restricted || (!canCall && !booked))) {
                 Spacer(Modifier.height(20.dp))
-                T("정차 중에만 누를 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
-            } else if (!canCall && !booked && startLine == null) {
-                Spacer(Modifier.height(20.dp))
-                T("대리 부르기는 P단에서만 할 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
+                T("정차 중에만 이용할 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
             }
         }
         T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.BottomCenter), color = Ivi.colors.textTertiary)
