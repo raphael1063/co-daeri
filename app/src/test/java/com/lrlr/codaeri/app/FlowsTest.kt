@@ -399,6 +399,7 @@ class FlowsTest {
         // 내비게이션이 아는 자리가 고른 자리와 멀면 그 주소를 쓰지 않는다
         r.c.lookUpHereAddress(37.4563, 126.7052); runCurrent()
         assertEquals("", r.c.hereAddress.value)
+        assertTrue(r.c.hereAddressFar.value)
     }
 
     @Test fun serviceStaysUpOnlyWhileADriverIsAwaitedOrATripIsRecorded() = runTest {

@@ -101,6 +101,7 @@ class DaeriController(
     fun importHomeFromNavi() = homeImport.fetch()
     fun clearHomeImport() = homeImport.clear()
     val hereAddress: StateFlow<String> = homeImport.hereAddress
+    val hereAddressFar: StateFlow<Boolean> = homeImport.hereFar
     fun lookUpHereAddress(lat: Double, lng: Double) = homeImport.lookUpHere(lat, lng)
     val restricted: StateFlow<Boolean> = ports.restriction.restricted
     val speaking: StateFlow<Boolean> = ports.announcer.speaking

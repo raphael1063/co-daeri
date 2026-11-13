@@ -37,6 +37,9 @@ data class ParkingCard(
     val isComplete: Boolean
         get() = placeName.isNotBlank() && spotLabel.isNotBlank() && (placeKind == PlaceKind.OTHER || floorLabel.isNotBlank())
     val hasLocation: Boolean get() = latitude != null && longitude != null
+    /** 저장할 수 있는지. 주차할 위치까지 다 적었거나, 주차할 위치는 비워 두고 집 위치만 정한 경우다. */
+    val canSave: Boolean
+        get() = isComplete || (placeName.isNotBlank() && hasLocation && floorLabel.isBlank() && spotLabel.isBlank())
     val isUsable: Boolean
         get() = listOf(entrance, entryMethod, zone, preferredSpot, fallback, floorLabel, spotLabel).any { it.isNotBlank() }
 }

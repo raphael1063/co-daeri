@@ -318,8 +318,12 @@ fun SettingsScreen(
         Spacer(Modifier.height(20.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SettingRow(
-            "집 주차 안내", if (state.card.isUsable) "등록됨 · 집 근처에서 기사님께 안내해 드립니다" else "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다",
-            if (state.card.isUsable) "수정" else "등록", onEditCard, Modifier.appear(1),
+            "집 주차 안내", when {
+                state.card.isUsable -> "등록됨 · 집 근처에서 기사님께 안내해 드립니다"
+                state.card.hasLocation -> "집 위치만 등록됨 · 주차할 위치를 적으면 기사님께 안내해 드립니다"
+                else -> "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다"
+            },
+            if (state.card.isUsable || state.card.hasLocation) "수정" else "등록", onEditCard, Modifier.appear(1),
         )
         SettingRow(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",

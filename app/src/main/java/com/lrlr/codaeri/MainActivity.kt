@@ -129,6 +129,7 @@ class MainActivity : ComponentActivity() {
                 val state by c.state.collectAsStateWithLifecycle()
                 val homeImport by c.homeImportUi.collectAsStateWithLifecycle()
                 val hereAddress by c.hereAddress.collectAsStateWithLifecycle()
+                val hereFar by c.hereAddressFar.collectAsStateWithLifecycle()
                 val consented = state.consentAt != null
                 androidx.compose.runtime.LaunchedEffect(consented) { if (consented) askBasicsOnce() }
                 val guidance by c.guidance.collectAsStateWithLifecycle()
@@ -226,6 +227,7 @@ class MainActivity : ComponentActivity() {
                                     homeImport = homeImport,
                                     onImportHome = c::importHomeFromNavi,
                                     hereAddress = hereAddress,
+                                    hereFar = hereFar,
                                     onLookUpHere = c::lookUpHereAddress,
                                     onNeedLocation = c::permissionsChanged,
                                     onSave = { c.saveCard(it); c.clearHomeImport(); editing = false },

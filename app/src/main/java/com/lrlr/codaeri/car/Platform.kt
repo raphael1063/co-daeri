@@ -429,7 +429,7 @@ class Navigator(private val context: Context) : RouteGuide {
                     answered = true
                     runCatching { h.removeListener(this) }
                     // 주소가 왔는지만 남긴다(주소와 좌표는 적지 않는다).
-                    Log.i(TAG, "current place hasAddress=${!info.address.isNullOrBlank()}")
+                    Log.i(TAG, "current place hasAddress=${!info.address.isNullOrBlank()} hasPoint=${info.latitude != 0.0 || info.longitude != 0.0}")
                     main.post { onResult(com.lrlr.codaeri.domain.HomeBookmark("", info.address.orEmpty(), info.latitude, info.longitude)) }
                 }
             }

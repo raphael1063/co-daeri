@@ -19,6 +19,9 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
     private val _ui = MutableStateFlow(HomeImportUi())
     val ui: StateFlow<HomeImportUi> = _ui
     private var waiting: Job? = null
+    private val _hereFar = MutableStateFlow(false)
+    /** 내비게이션이 주소를 줬지만 그 자리가 고른 자리와 멀어서 쓰지 않았는지 */
+    val hereFar: StateFlow<Boolean> = _hereFar
     private val _hereAddress = MutableStateFlow("")
     /** "현재 위치를 집으로 설정"으로 고른 자리의 주소. 내비게이션이 알려 주지 않으면 빈 글자다. */
     val hereAddress: StateFlow<String> = _hereAddress
@@ -26,9 +29,12 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
     /** 고른 자리(lat, lng)의 주소를 내비게이션에 묻는다. 내비게이션이 아는 자리가 그 자리와 멀면 쓰지 않는다. */
     fun lookUpHere(lat: Double, lng: Double) {
         _hereAddress.value = ""
+        _hereFar.value = false
         routeGuide.currentPlace { place ->
-            val near = place != null && place.address.isNotBlank() && com.lrlr.codaeri.domain.VoiceCall.straightKm(lat, lng, place.lat, place.lng) <= SAME_PLACE_KM
+            val km = place?.let { com.lrlr.codaeri.domain.VoiceCall.straightKm(lat, lng, it.lat, it.lng) }
+            val near = place != null && place.address.isNotBlank() && km != null && km <= SAME_PLACE_KM
             _hereAddress.value = if (near) place!!.address.trim() else ""
+            _hereFar.value = !near && place != null && place.address.isNotBlank()
         }
     }
 
@@ -51,6 +57,7 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
         waiting?.cancel()
         _ui.value = HomeImportUi()
         _hereAddress.value = ""
+        _hereFar.value = false
     }
 
     companion object {

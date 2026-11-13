@@ -511,6 +511,12 @@ class DomainTest {
         assertFalse(apt.copy(placeName = " ").isComplete)
         assertFalse(apt.copy(floorLabel = "").isComplete)
         assertFalse(apt.copy(spotLabel = "").isComplete)
+        // 주차할 위치를 비워 두고 집 위치만 정해도 저장할 수 있다. 층과 자리 가운데 하나만 적은 것은 안 된다.
+        val located = ParkingCard(placeName = "집", latitude = 37.4, longitude = 127.1)
+        assertTrue(located.canSave)
+        assertFalse(located.copy(floorLabel = "지하 2층").canSave)
+        assertFalse(ParkingCard(placeName = "집").canSave)
+        assertTrue(apt.canSave)
         assertEquals("B-17 근처에 주차해 주세요", Guidance.text(apt, GuideStep.PREFERRED_SPOT))
         // 기타: 층 없이 자유롭게 적은 위치만 있으면 되고, 적은 문장을 그대로 안내한다
         val other = ParkingCard(placeName = "사무실", spotLabel = "건물 뒤 주차장 왼쪽 끝", placeKind = PlaceKind.OTHER)
