@@ -125,8 +125,9 @@ class MainActivity : ComponentActivity() {
                 val routed by c.routed.collectAsStateWithLifecycle()
                 // 예약의 유효 시간은 화면이 다시 그려질 때마다 본다(상태가 15초마다 갱신된다)
                 val pending = state.pendingBooking(System.currentTimeMillis())
+                // 예약 없이 달리는 주행(차주의 평소 주행일 수 있다)은 화면을 바꾸지 않는다. 뒤늦게 예약이 확인되면 그때 운행 화면이 뜬다.
                 val screen = Route.screen(
-                    tripPhase = trip?.phase, hasCard = state.lastCard != null, bound = state.bound, restricted = restricted,
+                    tripPhase = trip?.takeIf { it.booking != null }?.phase, hasCard = state.lastCard != null, bound = state.bound, restricted = restricted,
                     editing = editing, otherSpot = otherSpot, section = section, hasBooking = pending != null,
                 )
                 // 예약이 잡히거나 기사님이 바뀌면 대리 현황을 연다
