@@ -228,7 +228,8 @@ class MainActivity : ComponentActivity() {
                                     onAllowNotice = if (noticeAllowed.value || Build.VERSION.SDK_INT < 33) null
                                     else ({ askNotice.launch(Manifest.permission.POST_NOTIFICATIONS) }),
                                     shareMessage = shareMessage,
-                                    onToggleShare = if (shareBusy || restricted) null else c::toggleShare,
+                                    // 바꾸는 동안에도 체크박스는 그대로 두고, 누른 것만 받지 않는다.
+                                    onToggleShare = { if (!restricted) c.toggleShare() },
                                     onEditContacts = { contacts = it },
                                 )
                             }
