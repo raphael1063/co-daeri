@@ -377,3 +377,26 @@ fun Fact(label: String, value: String, modifier: Modifier = Modifier, valueColor
 fun Choice(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     IviButton(text, onClick, modifier, filled = selected, size = ButtonSize.SMALL)
 }
+
+/** 켜고 끄는 체크박스. 켜지면 채운 버튼과 같은 색으로 칠하고 체크 표시를 그린다. 색은 OS 버튼 색만 쓴다. */
+@Composable
+fun IviCheckBox(checked: Boolean, onChange: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val c = Ivi.colors
+    val fill by animateColorAsState(if (checked) c.buttonFilledEnabled else c.buttonBasicEnabled, tween(Motion.FOLD), label = "check")
+    val mark by animateFloatAsState(if (checked) 1f else 0f, tween(Motion.FOLD), label = "mark")
+    val ink = c.onButtonFilled
+    val edge = c.textQuaternary
+    // 누르는 자리는 넉넉하게(96dp), 네모는 그 안에 64dp로 그린다.
+    Box(modifier.size(96.dp).pressable(enabled = enabled, role = Role.Checkbox, onClick = onChange), contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.size(64.dp)) {
+            val r = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx())
+            drawRoundRect(fill, cornerRadius = r)
+            if (mark < 1f) drawRoundRect(edge.copy(alpha = edge.alpha * (1f - mark)), cornerRadius = r, style = androidx.compose.ui.graphics.drawscope.Stroke(3.dp.toPx()))
+            if (mark > 0f) {
+                val w = size.width
+                val path = androidx.compose.ui.graphics.Path().apply { moveTo(w * 0.24f, w * 0.52f); lineTo(w * 0.43f, w * 0.70f); lineTo(w * 0.77f, w * 0.32f) }
+                drawPath(path, ink.copy(alpha = mark), style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+        }
+    }
+}

@@ -227,11 +227,11 @@ fun SettingsScreen(
         SettingRow(
             "운행 상태 자동 공유",
             when {
-                share.auto && share.contacts.isEmpty() -> "켜짐 · 공유할 연락처가 없습니다"
-                share.auto -> "켜짐 · 출발과 도착을 아래 연락처에 알립니다"
-                else -> "꺼짐"
+                share.auto && share.contacts.isEmpty() -> "공유할 연락처가 없습니다"
+                share.auto -> "출발과 도착을 아래 연락처에 알립니다"
+                else -> "공유하지 않습니다"
             },
-            if (share.auto) "끄기" else "켜기", onToggleShare, Modifier.appear(2),
+            null, onToggleShare, Modifier.appear(2), checked = share.auto,
             note = shareMessage.ifBlank { "공유할 연락처는 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
             pairs = share.contacts.map { it.label to it.masked },
             second = "연락처 수정" to { onEditContacts(com.lrlr.codaeri.domain.ContactKind.SHARE) },
@@ -251,6 +251,8 @@ internal fun SettingRow(
     title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList(),
     /** 둘째 버튼(이름과 할 일) */
     second: Pair<String, () -> Unit>? = null,
+    /** 켜고 끄는 설정이면 버튼 대신 체크박스를 둔다 */
+    checked: Boolean? = null,
 ) {
     Panel(modifier.fillMaxWidth(), pad = 32.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -264,7 +266,8 @@ internal fun SettingRow(
                 }
             }
             if (second != null) IviButton(second.first, second.second)
-            if (action != null && onClick != null) IviButton(action, onClick)
+            if (checked != null && onClick != null) IviCheckBox(checked, onClick)
+            else if (action != null && onClick != null) IviButton(action, onClick)
         }
     }
 }
