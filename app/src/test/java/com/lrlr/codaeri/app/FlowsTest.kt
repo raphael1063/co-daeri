@@ -400,6 +400,12 @@ class FlowsTest {
         r.c.lookUpHereAddress(37.4563, 126.7052); runCurrent()
         assertEquals("", r.c.hereAddress.value)
         assertTrue(r.c.hereAddressFar.value)
+
+        // 차가 좌표의 주소를 바로 찾아 주면 그 주소를 쓴다
+        r.route.geocoded = "인천광역시 남동구 구월동 1138"
+        r.c.lookUpHereAddress(37.4563, 126.7052); runCurrent()
+        assertEquals("인천광역시 남동구 구월동 1138", r.c.hereAddress.value)
+        assertFalse(r.c.hereAddressFar.value)
     }
 
     @Test fun serviceStaysUpOnlyWhileADriverIsAwaitedOrATripIsRecorded() = runTest {

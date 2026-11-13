@@ -26,17 +26,27 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
     /** "현재 위치를 집으로 설정"으로 고른 자리의 주소. 내비게이션이 알려 주지 않으면 빈 글자다. */
     val hereAddress: StateFlow<String> = _hereAddress
 
-    /** 고른 자리(lat, lng)의 주소를 내비게이션에 묻는다. 내비게이션이 아는 자리가 그 자리와 멀면 쓰지 않는다. */
+    /**
+     * 고른 자리(lat, lng)의 주소를 찾는다. 먼저 차의 주소 찾기에 좌표를 묻고,
+     * 답이 없으면 내비게이션이 아는 지금 자리의 주소를 쓴다(그 자리가 고른 자리와 멀면 쓰지 않는다).
+     */
     fun lookUpHere(lat: Double, lng: Double) {
         _hereAddress.value = ""
         _hereFar.value = false
-        routeGuide.currentPlace { place ->
-            val km = place?.let { com.lrlr.codaeri.domain.VoiceCall.straightKm(lat, lng, it.lat, it.lng) }
-            val near = place != null && place.address.isNotBlank() && km != null && km <= SAME_PLACE_KM
-            _hereAddress.value = if (near) place!!.address.trim() else ""
-            _hereFar.value = !near && place != null && place.address.isNotBlank()
+        val asked = ++hereAsk
+        routeGuide.addressAt(lat, lng) { direct ->
+            if (asked != hereAsk) return@addressAt
+            if (direct.isNotBlank()) { _hereAddress.value = direct.trim(); return@addressAt }
+            routeGuide.currentPlace { place ->
+                if (asked != hereAsk) return@currentPlace
+                val km = place?.let { com.lrlr.codaeri.domain.VoiceCall.straightKm(lat, lng, it.lat, it.lng) }
+                val near = place != null && place.address.isNotBlank() && km != null && km <= SAME_PLACE_KM
+                _hereAddress.value = if (near) place!!.address.trim() else ""
+                _hereFar.value = !near && place != null && place.address.isNotBlank()
+            }
         }
     }
+    private var hereAsk = 0
 
     fun fetch() {
         if (_ui.value.busy) return
@@ -58,6 +68,7 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
         _ui.value = HomeImportUi()
         _hereAddress.value = ""
         _hereFar.value = false
+        hereAsk++
     }
 
     companion object {

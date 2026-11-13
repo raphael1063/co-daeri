@@ -201,6 +201,9 @@ class FakeRoute : RouteGuide {
     var home: com.lrlr.codaeri.domain.HomeBookmark? = null
     var answers = true
     override fun homeBookmark(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) { if (answers) onResult(home) }
+    /** 차의 주소 찾기가 돌려줄 주소 */
+    var geocoded = ""
+    override fun addressAt(lat: Double, lng: Double, onResult: (String) -> Unit) = onResult(geocoded)
     /** 내비게이션이 아는 지금 자리 */
     var here: com.lrlr.codaeri.domain.HomeBookmark? = null
     override fun currentPlace(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) { if (answers) onResult(here) }

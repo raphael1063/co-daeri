@@ -418,6 +418,29 @@ class Navigator(private val context: Context) : RouteGuide {
         }
     }
 
+    /** 좌표를 주소로 바꾼다(안드로이드 Geocoder). 차에 그 기능이 없거나 실패하면 빈 글자로 답한다. */
+    override fun addressAt(lat: Double, lng: Double, onResult: (String) -> Unit) {
+        val main = Handler(Looper.getMainLooper())
+        if (!android.location.Geocoder.isPresent()) {
+            Log.i(TAG, "geocoder present=false")
+            onResult("")
+            return
+        }
+        Thread {
+            val line = try {
+                @Suppress("DEPRECATION")
+                val found = android.location.Geocoder(context.applicationContext, java.util.Locale.KOREA).getFromLocation(lat, lng, 1)
+                // 결과가 있었는지만 남긴다(주소와 좌표는 적지 않는다).
+                Log.i(TAG, "geocoder present=true results=${found?.size ?: 0}")
+                found?.firstOrNull()?.getAddressLine(0).orEmpty().removePrefix("대한민국 ").trim()
+            } catch (t: Throwable) {
+                Log.w(TAG, "geocoder failed: ${t.javaClass.simpleName}")
+                ""
+            }
+            main.post { onResult(line) }
+        }.start()
+    }
+
     /** 내비게이션이 아는 지금 자리의 주소. 한 번만 답한다. */
     override fun currentPlace(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) {
         val main = Handler(Looper.getMainLooper())

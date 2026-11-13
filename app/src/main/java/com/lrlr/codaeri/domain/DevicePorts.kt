@@ -82,6 +82,8 @@ interface RouteGuide {
     fun routeTo(lat: Double, lng: Double, name: String, onResult: (Boolean) -> Unit)
     /** 순정 내비게이션 즐겨찾기에 등록된 집. 없거나 읽지 못하면 null */
     fun homeBookmark(onResult: (HomeBookmark?) -> Unit) = onResult(null)
+    /** 좌표의 주소. 차가 주소를 찾아 주지 못하면 빈 글자. */
+    fun addressAt(lat: Double, lng: Double, onResult: (String) -> Unit) = onResult("")
     /** 내비게이션이 아는 지금 자리와 그 주소. 모르면 null. */
     fun currentPlace(onResult: (HomeBookmark?) -> Unit) = onResult(null)
 }
