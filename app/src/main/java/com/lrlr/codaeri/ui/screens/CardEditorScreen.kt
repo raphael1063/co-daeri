@@ -108,7 +108,7 @@ fun CardEditorScreen(
                 homeImport.busy -> "내비게이션 즐겨찾기를 확인하고 있습니다."
                 fromNavi && homeImport.message.isNotBlank() -> homeImport.message
                 homeImport.found == null && homeImport.message.isNotBlank() -> homeImport.message
-                c.hasLocation && (c.latitude != initial.latitude || c.longitude != initial.longitude) -> "집 위치를 선택했습니다. 저장을 눌러 완료해 주세요."
+                c.hasLocation && (c.latitude != initial.latitude || c.longitude != initial.longitude) -> "집 위치를 선택했습니다."
                 c.hasLocation -> "등록된 집 위치 근처에서 주차 안내를 시작합니다."
                 currentLocation == null -> "현재 위치를 확인할 수 없습니다. 집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
                 else -> "집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."

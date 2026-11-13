@@ -28,7 +28,9 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
         routeGuide.homeBookmark { home ->
             if (!_ui.value.busy) return@homeBookmark
             waiting?.cancel()
-            _ui.value = if (home == null) HomeImportUi(message = NONE) else HomeImportUi(found = home, message = found(home))
+            // 내비게이션은 집을 등록하지 않았어도 빈 "집" 칸을 돌려줄 수 있다. 좌표가 없는 칸은 없는 것으로 본다.
+            val real = home?.takeIf { usable(it) }
+            _ui.value = if (real == null) HomeImportUi(message = NONE) else HomeImportUi(found = real, message = found(real))
         }
     }
 
@@ -44,8 +46,11 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
         const val UNAVAILABLE = "내비게이션 즐겨찾기를 확인하지 못했습니다. 현재 위치로 설정할 수 있습니다."
         fun found(home: HomeBookmark): String {
             val where = home.address.ifBlank { home.name }
-            return if (where.isBlank()) "내비게이션 즐겨찾기의 집을 가져왔습니다. 저장을 눌러 완료해 주세요."
-            else "내비게이션 즐겨찾기의 집($where)을 가져왔습니다. 저장을 눌러 완료해 주세요."
+            return if (where.isBlank()) "내비게이션 즐겨찾기의 집을 가져왔습니다."
+            else "내비게이션 즐겨찾기의 집($where)을 가져왔습니다."
         }
+        /** 실제 위치가 들어 있는 즐겨찾기인지. (0, 0)이나 범위를 벗어난 좌표는 등록되지 않은 칸이다. */
+        fun usable(home: HomeBookmark): Boolean =
+            home.lat in -90.0..90.0 && home.lng in -180.0..180.0 && (kotlin.math.abs(home.lat) > 0.0001 || kotlin.math.abs(home.lng) > 0.0001)
     }
 }

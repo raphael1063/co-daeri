@@ -422,6 +422,8 @@ class Navigator(private val context: Context) : RouteGuide {
                     answered = true
                     runCatching { h.removeListener(this) }
                     val home = bookmarks.firstOrNull { it.category == ai.pleos.playground.navi.constants.BookmarkType.HOME }
+                    // 무엇을 받았는지 개수와 좌표 유무만 남긴다(주소와 이름은 적지 않는다).
+                    Log.i(TAG, "bookmarks=${bookmarks.size} home=${home != null} hasPoint=${home?.let { it.latitude != 0.0 || it.longitude != 0.0 }}")
                     main.post {
                         onResult(home?.let {
                             com.lrlr.codaeri.domain.HomeBookmark(it.name.orEmpty(), it.address.orEmpty(), it.latitude, it.longitude)

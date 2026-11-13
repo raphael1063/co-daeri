@@ -366,6 +366,12 @@ class FlowsTest {
         assertNull(r.c.homeImportUi.value.found)
         assertEquals(HomeImport.NONE, r.c.homeImportUi.value.message)
 
+        // 집을 등록하지 않은 내비게이션이 좌표 없는 빈 칸을 돌려줘도 없는 것으로 본다
+        r.route.home = com.lrlr.codaeri.domain.HomeBookmark("집", "", 0.0, 0.0)
+        r.c.importHomeFromNavi(); runCurrent()
+        assertNull(r.c.homeImportUi.value.found)
+        assertEquals(HomeImport.NONE, r.c.homeImportUi.value.message)
+
         r.route.home = com.lrlr.codaeri.domain.HomeBookmark("우리집", "성남시 분당구 삼평동", 37.4020, 127.1086)
         r.c.importHomeFromNavi(); runCurrent()
         assertEquals(37.4020, r.c.homeImportUi.value.found!!.lat, 0.0)
