@@ -176,10 +176,10 @@ class FakeKeepAlive : KeepAlive {
 
 class FakeBanner : TripBanner {
     var allowed = true
-    var text: String? = null
+    var line: BannerLine? = null
     override fun available(): Boolean = allowed
-    override fun show(text: String) { this.text = text }
-    override fun hide() { text = null }
+    override fun show(line: BannerLine) { this.line = line }
+    override fun hide() { line = null }
 }
 
 class FakeConnectivity : Connectivity {

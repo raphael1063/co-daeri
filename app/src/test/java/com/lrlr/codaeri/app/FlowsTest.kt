@@ -132,11 +132,24 @@ class FlowsTest {
         r.book()
         r.c.visible.value = true; runCurrent()
         r.gear(GearState.NOT_PARK)
-        assertNull(r.banner.text) // 앱 화면이 보이는 동안에는 띄우지 않는다
+        assertNull(r.banner.line) // 앱 화면이 보이는 동안에는 띄우지 않는다
         r.c.visible.value = false; runCurrent()
-        assertEquals("코-대리 운행 중 · 판교 삼평동으로", r.banner.text)
+        assertEquals(BannerLine("대리 운행 중", "판교 삼평동으로", ongoing = true), r.banner.line)
         r.gear(GearState.PARK)
-        assertNull(r.banner.text) // 정차하면 내린다
+        assertNull(r.banner.line) // 정차하면 내린다
+    }
+
+    @Test fun tripStartingInsideTheHomeRadiusDoesNotStartParkingGuide() = runTest {
+        val card = ParkingCard(placeName = "우리 집", latitude = 37.5, longitude = 127.0, entrance = "동쪽 입구로 가세요.", zone = "지하 2층입니다.")
+        val r = rig(bound.copy(cards = listOf(card)))
+        r.location.inside.value = true
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        assertFalse(r.c.guidance.value.started) // 집 근처에서 출발했을 뿐 도착한 것이 아니다
+        r.c.visible.value = false; runCurrent()
+        assertEquals("대리 운행 중", r.banner.line?.title)
+        r.location.entered.emit(Unit); runCurrent()
+        assertEquals("주차 안내", r.banner.line?.title)
     }
 
     @Test fun bannerStaysOffWithoutThePermission() = runTest {
@@ -144,7 +157,7 @@ class FlowsTest {
         r.banner.allowed = false
         r.book()
         r.gear(GearState.NOT_PARK)
-        assertNull(r.banner.text)
+        assertNull(r.banner.line)
     }
 
     @Test fun shortStopIsNotTheEndAndTheSameTripResumes() = runTest {

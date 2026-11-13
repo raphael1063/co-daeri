@@ -112,9 +112,9 @@ class DaeriController(
         env.scope.launch { visible.collect { if (it) { ports.notices.clear(); sync.refresh() } } }
         // 내비게이션이 앞에 있는 동안 지도 위에 운행 중임을 한 줄로 보여 준다(권한이 있는 차에서만).
         env.scope.launch {
-            combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.text(s, g, v, handover) }
+            combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.line(s, g, v, handover) }
                 .distinctUntilChanged()
-                .collect { text -> if (text != null && ports.banner.available()) ports.banner.show(text) else ports.banner.hide() }
+                .collect { line -> if (line != null && ports.banner.available()) ports.banner.show(line) else ports.banner.hide() }
         }
         outbox.watch(ports.connectivity)
         outbox.send()
