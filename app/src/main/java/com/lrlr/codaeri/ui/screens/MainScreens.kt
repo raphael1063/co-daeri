@@ -174,7 +174,7 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                         androidx.compose.animation.expandIn(androidx.compose.animation.core.tween(Motion.FOLD, easing = androidx.compose.animation.core.FastOutSlowInEasing), expandFrom = Alignment.TopEnd),
                     exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(Motion.EXIT)) +
                         androidx.compose.animation.shrinkOut(androidx.compose.animation.core.tween(Motion.FOLD, easing = androidx.compose.animation.core.FastOutSlowInEasing), shrinkTowards = Alignment.TopEnd),
-                ) { DriverCard(state, card, Modifier.padding(start = 28.dp).width(460.dp)) { calling = card.driverName } }
+                ) { DriverCard(state, card, Modifier.padding(start = 28.dp).width(560.dp)) { calling = card.driverName } }
             }
         }
         }
