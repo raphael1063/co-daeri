@@ -81,9 +81,6 @@ fun HomeScreen(
     Box(page) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Image(painterResource(R.drawable.ic_app_clear), contentDescription = null, modifier = Modifier.size(280.dp).appear(0, scaleFrom = 0.97f))
-            Spacer(Modifier.height(20.dp))
-            // 앱 이름은 글자 대신 워드마크 그림으로 보여 준다(밝은 화면은 검은 글자, 어두운 화면은 흰 글자).
-            Image(painterResource(R.drawable.wordmark), contentDescription = "코-대리", modifier = Modifier.height(110.dp).appear(0))
             Spacer(Modifier.height(48.dp))
             if (startLine != null) {
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
@@ -120,6 +117,8 @@ fun HomeScreen(
                 T("정차 중에만 이용할 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
             }
         }
+        // 앱 이름은 워드마크 그림으로 왼쪽 위에 작게 둔다(밝은 화면은 검은 글자, 어두운 화면은 흰 글자).
+        Image(painterResource(R.drawable.wordmark), contentDescription = "코-대리", modifier = Modifier.align(Alignment.TopStart).height(56.dp).appear(0))
         T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.TopEnd), color = Ivi.colors.textTertiary)
     }
 }
@@ -296,6 +295,8 @@ fun SettingsScreen(
     onEditContacts: (com.lrlr.codaeri.domain.ContactKind) -> Unit = {},
     /** 우선 요청 기사님을 정하는 화면을 연다 */
     onEditRegular: () -> Unit = {},
+    /** 우선 요청으로 고를 수 있는 기사님(이용한 기사님)이 있는지 */
+    canPickRegular: Boolean = false,
 ) {
     // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
     Column(page) {
@@ -328,8 +329,10 @@ fun SettingsScreen(
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
-            if (state.server.regular != null) "수정" else "등록", onEditRegular, Modifier.appear(2),
-            note = "대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.",
+            // 고를 기사님이 없으면 버튼을 두지 않는다(눌러도 등록할 수 없는 버튼은 만들지 않는다).
+            when { state.server.regular != null -> "수정"; canPickRegular -> "등록"; else -> null }, onEditRegular, Modifier.appear(2),
+            note = if (state.server.regular == null && !canPickRegular) "대리를 부를 때 이 기사님께 먼저 요청합니다. 대리를 이용한 뒤에 그 기사님을 등록할 수 있습니다."
+            else "대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.",
         )
         SettingRow(
             "이용 알림", if (noticeOn) "기사님 배정과 운행 종료를 알립니다" else "알리지 않습니다",

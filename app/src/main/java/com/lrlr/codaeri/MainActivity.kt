@@ -249,7 +249,7 @@ class MainActivity : ComponentActivity() {
                                     // 바꾸는 동안에도 체크박스는 그대로 두고, 누른 것만 받지 않는다.
                                     onToggleShare = { if (!restricted) c.toggleShare() },
                                     onEditContacts = { contacts = it },
-                                    onEditRegular = { regularOpen = true },
+                                    onEditRegular = { regularOpen = true }, canPickRegular = com.lrlr.codaeri.app.RegularEditor.candidates(state).isNotEmpty(),
                                 )
                             }
                             Screen.HOME -> HomeScreen(

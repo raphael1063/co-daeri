@@ -25,6 +25,8 @@ import com.lrlr.codaeri.domain.Emergency
 import com.lrlr.codaeri.ui.*
 
 private val RELATIONS = listOf("배우자", "부모님", "자녀", "형제자매", "친구", "직장 동료")
+/** 직접 적는 관계의 길이(서비스가 받는 길이와 같다) */
+private const val LABEL_MAX = 12
 private val KEYS = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "지우기")
 
 /** 010-1234-5678 꼴로 끊어 적는다(다 치기 전에도). */
@@ -52,7 +54,9 @@ fun ContactsScreen(
     var label by rememberSaveable { mutableStateOf("") }
     var digits by rememberSaveable { mutableStateOf("010") }
     // 저장되어 목록이 늘면 입력 칸을 비운다.
-    LaunchedEffect(contacts.size) { label = ""; digits = "010" }
+    // 직접 입력: 고를 수 있는 관계에 없으면 글자로 적는다
+    var custom by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(contacts.size) { label = ""; digits = "010"; custom = false }
     val gap = Arrangement.spacedBy(12.dp)
     val c = Ivi.colors
     // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
@@ -87,7 +91,12 @@ fun ContactsScreen(
                 T("연락처 추가", Type.labelLarge, color = c.textTertiary)
                 Spacer(Modifier.height(16.dp))
                 FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-                    RELATIONS.forEach { r -> Choice(r, label == r, { label = if (label == r) "" else r }) }
+                    RELATIONS.forEach { r -> Choice(r, !custom && label == r, { label = if (!custom && label == r) "" else r; custom = false }) }
+                    Choice("직접 입력", custom, { custom = !custom; label = "" })
+                }
+                Reveal(custom) {
+                    Spacer(Modifier.height(16.dp))
+                    Field("관계 (예: 이모, 이웃)", label, Modifier.width(640.dp)) { label = it.take(LABEL_MAX) }
                 }
                 Spacer(Modifier.height(24.dp))
                 T(dialing(digits).ifEmpty { "전화번호" }, Type.headlineSmall, color = if (digits.isEmpty()) c.textTertiary else c.textPrimary)
@@ -97,8 +106,8 @@ fun ContactsScreen(
                 }
                 Spacer(Modifier.height(24.dp))
                 IviButton(
-                    "추가", { onAdd(label, digits) }, Modifier.fillMaxWidth(), filled = true, size = ButtonSize.LARGE,
-                    enabled = label.isNotEmpty() && digits.length >= 9, loading = busy,
+                    "추가", { onAdd(label.trim(), digits) }, Modifier.fillMaxWidth(), filled = true, size = ButtonSize.LARGE,
+                    enabled = label.isNotBlank() && digits.length >= 9, loading = busy,
                 )
                 Spacer(Modifier.height(12.dp))
                 T("번호는 서비스에만 저장하고, 차 화면에는 가려서 보여 줍니다.", Type.labelSmall, color = c.textTertiary)
