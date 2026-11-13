@@ -22,7 +22,7 @@ import com.lrlr.codaeri.app.TripBanner
 /**
  * 내비게이션 위에 띄우는 작은 표시(다른 앱 위에 표시). 누르면 코-대리 화면이 열린다.
  * 앱 화면과 같은 바탕·글자색에 앱 아이콘을 붙여 코-대리의 표시임을 알 수 있게 한다.
- * 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위(2D 단추 왼쪽)에 둔다.
+ * 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위(2D 단추 왼쪽)에, 그 단추와 같은 높이·모양으로 둔다.
  * "다른 앱 위에 표시" 권한이 없으면 아무것도 띄우지 않는다.
  */
 class OverlayBanner(private val context: Context) : TripBanner {
@@ -102,8 +102,9 @@ class OverlayBanner(private val context: Context) : TripBanner {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(16f), dp(12f), dp(24f), dp(12f))
-            background = GradientDrawable().apply { setColor(surface); cornerRadius = dp(20f).toFloat(); setStroke(dp(1f), line) }
-            elevation = dp(6f).toFloat()
+            // 내비게이션의 단추와 카드처럼 모서리가 각지고 그림자 없이 가는 테두리만 둔다.
+            background = GradientDrawable().apply { setColor(surface); setStroke(dp(1f), line) }
+            minimumHeight = dp(100f)
             addView(icon); addView(texts)
             setOnClickListener {
                 context.startActivity(
@@ -117,7 +118,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
-        ).apply { gravity = Gravity.TOP or Gravity.END; x = dp(185f); y = dp(40f) }
+        ).apply { gravity = Gravity.TOP or Gravity.END; x = dp(160f); y = dp(24f) }
         wm.addView(v, params)
         root = v; title = titleView; dots = dotsView; detail = detailView; night = dark
     }
