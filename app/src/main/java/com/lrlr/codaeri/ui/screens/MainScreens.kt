@@ -72,6 +72,9 @@ fun HomeScreen(
     onStart: () -> Unit = {},
     /** P단에 서 있을 때만 대리를 부를 수 있다 */
     canCall: Boolean = true,
+    /** 출발 전에는 메인 화면에서도 호출을 취소할 수 있다 */
+    cancelling: Boolean = false, cancelMessage: String = "",
+    onCancel: () -> Unit = {},
 ) {
     Box(page) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -90,7 +93,15 @@ fun HomeScreen(
                     if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다." else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
                     Type.labelLarge, color = Ivi.colors.textTertiary, align = TextAlign.Center,
                 )
-                if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
+                Spacer(Modifier.height(20.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (armed) IviButton("출발 확인 취소", onStart, enabled = !restricted)
+                    IviButton("호출 취소", onCancel, enabled = !restricted, loading = cancelling)
+                }
+                Reveal(cancelMessage.isNotEmpty()) {
+                    Spacer(Modifier.height(12.dp))
+                    T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
+                }
             } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 if (booked) HomeButton("대리 현황", R.drawable.ic_home_status, onStatus, Modifier.weight(1f), filled = true)
                 else HomeButton("대리 부르기", R.drawable.ic_home_call, onCall, Modifier.weight(1f), filled = true, enabled = !restricted && canCall)

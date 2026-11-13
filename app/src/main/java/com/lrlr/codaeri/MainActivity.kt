@@ -228,13 +228,15 @@ class MainActivity : ComponentActivity() {
                                 armed = pending != null && startArmed == pending.id,
                                 onStart = c::toggleStartByButton,
                                 canCall = canCall,
+                                cancelling = cancellingBooking, cancelMessage = cancelBookingMessage,
+                                onCancel = { confirmCancel = true },
                             )
                         }
                     }
 
                     // 호출 취소는 한 번 더 묻는다. 예약이 사라지면(취소됨, 출발함) 창도 닫는다.
                     LaunchedEffect(pending?.id, trip?.id) { if (pending == null || trip != null) confirmCancel = false }
-                    Fading(pending?.takeIf { confirmCancel && screen == Screen.HANDOVER }) { b ->
+                    Fading(pending?.takeIf { confirmCancel && (screen == Screen.HANDOVER || screen == Screen.HOME) }) { b ->
                         IviPopup(
                             onDismiss = { confirmCancel = false },
                             buttons = {
