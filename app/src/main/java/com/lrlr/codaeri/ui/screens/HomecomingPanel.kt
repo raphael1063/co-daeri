@@ -189,6 +189,6 @@ internal fun DriverCard(state: AppState, card: HomecomingCard, modifier: Modifie
         Spacer(Modifier.height(12.dp))
         T("두고 내린 물건처럼 확인할 일이 있으면 전화로 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
         Spacer(Modifier.height(20.dp))
-        IviButton("이 기사님께 전화하기", onCall, Modifier.fillMaxWidth(), size = ButtonSize.MEDIUM)
+        IviButton("전화하기", onCall, Modifier.fillMaxWidth(), size = ButtonSize.LARGE)
     }
 }
