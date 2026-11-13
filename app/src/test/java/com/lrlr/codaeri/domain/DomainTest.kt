@@ -261,6 +261,8 @@ class DomainTest {
 
     @Test fun elapsedIsButtonToButton() {
         assertEquals(42, h.elapsedMinutes(at(23, 0), at(23, 42)))
+        // 22:58:10 → 23:39:50 은 화면의 시각 차와 같은 41분
+        assertEquals(41, h.elapsedMinutes(at(22, 58) + 10_000, at(23, 39) + 50_000))
         assertEquals("1시간 5분", h.elapsedText(65))
         assertEquals(0, h.elapsedMinutes(at(23, 42), at(23, 0)))
     }

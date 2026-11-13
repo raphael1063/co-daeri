@@ -108,9 +108,9 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         else -> "${km.roundToInt()}km"
     }
 
-    /** 운행 시간: P를 벗어난 때부터 운행이 닫힐 때까지. */
+    /** 운행 시간: P를 벗어난 때부터 운행이 닫힐 때까지. 화면에 적는 출발·종료 시각(분)의 차와 같게 분 단위로 센다. */
     fun elapsedMinutes(startedAt: Long, endedAt: Long): Long =
-        ((endedAt - startedAt).coerceAtLeast(0) + 30_000) / 60_000
+        (endedAt / 60_000 - startedAt / 60_000).coerceAtLeast(0)
 
     fun elapsedText(minutes: Long): String =
         if (minutes >= 60) "${minutes / 60}시간 ${minutes % 60}분" else "${minutes}분"
