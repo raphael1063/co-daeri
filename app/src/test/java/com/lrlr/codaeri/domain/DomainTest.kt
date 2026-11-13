@@ -228,20 +228,20 @@ class DomainTest {
     // --- 주차 결과와 출처 ---
 
     @Test fun parkingLinesCarrySource() {
-        assertEquals("기사 확인: 지하 2층 B-17 근처", h.parkingLine(card, h.confirmedAsGuided(0)))
+        assertEquals("기사님 확인: 지하 2층 B-17 근처", h.parkingLine(card, h.confirmedAsGuided(0)))
         assertEquals(
-            "기사 입력: 지하 2층 B-21",
+            "기사님 입력: 지하 2층 B-21",
             h.parkingLine(card, h.driverInput(SpotChoice.SAME_FLOOR_OTHER, "", "B-21", "", 0)),
         )
         assertEquals(
-            "기사 입력: 지하 3층 C-02",
+            "기사님 입력: 지하 3층 C-02",
             h.parkingLine(card, h.driverInput(SpotChoice.OTHER_FLOOR, "지하 3층", "C-02", "", 0)),
         )
-        assertEquals("기사 입력: 지상", h.parkingLine(card, h.driverInput(SpotChoice.OUTDOOR, "", "", "", 0)))
+        assertEquals("기사님 입력: 지상", h.parkingLine(card, h.driverInput(SpotChoice.OUTDOOR, "", "", "", 0)))
         assertEquals("안내한 주차 위치: 지하 2층 B-17 근처 (기사님이 확인하지 않음)", h.parkingLine(card, null))
         assertEquals("안내한 주차 위치: 지하 2층 B-17 근처 (기사님이 확인하지 않음)", h.parkingLine(card, h.unconfirmed(0)))
         assertEquals(
-            "기사 확인: 안내한 위치 근처",
+            "기사님 확인: 안내한 위치 근처",
             h.parkingLine(card.copy(floorLabel = "", spotLabel = ""), h.confirmedAsGuided(0)),
         )
     }
@@ -321,7 +321,7 @@ class DomainTest {
             Observed(true, at(23, 42)),
         )
         val c = h.card(card, t, at(23, 43))
-        assertEquals("기사 입력: 지하 2층 B-21", c.parkingLine)
+        assertEquals("기사님 입력: 지하 2층 B-21", c.parkingLine)
         assertEquals(42, c.elapsedMinutes)
         assertEquals(18f, c.distanceKm!!, 0.001f)
         val qr = h.driverQrText(c)
@@ -379,8 +379,8 @@ class DomainTest {
     }
 
     @Test fun sameFloorWithoutPillarSaysOtherSpotAndOutdoorDropsPillar() {
-        assertEquals("기사 입력: 지하 2층 다른 자리", h.parkingLine(card, h.driverInput(SpotChoice.SAME_FLOOR_OTHER, "", "", "", 0)))
-        assertEquals("기사 입력: 지상", h.parkingLine(card, h.driverInput(SpotChoice.OUTDOOR, "", "B-21", "", 0)))
+        assertEquals("기사님 입력: 지하 2층 다른 자리", h.parkingLine(card, h.driverInput(SpotChoice.SAME_FLOOR_OTHER, "", "", "", 0)))
+        assertEquals("기사님 입력: 지상", h.parkingLine(card, h.driverInput(SpotChoice.OUTDOOR, "", "B-21", "", 0)))
     }
 
     @Test fun progressCardNeverClaimsAParkingResult() {

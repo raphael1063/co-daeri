@@ -48,7 +48,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         recordedAt = now,
     )
 
-    /** 예: "기사 확인: 지하 2층 B-17 근처", "기사 입력: 지하 2층 B-21", "상세 주차 위치 미확인" */
+    /** 예: "기사님 확인: 지하 2층 B-17 근처", "기사님 입력: 지하 2층 B-21", "상세 주차 위치 미확인" */
     fun parkingLine(card: ParkingCard, result: ParkingResult?): String {
         // 주차 안내를 적어 두지 않은 차에서는 주차 위치를 묻지도 적지도 않는다
         if (!card.isUsable && (result == null || result.source == ResultSource.UNCONFIRMED)) return ""
@@ -56,7 +56,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         return when (result.source) {
             ResultSource.DRIVER_CONFIRMED -> {
                 val where = listOf(card.floorLabel, card.spotLabel).filter { it.isNotBlank() }.joinToString(" ")
-                if (where.isEmpty()) "기사 확인: 안내한 위치 근처" else "기사 확인: $where 근처"
+                if (where.isEmpty()) "기사님 확인: 안내한 위치 근처" else "기사님 확인: $where 근처"
             }
             ResultSource.DRIVER_INPUT -> {
                 val floor = when (result.choice) {
@@ -69,11 +69,11 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
                 val parts = listOf(floor, pillar).filter { it.isNotBlank() }
                 when {
                     result.choice == SpotChoice.SAME_FLOOR_OTHER && pillar.isBlank() && floor.isNotBlank() ->
-                        "기사 입력: $floor 다른 자리"
-                    parts.isNotEmpty() -> "기사 입력: " + parts.joinToString(" ")
-                    result.choice == SpotChoice.SAME_FLOOR_OTHER -> "기사 입력: 같은 층 다른 자리"
-                    result.choice == SpotChoice.OTHER_FLOOR -> "기사 입력: 다른 층"
-                    else -> "기사 입력: 안내와 다른 자리"
+                        "기사님 입력: $floor 다른 자리"
+                    parts.isNotEmpty() -> "기사님 입력: " + parts.joinToString(" ")
+                    result.choice == SpotChoice.SAME_FLOOR_OTHER -> "기사님 입력: 같은 층 다른 자리"
+                    result.choice == SpotChoice.OTHER_FLOOR -> "기사님 입력: 다른 층"
+                    else -> "기사님 입력: 안내와 다른 자리"
                 }
             }
             ResultSource.UNCONFIRMED -> unconfirmedLine(card)

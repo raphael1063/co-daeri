@@ -16,7 +16,7 @@ class TripPresentationTest {
     )
 
     @Test fun legacyParkingRecordsShowLocationWithoutSourcePrefixes() {
-        for (prefix in listOf("기사 입력: ", "기사 확인: ")) {
+        for (prefix in listOf("기사님 입력: ", "기사님 확인: ")) {
             val saved = card.copy(parkingLine = prefix + "지하 2층 B-17", parkingSource = ResultSource.DRIVER_INPUT)
             assertEquals("지하 2층 B-17", TripPresentation.parking(saved).location)
             assertEquals(prefix + "지하 2층 B-17", saved.parkingLine) // 저장된 원문은 바꾸지 않는다

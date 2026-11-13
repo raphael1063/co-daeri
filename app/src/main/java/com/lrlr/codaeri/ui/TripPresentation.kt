@@ -23,7 +23,7 @@ object TripPresentation {
     }
 
     fun parkingLocation(line: String): String = line
-        .removePrefix("기사 확인: ").removePrefix("기사 입력: ")
+        .removePrefix("기사님 확인: ").removePrefix("기사님 입력: ").removePrefix("기사 확인: ").removePrefix("기사 입력: ")
 
     /** 이전에 잠겼더라도, 나중에 잠금이 풀렸다는 관측이 있으면 그것을 먼저 보여 준다. */
     fun lockStatus(card: HomecomingCard, handover: Handover): String {
