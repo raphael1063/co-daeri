@@ -73,7 +73,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val surface = if (dark) 0xFF313236.toInt() else 0xFFFFFFFF.toInt()
         val ink = if (dark) 0xFFFFFFFF.toInt() else 0xFF131417.toInt()
         val sub = if (dark) 0xA3FFFFFF.toInt() else 0xA3131417.toInt()
-        val line = if (dark) 0xFF44464E.toInt() else 0xFFE0E1E6.toInt()
+        val line = if (dark) 0xFF44464E.toInt() else 0xFFBDBDBD.toInt() // 밝은 화면에서는 내비게이션 단추의 테두리와 같은 색
 
         val icon = ImageView(context).apply {
             setImageResource(R.drawable.ic_app_clear)
