@@ -137,10 +137,10 @@ fun PairColumns(pairs: List<Pair<String, String>>, nameStyle: TextStyle, valueSt
 fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = Ivi.colors
     Box(
-        modifier.size(ButtonSize.SMALL.height).clip(RoundedCornerShape(ButtonSize.SMALL.radius)).background(c.buttonBasicEnabled).pressable(onClick = onClick),
+        modifier.size(112.dp).clip(RoundedCornerShape(28.dp)).background(c.buttonBasicEnabled).pressable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Image(painterResource(R.drawable.ic_back), contentDescription = "뒤로", modifier = Modifier.size(44.dp), colorFilter = ColorFilter.tint(c.textPrimary))
+        Image(painterResource(R.drawable.ic_back), contentDescription = "뒤로", modifier = Modifier.size(56.dp), colorFilter = ColorFilter.tint(c.textPrimary))
     }
 }
 
@@ -356,8 +356,8 @@ fun Panel(modifier: Modifier = Modifier, pad: Dp = 32.dp, content: @Composable C
 /** 작은 꼬리표. 시연용 서버임을 밝히는 데 쓴다. */
 @Composable
 fun Tag(text: String, modifier: Modifier = Modifier) {
-    Box(modifier.clip(RoundedCornerShape(12.dp)).background(Ivi.colors.surfaceHigh).padding(horizontal = 14.dp, vertical = 6.dp)) {
-        T(text, Type.labelSmall, color = Ivi.colors.textTertiary)
+    Box(modifier.clip(RoundedCornerShape(14.dp)).background(Ivi.colors.surfaceHigh).padding(horizontal = 20.dp, vertical = 10.dp)) {
+        T(text, Type.labelLarge, color = Ivi.colors.textTertiary)
     }
 }
 

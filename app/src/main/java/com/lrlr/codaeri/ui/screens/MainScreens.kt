@@ -138,9 +138,10 @@ internal fun HomeButton(text: String, icon: Int, onClick: () -> Unit, modifier: 
 /** 화면 위쪽의 제목 줄: 뒤로 단추와 제목 */
 @Composable
 internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modifier, trailing: @Composable () -> Unit = {}) {
-    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+    // 제목 줄은 크게, 아래 내용과는 넉넉히 띄운다.
+    Row(modifier.fillMaxWidth().padding(bottom = 28.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(36.dp)) {
         BackButton(onBack)
-        T(title, Type.titleLarge, Modifier.weight(1f))
+        T(title, Type.headlineSmall, Modifier.weight(1f), maxLines = 1)
         trailing()
     }
 }
