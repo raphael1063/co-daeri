@@ -45,6 +45,8 @@ interface LocationSource {
     /** 마지막으로 받은 위치. 아직 못 받았으면 null */
     val position: StateFlow<GeoPoint?>
     fun start()
+    /** 위치 권한을 새로 받았을 때 다시 구독한다. */
+    fun restart() {}
     /** 감시할 장소를 바꾼다. null이면 감시를 끈다. */
     fun watch(lat: Double?, lng: Double?, radius: Float)
 }

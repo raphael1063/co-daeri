@@ -66,6 +66,8 @@ import com.lrlr.codaeri.ui.T
 import com.lrlr.codaeri.ui.Type
 import com.lrlr.codaeri.ui.screens.WrapScreen
 
+private const val PERMISSION_LOCATION = "pleos.car.permission.FUSED_LOCATION"
+
 class MainActivity : ComponentActivity() {
 
     /** 지금 보여 줄 화면. 운행 상태가 화면을 정하고, 사람이 고르는 것은 주차 안내 편집뿐이다. */
@@ -75,6 +77,21 @@ class MainActivity : ComponentActivity() {
     private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { controller.callByVoice() }
     private val askNotice = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         noticeAllowed.value = controller.noticeAllowed()
+    }
+    // 이용 동의 뒤에 위치와 알림 권한을 시스템 권한 창으로 한 번에 묻는다. 거절해도 앱은 그대로 쓸 수 있다.
+    private val askBasics = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+        noticeAllowed.value = controller.noticeAllowed()
+        if (result[PERMISSION_LOCATION] == true) controller.permissionsChanged()
+    }
+    private var askedBasics = false
+    private fun askBasicsOnce() {
+        if (askedBasics) return
+        askedBasics = true
+        val missing = buildList {
+            add(PERMISSION_LOCATION)
+            if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
+        }.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
+        if (missing.isNotEmpty()) askBasics.launch(missing.toTypedArray())
     }
 
     // 화면이 켜져 있어도 다른 창(후방 카메라, 내비게이션)에 가려져 초점이 없으면 보이지 않는 것으로 본다.
@@ -110,6 +127,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             DaeriTheme {
                 val state by c.state.collectAsStateWithLifecycle()
+                val consented = state.consentAt != null
+                androidx.compose.runtime.LaunchedEffect(consented) { if (consented) askBasicsOnce() }
                 val guidance by c.guidance.collectAsStateWithLifecycle()
                 val restricted by c.restricted.collectAsStateWithLifecycle()
                 val speaking by c.speaking.collectAsStateWithLifecycle()

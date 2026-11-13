@@ -347,6 +347,13 @@ class GeofenceWatcher(context: Context) : LocationSource {
         _last.value?.let { locationListener.onChanged(it) }
     }
 
+    /** 권한 없이 시작해 구독에 실패했을 수 있으므로, 권한을 받은 뒤에는 처음부터 다시 구독한다. */
+    override fun restart() {
+        stop()
+        start()
+        target?.let { watch(it.first, it.second, it.third) }
+    }
+
     fun stop() {
         if (!initialized) return
         alertId?.let { runCatching { fused.removeProximityAlert(it) } }

@@ -207,6 +207,8 @@ class DaeriController(
     fun hideEmergency() = emergencyViewer.hide()
 
     fun noticeAllowed(): Boolean = ports.notices.enabled()
+    /** 사용자가 권한 창에서 위치를 허용한 뒤 위치를 다시 구독한다. */
+    fun permissionsChanged() = ports.location.restart()
     /** 설정의 이용 알림 켜고 끄기 */
     fun setNotices(on: Boolean) { store.update { it.copy(noticesOff = !on) } }
 
