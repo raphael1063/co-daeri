@@ -62,6 +62,7 @@ class FakeService(private val clock: () -> Long) : DaeriService {
     override fun fetchState(link: PhoneLink, report: CarReport?): ServerState? {
         if (!online) return null
         reports += report
+        held?.let { b -> if (assignAfterFetches-- <= 0) { server = server.copy(booking = b); held = null } }
         return server
     }
 
@@ -69,7 +70,7 @@ class FakeService(private val clock: () -> Long) : DaeriService {
         if (!online) return null
         calls += place to confirm
         val price = fare ?: return null
-        if (confirm) server = server.copy(booking = booking("called", place.name))
+        if (confirm) { if (assignAfterFetches > 0) held = booking("called", place.name) else server = server.copy(booking = booking("called", place.name)) }
         return price
     }
 
@@ -119,8 +120,14 @@ class FakeService(private val clock: () -> Long) : DaeriService {
         return online
     }
 
+    /** 서비스의 시계가 차보다 앞선 만큼(밀리초) */
+    var aheadMs = 0L
+    /** 부른 뒤 이 횟수만큼의 조회에서는 아직 배정이 보이지 않는다 */
+    var assignAfterFetches = 0
+    private var held: Booking? = null
+
     fun booking(id: String, destination: String = "판교 삼평동") =
-        Booking(id = id, createdAt = clock(), driver = Driver("d1", "박○○"), destination = destination, fare = 25_000)
+        Booking(id = id, createdAt = clock() + aheadMs, driver = Driver("d1", "박○○"), destination = destination, fare = 25_000)
 }
 
 class FakeLinks : LinkFactory {

@@ -190,6 +190,14 @@ class CallFlow(
             val ok = withContext(env.io) { service.call(link, place, from?.lat, from?.lng, confirm = true) } != null
             if (!ok) { _ui.value = v.copy(stage = CallStage.CONFIRM, message = "통신 문제로 부르지 못했습니다. 다시 눌러 주세요."); return@launch }
             refresh()
+            // 배정 결과가 아직 안 보이면 확인하는 동안 로딩을 유지한다. 아무 표시 없이 기다리게 하지 않는다.
+            var tries = 0
+            while (store.value.pendingBooking(env.clock()) == null && tries < ASSIGN_TRIES) {
+                _ui.value = v.copy(stage = CallStage.CALLING, message = ASSIGNING)
+                delay(ASSIGN_WAIT_MS)
+                refresh()
+                tries++
+            }
             _ui.value = CallUi()
             store.value.pendingBooking(env.clock())?.let { announcer.say(VoiceCall.doneLine(it.driver.name)) }
         }
@@ -204,6 +212,9 @@ class CallFlow(
     }
 
     companion object {
+        const val ASSIGNING = "호출을 접수했습니다. 기사님 배정을 확인하는 중입니다"
+        const val ASSIGN_WAIT_MS = 1_000L
+        const val ASSIGN_TRIES = 10
         const val CANCELLED = "호출을 취소했습니다."
         const val CANCEL_FAILED = "호출을 취소하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
         const val HOME_MISSING = "집 위치가 등록되어 있지 않습니다. 집 주차 안내를 먼저 등록해 주세요."

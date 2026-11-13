@@ -101,10 +101,14 @@ data class Booking(
     val reassignedAt: Long? = null,
     val demo: Boolean = true,
 ) {
-    /** 배정된 지 오래된 예약은 지금의 주행과 잇지 않는다. */
-    fun usable(now: Long): Boolean = status == "assigned" && now - createdAt in 0..VALID_MS
+    /**
+     * 배정된 지 오래된 예약은 지금의 주행과 잇지 않는다.
+     * 예약 시각은 서비스의 시계로 찍힌다. 차의 시계가 조금 늦으면 방금 잡힌 예약이 "앞날의 예약"으로 보이므로 그만큼은 받아 준다.
+     */
+    fun usable(now: Long): Boolean = status == "assigned" && now - createdAt in -CLOCK_SKEW_MS..VALID_MS
 
     companion object {
+        const val CLOCK_SKEW_MS = 10 * 60 * 1000L
         const val VALID_MS = 6 * 60 * 60 * 1000L
     }
 }

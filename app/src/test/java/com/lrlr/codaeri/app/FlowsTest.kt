@@ -830,6 +830,31 @@ class FlowsTest {
         assertEquals("called", r.state.pendingBooking(r.clock())?.id)
     }
 
+    @Test fun afterCallingTheBookingShowsAtOnceEvenIfTheCarClockIsBehindAndLoadingStaysWhileAssigning() = runTest {
+        val r = rig()
+        r.service.fare = 25_000
+        // 서비스 시계가 차보다 90초 앞서 있어도 방금 잡힌 예약은 바로 보인다
+        r.service.aheadMs = 90_000
+        r.c.startCall(); r.c.showPlaces(); r.c.callTo(VoiceCall.places.first()); runCurrent()
+        r.c.confirmCall(); runCurrent()
+        assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        assertEquals("called", r.state.pendingBooking(r.clock())?.id)
+        r.c.cancelBooking(); r.pass(1)
+        r.service.server = r.service.server.copy(booking = null); r.pass(20_000)
+        assertNull(r.state.pendingBooking(r.clock()))
+
+        // 배정이 조금 늦게 보이면 그동안 로딩 문구를 유지하고, 보이는 대로 닫는다
+        r.service.aheadMs = 0
+        r.service.assignAfterFetches = 3
+        r.c.startCall(); r.c.showPlaces(); r.c.callTo(VoiceCall.places.first()); runCurrent()
+        r.c.confirmCall(); runCurrent()
+        assertEquals(CallStage.CALLING, r.c.voice.value.stage)
+        assertEquals(CallFlow.ASSIGNING, r.c.voice.value.message)
+        r.pass(5_000)
+        assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        assertEquals("called", r.state.pendingBooking(r.clock())?.id)
+    }
+
     @Test fun homeChoiceUsesTheRegisteredHomeOrAsksToRegisterIt() = runTest {
         val r = rig()
         r.c.startCall()
