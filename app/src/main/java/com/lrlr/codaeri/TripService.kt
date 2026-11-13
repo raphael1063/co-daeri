@@ -11,7 +11,7 @@ import android.os.Build
 import android.os.IBinder
 
 /**
- * 번호와 묶인 차에서 화면을 열지 않아도 예약을 묻고 운행을 기록하게 프로세스를 살려 두는 서비스.
+ * 기사님을 기다리는 동안과 운행 중에만 화면이 가려져도 운행을 기록하게 프로세스를 살려 두는 서비스. 할 일이 끝나면 내려간다.
  * 일은 DaeriController가 하고, 이 서비스는 프로세스를 살려 두기만 한다.
  */
 class TripService : Service() {

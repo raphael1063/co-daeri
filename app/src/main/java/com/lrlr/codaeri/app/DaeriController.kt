@@ -14,6 +14,7 @@ import com.lrlr.codaeri.domain.TripPhase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -39,7 +40,7 @@ class DaeriController(
 
     private val pairingFlow: PairingFlow = PairingFlow(
         store, ports.service, ports.links, server, env,
-        onRegistered = { ports.keepAlive.on(); outbox.send() },
+        onRegistered = { outbox.send() },
         onUnbound = { if (!needsKeepAlive()) ports.keepAlive.off() },
     )
     private val sync = BookingSync(
@@ -64,6 +65,7 @@ class DaeriController(
         store, ports.car, ports.location, ports.restriction, ports.announcer, ports.links,
         handover, guide, outbox, sync, router, env,
         onRecording = { ports.keepAlive.on() },
+        onLockWatchEnded = { if (!needsKeepAlive()) ports.keepAlive.off() },
         onMoving = { if (voiceCall.active) voiceCall.cancel() },
         onClosed = { card -> if (!visible.value && !store.value.noticesOff) ports.notices.closed(handover.headline(card, env.clock())) },
     )
@@ -130,7 +132,10 @@ class DaeriController(
         outbox.watch(ports.connectivity)
         outbox.send()
         sync.startPolling()
-        if (needsKeepAlive()) ports.keepAlive.on()
+        // 사용자에게 제공 중인 일(기사님 대기, 운행 기록)이 있을 때만 서비스를 띄우고, 끝나면 바로 내린다.
+        env.scope.launch {
+            store.state.map { needsKeepAlive() }.distinctUntilChanged().collect { if (it) ports.keepAlive.on() else ports.keepAlive.off() }
+        }
     }
 
     // ---------- 화면이 부르는 일 ----------
@@ -215,7 +220,8 @@ class DaeriController(
     /** 번호가 연결돼 있거나 운행 중이면 화면을 열지 않아도 예약을 묻고 운행을 기록한다. */
     fun needsKeepAlive(): Boolean {
         val s = store.value
-        return s.phoneLink != null || (s.trip != null && s.trip.phase != TripPhase.DONE) || recorder.watchingLocks
+        // 번호가 연결되어 있다는 것만으로는 띄우지 않는다. 배차도 운행도 없으면 화면을 열었을 때만 예약을 묻는다.
+        return s.pendingBooking(env.clock()) != null || (s.trip != null && s.trip.phase != TripPhase.DONE) || recorder.watchingLocks
     }
 
     /** 음성 비서의 질문 "어젯밤 대리 기록"에 답할 한 문장 */

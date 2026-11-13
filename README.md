@@ -10,7 +10,7 @@
 
 - **시연 영상(100초)**: [docs/영상/코-대리_시연영상.mp4](docs/영상/코-대리_시연영상.mp4)
 - **직접 눌러 보기**: 심사용 콘솔 https://lrlr-master.com/daeri/console/ (아래 [빠른 시작](#심사위원용-빠른-시작-5분))
-- **단위 테스트 102개** (실행: `./gradlew testDebugUnitTest`), 에뮬레이터 확인 기록은 [docs/검증](docs/검증/README.md)
+- **단위 테스트 103개** (실행: `./gradlew testDebugUnitTest`), 에뮬레이터 확인 기록은 [docs/검증](docs/검증/README.md)
 
 ## 차를 건네받는 순간만이 아니라 운행 내내 지켜봅니다
 
@@ -187,7 +187,7 @@ PC 브라우저에서 **https://lrlr-master.com/daeri/console/** 을 엽니다. 
 - Pleos Playground SDK: Vehicle, FusedLocation, TextToSpeech, SpeechToText, NaviHelper
 - Kotlin, Jetpack Compose, minSdk 28 / targetSdk 34
 
-에뮬레이터에서 확인한 것: 번호 연결, 예약 인계, 주행, 정차 후 재출발, 운전석 하차로 종료, 자동 결제 표시, 주차 안내의 위치 시작, 내비게이션 목적지 전달, 재부팅 뒤 예약 알림. 확인하지 못한 것: 안내 음성의 실제 소리(재생 요청 기록만 확인), 실제 차량.
+에뮬레이터에서 확인한 것: 번호 연결, 예약 인계, 주행, 정차 후 재출발, "운행 종료" 버튼으로 종료, 자동 결제 표시, 주차 안내의 위치 시작, 내비게이션 목적지 전달. 백그라운드 서비스는 기사님을 기다리는 동안과 운행 중에만 떠 있고, 끝나면 내려갑니다(Pleos의 미사용 앱 전환 기준). 배차도 운행도 없을 때는 코-대리 화면을 열었을 때만 예약을 확인합니다. 확인하지 못한 것: 안내 음성의 실제 소리(재생 요청 기록만 확인), 실제 차량.
 
 ## 개인정보
 

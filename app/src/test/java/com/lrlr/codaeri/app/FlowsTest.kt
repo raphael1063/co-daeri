@@ -359,6 +359,22 @@ class FlowsTest {
         assertNull(r.state.lastCard)
     }
 
+    @Test fun serviceStaysUpOnlyWhileADriverIsAwaitedOrATripIsRecorded() = runTest {
+        val r = rig()
+        // 번호만 연결된 차는 서비스를 띄우지 않는다
+        assertFalse(r.c.needsKeepAlive())
+        assertFalse(r.keepAlive.isOn)
+        r.book()
+        assertTrue(r.keepAlive.isOn)
+        r.gear(GearState.NOT_PARK)
+        r.gear(GearState.PARK)
+        r.c.closeByButton(); r.pass(1)
+        // 종료 뒤 문 잠금을 기다리는 동안만 더 살아 있고, 그 시간이 지나면 내려간다
+        r.pass(TripRecorder.LOCK_WATCH_MS + 1_000)
+        assertFalse(r.c.needsKeepAlive())
+        assertFalse(r.keepAlive.isOn)
+    }
+
     @Test fun lockSignalAfterTheEndIsAddedToTheCard() = runTest {
         val r = rig()
         r.book()
@@ -660,7 +676,8 @@ class FlowsTest {
         r.c.newPairCode(); runCurrent()
         assertTrue(r.c.pairing.value.url!!.startsWith("https://example.test/daeri/c/#read."))
         assertEquals("ABC123", r.c.pairing.value.short)
-        assertTrue(r.keepAlive.isOn)
+        // 연결만으로는 서비스를 띄우지 않는다(배차나 운행이 있을 때만)
+        assertFalse(r.keepAlive.isOn)
 
         // 휴대폰에서 번호를 보내면 다음 조회에서 연결되고 QR이 내려간다
         r.service.server = ServerState(phone = "010-****-5678")

@@ -50,6 +50,7 @@ class TripRecorder(
     private val env: Env,
     /** 운행을 기록하는 동안 프로세스를 살려 둔다 */
     private val onRecording: () -> Unit,
+    private val onLockWatchEnded: () -> Unit = {},
     /** 차가 움직이기 시작했다(듣고 있던 호출을 멈춘다) */
     private val onMoving: () -> Unit,
     /** 운행이 종료됐다(화면이 가려져 있으면 알린다) */
@@ -345,7 +346,7 @@ class TripRecorder(
     private fun watchLocksAfterClose() {
         lockWatch?.cancel()
         // 받은 신호만 적는다. 시간이 지나면 추적을 멈추고 "이후 상태 미확인"으로 남긴다.
-        lockWatch = env.scope.launch { delay(LOCK_WATCH_MS) }
+        lockWatch = env.scope.launch { delay(LOCK_WATCH_MS); lockWatch = null; onLockWatchEnded() }
     }
 
     // ---------- 수집 중단, 재시작 ----------
@@ -406,7 +407,7 @@ class TripRecorder(
         private const val HEARTBEAT_MS = 60_000L
         /** 운행 중에 앱이 이보다 오래 꺼져 있었으면 시동을 끄고 내린 것으로 본다 */
         const val POWER_OFF_MS = 30 * 60_000L
-        private const val LOCK_WATCH_MS = 10 * 60_000L
+        internal const val LOCK_WATCH_MS = 10 * 60_000L
     }
 }
 

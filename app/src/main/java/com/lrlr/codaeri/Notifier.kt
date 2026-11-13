@@ -19,7 +19,7 @@ class Notifier(private val context: Context) : Notices {
 
     override fun enabled(): Boolean = nm.areNotificationsEnabled()
 
-    private fun post(id: Int, title: String, text: String) {
+    private fun post(id: Int, title: String, text: String, category: String) {
         if (!enabled()) return
         try {
             nm.createNotificationChannel(
@@ -33,7 +33,7 @@ class Notifier(private val context: Context) : Notices {
                 .setSmallIcon(R.drawable.ic_stat)
                 .setContentTitle(title)
                 .setContentText(text)
-                .setCategory(Notification.CATEGORY_MESSAGE)
+                .setCategory(category)
                 .setContentIntent(open)
                 .setAutoCancel(true)
                 .build()
@@ -44,11 +44,13 @@ class Notifier(private val context: Context) : Notices {
     }
 
     override fun booking(driverName: String, destination: String) {
-        post(ID_BOOKING, "대리 운행 예약이 확인됐습니다", "$driverName 기사님 · $destination")
+        // 서비스가 차주에게 보내는 소식이므로 메시지로 알린다.
+        post(ID_BOOKING, "대리 운행 예약이 확인됐습니다", "$driverName 기사님 · $destination", Notification.CATEGORY_MESSAGE)
     }
 
     override fun closed(headline: String) {
-        post(ID_CLOSED, "대리 운행이 종료됐습니다", headline)
+        // 상태를 남기는 알림이라 화면 위로 띄우지 않고 알림 센터에 둔다.
+        post(ID_CLOSED, "대리 운행이 종료됐습니다", headline, Notification.CATEGORY_STATUS)
     }
 
     /** 화면을 열면 알림은 할 일을 다했다 */
