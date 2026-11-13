@@ -140,6 +140,9 @@ internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modi
 fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBack: () -> Unit) {
     val now = rememberNow()
     var open by rememberSaveable { mutableStateOf(state.history.firstOrNull()?.tripId) }
+    // 전화할 기사님의 이름. 시연에는 실제 기사님이 없어 전화를 걸지 않고 안내만 한다.
+    var calling by remember { mutableStateOf<String?>(null) }
+    Box(Modifier.fillMaxSize()) {
     Column(page) {
         TopBar("이용 내역", onBack, Modifier.appear(0))
         T("최근 30일의 이용 내역을 최대 20건 보관합니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
@@ -154,7 +157,7 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
         }
         state.history.forEachIndexed { i, card ->
             val latest = card.tripId == state.lastCard?.tripId
-            Row(Modifier.fillMaxWidth().appear(1 + i.coerceAtMost(3)), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+            Row(Modifier.fillMaxWidth().appear(1 + i.coerceAtMost(3))) {
                 val expanded = open == card.tripId
                 HomecomingPanel(
                     card, handover, now, Modifier.weight(1f),
@@ -162,12 +165,21 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     paidAt = card.paidAt ?: if (latest) state.lastPaidAt else null,
                     expanded = expanded,
                     onToggle = { open = if (expanded) null else card.tripId },
+                    regular = card.driverId.isNotBlank() && state.server.regular?.id == card.driverId,
+                    onCallDriver = if (card.driverId.isNotBlank()) ({ calling = card.driverName }) else null,
                 )
-                // 가장 최근 운행의 기사님만 "다음에도 먼저 요청"으로 이을 수 있다
-                if (expanded && latest && card.driverId.isNotBlank() && state.phoneLink != null) DriverCard(state, card, Modifier.width(460.dp))
             }
         }
         }
+    }
+    Fading(calling) { name ->
+        IviPopup(
+            onDismiss = { calling = null },
+            buttons = { IviButton("닫기", { calling = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
+        ) {
+            PopupTitle("$name 기사님께 전화하기", "서비스가 기사님께 전화를 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다. 시연용이라 실제 전화는 걸지 않습니다.")
+        }
+    }
     }
 }
 
@@ -182,6 +194,8 @@ fun SettingsScreen(
     onAllowNotice: (() -> Unit)?,
     shareMessage: String = "",
     onToggleShare: (() -> Unit)? = null,
+    /** 비상연락처, 공유 연락처를 고치는 화면을 연다 */
+    onEditContacts: (com.lrlr.codaeri.domain.ContactKind) -> Unit = {},
 ) {
     Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
@@ -191,7 +205,8 @@ fun SettingsScreen(
         )
         SettingRow(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
-            null, null, Modifier.appear(1), note = "연결한 휴대폰에서 3명까지 등록할 수 있습니다.",
+            if (state.server.emergencyList.isEmpty()) "등록" else "수정", { onEditContacts(com.lrlr.codaeri.domain.ContactKind.EMERGENCY) }, Modifier.appear(1),
+            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 고칠 수 있습니다.",
             pairs = state.server.emergencyList.map { it.label to it.masked },
         )
         // 공유받을 사람은 비상연락처와 따로 둔다. 실제 발송은 아직 하지 않는다(시연용).
@@ -204,12 +219,13 @@ fun SettingsScreen(
                 else -> "꺼짐"
             },
             if (share.auto) "끄기" else "켜기", onToggleShare, Modifier.appear(2),
-            note = shareMessage.ifBlank { "공유할 연락처는 연결한 휴대폰에서 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
+            note = shareMessage.ifBlank { "공유할 연락처는 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
             pairs = share.contacts.map { it.label to it.masked },
+            second = "연락처 수정" to { onEditContacts(com.lrlr.codaeri.domain.ContactKind.SHARE) },
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
-            null, null, Modifier.appear(2), note = "이용 내역의 QR로 연결한 휴대폰에서 설정합니다.",
+            null, null, Modifier.appear(2), note = "연결한 휴대폰의 차주 페이지에서 설정합니다.",
         )
         SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
@@ -218,8 +234,12 @@ fun SettingsScreen(
 }
 
 @Composable
-internal fun SettingRow(title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList()) {
-    Panel(modifier.fillMaxWidth(), pad = 28.dp) {
+internal fun SettingRow(
+    title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList(),
+    /** 둘째 버튼(이름과 할 일) */
+    second: Pair<String, () -> Unit>? = null,
+) {
+    Panel(modifier.fillMaxWidth(), pad = 32.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             Column(Modifier.weight(1f)) {
                 T(title, Type.labelLarge, color = Ivi.colors.textTertiary)
@@ -230,6 +250,7 @@ internal fun SettingRow(title: String, value: String, action: String?, onClick: 
                     T(note, Type.labelSmall, color = Ivi.colors.textTertiary)
                 }
             }
+            if (second != null) IviButton(second.first, second.second)
             if (action != null && onClick != null) IviButton(action, onClick)
         }
     }

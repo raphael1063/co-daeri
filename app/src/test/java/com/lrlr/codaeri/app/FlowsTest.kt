@@ -127,6 +127,36 @@ class FlowsTest {
         assertFalse(r.c.shareBusy.value)
     }
 
+    @Test fun contactsCanBeEditedFromTheCarAndOnlyMaskedNumbersAreKept() = runTest {
+        val r = rig()
+        val emergency = com.lrlr.codaeri.domain.ContactKind.EMERGENCY
+        val share = com.lrlr.codaeri.domain.ContactKind.SHARE
+        r.c.addContact(emergency, "", "01012345678"); r.pass(1)
+        assertEquals(ContactEditor.NEED_LABEL, r.c.contactMessage.value)
+        r.c.addContact(emergency, "배우자", "1234"); r.pass(1)
+        assertEquals(ContactEditor.BAD_PHONE, r.c.contactMessage.value)
+        assertTrue(r.state.server.emergencyList.isEmpty())
+
+        r.c.addContact(emergency, "배우자", "010-1234-5678"); r.pass(1)
+        assertEquals("", r.c.contactMessage.value)
+        assertEquals(listOf("배우자" to "010-****-5678"), r.state.server.emergencyList.map { it.label to it.masked })
+        assertEquals(listOf("01012345678"), r.service.savedPhones)
+        assertFalse(com.lrlr.codaeri.data.Json.encode(r.repo.saved).contains("01012345678"))
+
+        r.c.addContact(share, "부모님", "01000000001"); r.pass(1)
+        assertEquals(1, r.state.server.share.contacts.size)
+        assertEquals(1, r.state.server.emergencyList.size) // 두 묶음은 따로다
+
+        r.service.online = false
+        r.c.removeContact(emergency, 0); r.pass(1)
+        assertEquals(ContactEditor.FAILED, r.c.contactMessage.value)
+        assertEquals(1, r.state.server.emergencyList.size)
+        r.service.online = true
+        r.c.removeContact(emergency, 0); r.pass(1)
+        assertTrue(r.state.server.emergencyList.isEmpty())
+        assertFalse(r.c.contactBusy.value)
+    }
+
     @Test fun bannerShowsOverTheMapOnlyWhileDrivingWithTheScreenHidden() = runTest {
         val r = rig()
         r.book()

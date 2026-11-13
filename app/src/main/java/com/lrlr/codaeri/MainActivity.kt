@@ -107,6 +107,10 @@ class MainActivity : ComponentActivity() {
                 val judgesBoarding by c.judgesBoarding.collectAsStateWithLifecycle()
                 val voicePartial by c.voicePartial.collectAsStateWithLifecycle()
                 var editing by rememberSaveable { mutableStateOf(false) }
+                // 설정에서 고치고 있는 연락처 묶음
+                var contacts by rememberSaveable { mutableStateOf<com.lrlr.codaeri.domain.ContactKind?>(null) }
+                val contactBusy by c.contactBusy.collectAsStateWithLifecycle()
+                val contactMessage by c.contactMessage.collectAsStateWithLifecycle()
                 var otherSpot by rememberSaveable { mutableStateOf(false) }
                 var confirmUnbind by rememberSaveable { mutableStateOf(false) }
                 var section by rememberSaveable { mutableStateOf(Section.MAIN) }
@@ -124,9 +128,9 @@ class MainActivity : ComponentActivity() {
                 // 예약이 잡히거나 기사님이 바뀌면 대리 현황을 연다
                 LaunchedEffect(pending?.id, pending?.driver?.id) { section = Route.onBookingChanged(section, pending != null, restricted) }
                 // 동승 신호가 있으면 메인의 "출발하기"를 크게 보여 준다
-                LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false } }
+                LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false; contacts = null } }
                 // 운행이 시작되면 메인에서 열어 둔 화면은 닫는다
-                LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false } }
+                LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false; contacts = null } }
                 if (screen != Screen.OTHER_SPOT && screen != Screen.WRAP && screen != Screen.STOP_FIRST) otherSpot = false
 
                 Box(Modifier.fillMaxSize().background(Ivi.colors.backgroundPrimary).systemBarsPadding()) {
@@ -181,7 +185,18 @@ class MainActivity : ComponentActivity() {
                                 BackHandler { section = Section.MAIN }
                                 RecordsScreen(state, c.handover, uploading) { section = Section.MAIN }
                             }
-                            Screen.SETTINGS -> {
+                            Screen.SETTINGS -> contacts?.let { kind ->
+                                val close = { c.clearContactMessage(); contacts = null }
+                                BackHandler { close() }
+                                com.lrlr.codaeri.ui.screens.ContactsScreen(
+                                    kind,
+                                    if (kind == com.lrlr.codaeri.domain.ContactKind.EMERGENCY) state.server.emergencyList else state.server.share.contacts,
+                                    contactBusy, contactMessage,
+                                    onAdd = { label, phone -> c.addContact(kind, label, phone) },
+                                    onRemove = { c.removeContact(kind, it) },
+                                    onBack = close,
+                                )
+                            } ?: run {
                                 BackHandler { section = Section.MAIN }
                                 SettingsScreen(
                                     state = state,
@@ -192,6 +207,7 @@ class MainActivity : ComponentActivity() {
                                     else ({ askNotice.launch(Manifest.permission.POST_NOTIFICATIONS) }),
                                     shareMessage = shareMessage,
                                     onToggleShare = if (shareBusy || restricted) null else c::toggleShare,
+                                    onEditContacts = { contacts = it },
                                 )
                             }
                             Screen.HOME -> HomeScreen(

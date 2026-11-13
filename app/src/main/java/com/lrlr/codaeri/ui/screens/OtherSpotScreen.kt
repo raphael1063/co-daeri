@@ -79,26 +79,32 @@ fun OtherSpotScreen(
     val gap = Arrangement.spacedBy(12.dp)
     Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         T("주차한 자리", Type.titleMedium)
+        // 고른 것에 따라 나타나는 칸은 아래 내용을 밀며 펼쳐진다. 접힌 칸이 빈 간격을 남기지 않게 한 묶음으로 둔다.
+        Column {
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
             Choice("같은 층 다른 자리", choice == SpotChoice.SAME_FLOOR_OTHER, { choice = SpotChoice.SAME_FLOOR_OTHER; floor = "" })
             Choice("다른 층", choice == SpotChoice.OTHER_FLOOR, { choice = SpotChoice.OTHER_FLOOR })
             Choice("지상", choice == SpotChoice.OUTDOOR, { choice = SpotChoice.OUTDOOR; floor = ""; pillar = "" })
         }
-        if (choice == SpotChoice.OTHER_FLOOR) {
+        Reveal(choice == SpotChoice.OTHER_FLOOR) {
+            Spacer(Modifier.height(20.dp))
             FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
                 FLOORS.filter { it != card.floorLabel }.forEach { f -> Choice(f, floor == f, { floor = f }) }
             }
         }
-        if (choice != SpotChoice.OUTDOOR) {
+        Reveal(choice != SpotChoice.OUTDOOR) {
+            Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 T("기둥 번호", Type.labelLarge, color = Ivi.colors.textTertiary)
                 T(pillar.ifEmpty { "(선택)" }, Type.titleSmall)
             }
+            Spacer(Modifier.height(20.dp))
             FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
                 listOf("A", "B", "C", "D", "E", "F", "-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "지우기").forEach { k ->
                     Choice(k, false, { pillar = if (k == "지우기") pillar.dropLast(1) else (pillar + k).take(8) })
                 }
             }
+        }
         }
         T("메모 (선택)", Type.labelLarge, color = Ivi.colors.textTertiary)
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {

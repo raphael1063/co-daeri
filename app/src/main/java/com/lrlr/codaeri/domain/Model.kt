@@ -142,6 +142,9 @@ data class Emergency(val label: String = "", val masked: String = "") {
     }
 }
 
+/** 차 설정에서 고칠 수 있는 연락처 묶음: 비상연락처, 운행 상태를 공유받을 연락처 */
+enum class ContactKind { EMERGENCY, SHARE }
+
 /** 운행 중 차 화면에서 확인한 비상연락처. 화면에만 띄우고 차에 저장하지 않는다. */
 data class EmergencyContact(val label: String, val phone: String) {
     /** 010-1234-5678 꼴로 읽기 쉽게 */

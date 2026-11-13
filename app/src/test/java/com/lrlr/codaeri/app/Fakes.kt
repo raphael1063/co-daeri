@@ -81,6 +81,25 @@ class FakeService(private val clock: () -> Long) : DaeriService {
         return server
     }
 
+    /** 서비스에만 있는 원래 번호(차로는 가린 번호만 간다) */
+    val savedPhones = mutableListOf<String>()
+
+    override fun addContact(link: PhoneLink, kind: com.lrlr.codaeri.domain.ContactKind, label: String, phone: String): ServerState? {
+        if (!online) return null
+        savedPhones += phone
+        val item = com.lrlr.codaeri.domain.Emergency(label, phone.take(3) + "-****-" + phone.takeLast(4))
+        server = if (kind == com.lrlr.codaeri.domain.ContactKind.EMERGENCY) server.copy(emergencies = server.emergencyList + item)
+        else server.copy(share = server.share.copy(contacts = server.share.contacts + item))
+        return server
+    }
+
+    override fun removeContact(link: PhoneLink, kind: com.lrlr.codaeri.domain.ContactKind, index: Int): ServerState? {
+        if (!online) return null
+        server = if (kind == com.lrlr.codaeri.domain.ContactKind.EMERGENCY) server.copy(emergency = null, emergencies = server.emergencyList.filterIndexed { i, _ -> i != index })
+        else server.copy(share = server.share.copy(contacts = server.share.contacts.filterIndexed { i, _ -> i != index }))
+        return server
+    }
+
     override fun unlinkAll(link: PhoneLink): Boolean {
         if (online) unlinked++
         return online

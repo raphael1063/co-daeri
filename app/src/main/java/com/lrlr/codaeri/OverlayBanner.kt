@@ -1,5 +1,8 @@
 package com.lrlr.codaeri
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -15,6 +18,8 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.PathInterpolator
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -36,11 +41,17 @@ class OverlayBanner(private val context: Context) : TripBanner {
 
     private val wm = context.getSystemService(WindowManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
-    private var root: LinearLayout? = null
+    private var root: FrameLayout? = null
+    private var card: LinearLayout? = null
+    private var motion: ValueAnimator? = null
+    /** 지금 보이는 모양. null 은 아직 모양을 정하지 않았다는 뜻이다. */
+    private var shown: Boolean? = null
+    private var fraction = 0f
     private var icon: ImageView? = null
     private var title: TextView? = null
     private var dots: TextView? = null
     private var detail: TextView? = null
+    private var detailBox: FrameLayout? = null
     private var params: WindowManager.LayoutParams? = null
     private var night: Boolean? = null
     private var tick = 0
@@ -75,33 +86,92 @@ class OverlayBanner(private val context: Context) : TripBanner {
             }
         } catch (e: Exception) {
             Log.w("OverlayBanner", "show failed", e)
-            root = null
+            motion?.cancel(); motion = null
+            root = null; card = null; shown = null
         }
     }
 
-    /** 접힌 모양(한 줄, 내용만큼의 너비)과 펼친 모양(두 줄, 빈 자리 전체) 사이를 오간다. */
+    /**
+     * 접힌 모양(한 줄, 내용만큼의 너비)과 펼친 모양(두 줄, 빈 자리 전체) 사이를 오간다.
+     * 창 크기를 프레임마다 바꾸면 어긋나 보이므로, 움직이는 동안에는 창을 펼친 크기로 두고
+     * 그 안에서 오른쪽 위에 붙은 카드만 늘이고 줄인다. 다 접힌 뒤에 창을 카드 크기로 줄인다.
+     */
     private fun resize(expanded: Boolean) {
         val p = params ?: return
         val v = root ?: return
-        val full = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
-        val width = if (expanded) full else WindowManager.LayoutParams.WRAP_CONTENT
-        val height = dp(if (expanded) 150f else 100f)
-        val changed = p.width != width || p.height != height
-        p.width = width
-        p.height = height
-        // 창 크기가 바뀌는 사이 한 프레임 동안 어긋난 자리에 그려지는 것이 보이지 않게, 잠깐 감췄다가 자리를 잡은 뒤 보인다.
-        if (changed && v.isAttachedToWindow) {
-            v.alpha = 0f
-            handler.postDelayed({ root?.alpha = 1f }, 80)
+        val c = card ?: return
+        if (shown == expanded) return
+        val first = shown == null
+        shown = expanded
+        motion?.cancel()
+        motion = null
+        if (first || !c.isLaidOut || c.width == 0) { settle(expanded); return }
+        val full = fullWidth()
+        // 접힌 너비는 접힌 모양으로 한 번 재어 본다.
+        val from = fraction
+        style(0f)
+        c.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(dp(FOLDED_H), View.MeasureSpec.EXACTLY))
+        val folded = minOf(c.measuredWidth, full)
+        style(from)
+        p.width = full
+        p.height = dp(OPEN_H)
+        wm.updateViewLayout(v, p)
+        motion = ValueAnimator.ofFloat(from, if (expanded) 1f else 0f).apply {
+            duration = 320
+            interpolator = PathInterpolator(0.4f, 0f, 0.2f, 1f)
+            addUpdateListener { a ->
+                val f = a.animatedValue as Float
+                style(f)
+                c.layoutParams = FrameLayout.LayoutParams(
+                    folded + ((full - folded) * f).toInt(), dp(FOLDED_H) + ((dp(OPEN_H) - dp(FOLDED_H)) * f).toInt(), Gravity.TOP or Gravity.END,
+                )
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+                override fun onAnimationCancel(animation: Animator) { cancelled = true }
+                override fun onAnimationEnd(animation: Animator) { if (!cancelled && root === v) settle(expanded) }
+            })
+            start()
         }
-        val iconSize = dp(if (expanded) 96f else 64f)
-        icon?.layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply { marginEnd = dp(if (expanded) 24f else 16f) }
-        val titleSize = if (expanded) 42f else 32f
-        title?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
-        dots?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
-        detail?.visibility = if (expanded) View.VISIBLE else View.GONE
+    }
+
+    /** 움직임 없이 그 모양으로 둔다. 접힌 모양에서는 창도 카드만큼만 차지해 아래 화면을 가리지 않는다. */
+    private fun settle(expanded: Boolean) {
+        val p = params ?: return
+        val v = root ?: return
+        val c = card ?: return
+        style(if (expanded) 1f else 0f)
+        c.layoutParams = FrameLayout.LayoutParams(
+            if (expanded) FrameLayout.LayoutParams.MATCH_PARENT else FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.MATCH_PARENT, Gravity.TOP or Gravity.END,
+        )
+        p.width = if (expanded) fullWidth() else WindowManager.LayoutParams.WRAP_CONTENT
+        p.height = dp(if (expanded) OPEN_H else FOLDED_H)
         wm.updateViewLayout(v, p)
     }
+
+    /** 0 = 접힌 모양, 1 = 펼친 모양. 아이콘과 글자 크기도 그 사이에서 함께 바뀐다. */
+    private fun style(f: Float) {
+        fraction = f
+        val iconSize = dp(64f + 32f * f)
+        icon?.layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply { marginEnd = dp(16f + 8f * f) }
+        val titleSize = 32f + 10f * f
+        title?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
+        dots?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
+        // 둘째 줄은 자리의 높이가 줄면서 첫째 줄 아래로 밀려 올라가 사라진다(아래에 붙여 두어 위쪽부터 잘린다).
+        val box = detailBox
+        val line = detail
+        if (box != null && line != null) {
+            val h = line.lineHeight + dp(6f)
+            line.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, h, Gravity.BOTTOM)
+            box.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (h * f).toInt())
+            box.visibility = if (f > 0f) View.VISIBLE else View.GONE
+            // 옅은 글자라 그대로 비례해 줄이면 너무 일찍 안 보인다. 끝까지 보이다가 마지막에 옅어지게 한다.
+            line.alpha = kotlin.math.sqrt(f)
+        }
+    }
+
+    private fun fullWidth(): Int = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
 
     private fun build(dark: Boolean) {
         // 앱 화면(Theme.kt)과 같은 바탕과 글자색. 밝은 화면의 테두리는 내비게이션 단추의 테두리와 같은 색.
@@ -116,6 +186,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val detailView = TextView(context).apply {
             setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f); maxLines = 1; ellipsize = TextUtils.TruncateAt.END
         }
+        val box = FrameLayout(context).apply { addView(detailView) }
         val head = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             addView(titleView); addView(dotsView)
@@ -123,7 +194,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val texts = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(head); addView(detailView)
+            addView(head); addView(box)
         }
         // 닫기: 누를 자리를 넉넉히 두고 가는 선으로 본문과 나눈다.
         val divider = View(context).apply {
@@ -167,14 +238,18 @@ class OverlayBanner(private val context: Context) : TripBanner {
             windowAnimations = 0
             if (android.os.Build.VERSION.SDK_INT >= 34) setCanPlayMoveAnimation(false)
         }
-        wm.addView(v, p)
-        root = v; icon = iconView; title = titleView; dots = dotsView; detail = detailView; params = p; night = dark
+        val frame = FrameLayout(context).apply {
+            addView(v, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.TOP or Gravity.END))
+        }
+        wm.addView(frame, p)
+        root = frame; card = v; shown = null; fraction = 0f; icon = iconView; title = titleView; dots = dotsView; detail = detailView; detailBox = box; params = p; night = dark
     }
 
     override fun hide() {
         handler.removeCallbacks(animate)
         val v = root ?: return
-        root = null; icon = null; title = null; dots = null; detail = null; params = null
+        motion?.cancel(); motion = null
+        root = null; card = null; shown = null; icon = null; title = null; dots = null; detail = null; detailBox = null; params = null
         try { wm.removeView(v) } catch (_: Exception) {}
     }
 
@@ -182,6 +257,8 @@ class OverlayBanner(private val context: Context) : TripBanner {
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, context.resources.displayMetrics).toInt()
 
     private companion object {
+        const val FOLDED_H = 100f
+        const val OPEN_H = 150f
         val DOTS = arrayOf("   ", ".  ", ".. ", "...")
     }
 }

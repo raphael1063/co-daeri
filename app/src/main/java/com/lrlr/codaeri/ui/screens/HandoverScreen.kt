@@ -91,7 +91,7 @@ fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed:
                 Spacer(Modifier.height(12.dp))
                 T("운행 기록 안내", Type.titleMedium)
                 Spacer(Modifier.height(12.dp))
-                T("출발·종료 시각과 이동 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다. 운행 후 QR로 내역을 확인하실 수 있습니다.", Type.bodyMedium, color = Ivi.colors.textSecondary)
+                T("출발·종료 시각과 이동 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다. 운행 요약은 운행을 마친 뒤 따로 전달해 드립니다.", Type.bodyMedium, color = Ivi.colors.textSecondary)
                 Spacer(Modifier.height(16.dp))
                 T(
                     when {

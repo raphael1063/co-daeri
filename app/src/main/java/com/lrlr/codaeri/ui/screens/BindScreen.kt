@@ -136,7 +136,7 @@ internal fun ConsentScreen(onAgree: () -> Unit) {
 @Composable
 private fun ConsentRow(label: String, text: String, last: Boolean = false) {
     Row(verticalAlignment = Alignment.Top) {
-        T(label, Type.bodySmall, Modifier.width(220.dp), color = Ivi.colors.textTertiary)
+        T(label, Type.bodySmall, Modifier.width(270.dp), color = Ivi.colors.textTertiary)
         T(text, Type.bodySmall, Modifier.weight(1f))
     }
     if (!last) Spacer(Modifier.height(14.dp))

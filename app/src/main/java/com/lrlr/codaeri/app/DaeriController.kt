@@ -56,6 +56,7 @@ class DaeriController(
     )
     private val emergencyViewer = EmergencyViewer(store, ports.service, env)
     private val shareSwitch = ShareSwitch(store, ports.service, env)
+    private val contactEditor = ContactEditor(store, ports.service, env)
     private val router = DestinationRouter(ports.routeGuide)
     private val recorder = TripRecorder(
         store, ports.car, ports.location, ports.restriction, ports.announcer, ports.links,
@@ -172,6 +173,11 @@ class DaeriController(
     val shareBusy: StateFlow<Boolean> = shareSwitch.busy
     val shareMessage: StateFlow<String> = shareSwitch.message
     fun toggleShare() = shareSwitch.toggle()
+    val contactBusy: StateFlow<Boolean> = contactEditor.busy
+    val contactMessage: StateFlow<String> = contactEditor.message
+    fun addContact(kind: com.lrlr.codaeri.domain.ContactKind, label: String, phone: String) = contactEditor.add(kind, label, phone)
+    fun removeContact(kind: com.lrlr.codaeri.domain.ContactKind, index: Int) = contactEditor.remove(kind, index)
+    fun clearContactMessage() = contactEditor.clearMessage()
     fun showEmergency() = emergencyViewer.show()
     fun hideEmergency() = emergencyViewer.hide()
 

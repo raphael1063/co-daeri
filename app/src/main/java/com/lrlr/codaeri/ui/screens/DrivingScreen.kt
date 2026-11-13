@@ -121,7 +121,7 @@ fun DrivingScreen(
                 if (!restricted) guidance.current?.steps.orEmpty().forEach { step ->
                     Spacer(Modifier.height(10.dp))
                     Row(verticalAlignment = Alignment.Top) {
-                        T(Guidance.label(step), Type.bodyMedium, Modifier.width(220.dp).padding(top = 8.dp), color = c.textTertiary)
+                        T(Guidance.label(step), Type.bodyMedium, Modifier.width(260.dp).padding(top = 8.dp), color = c.textTertiary)
                         T(Guidance.text(card, step), Type.titleLarge, Modifier.weight(1f), maxLines = 2)
                     }
                 }
