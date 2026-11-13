@@ -18,7 +18,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.DecelerateInterpolator
+import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -51,6 +51,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
     private var title: TextView? = null
     private var dots: TextView? = null
     private var detail: TextView? = null
+    private var detailBox: FrameLayout? = null
     private var params: WindowManager.LayoutParams? = null
     private var night: Boolean? = null
     private var tick = 0
@@ -116,8 +117,8 @@ class OverlayBanner(private val context: Context) : TripBanner {
         p.height = dp(OPEN_H)
         wm.updateViewLayout(v, p)
         motion = ValueAnimator.ofFloat(from, if (expanded) 1f else 0f).apply {
-            duration = 260
-            interpolator = DecelerateInterpolator(1.6f)
+            duration = 320
+            interpolator = PathInterpolator(0.4f, 0f, 0.2f, 1f)
             addUpdateListener { a ->
                 val f = a.animatedValue as Float
                 style(f)
@@ -157,8 +158,16 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val titleSize = 32f + 10f * f
         title?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
         dots?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
-        detail?.visibility = if (f > 0f) View.VISIBLE else View.GONE
-        detail?.alpha = f
+        // 둘째 줄은 자리의 높이가 줄면서 첫째 줄 아래로 밀려 올라가 사라진다(아래에 붙여 두어 위쪽부터 잘린다).
+        val box = detailBox
+        val line = detail
+        if (box != null && line != null) {
+            val h = line.lineHeight + dp(6f)
+            line.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, h, Gravity.BOTTOM)
+            box.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (h * f).toInt())
+            box.visibility = if (f > 0f) View.VISIBLE else View.GONE
+            line.alpha = f
+        }
     }
 
     private fun fullWidth(): Int = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
@@ -176,6 +185,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val detailView = TextView(context).apply {
             setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f); maxLines = 1; ellipsize = TextUtils.TruncateAt.END
         }
+        val box = FrameLayout(context).apply { addView(detailView) }
         val head = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             addView(titleView); addView(dotsView)
@@ -183,7 +193,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val texts = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(head); addView(detailView)
+            addView(head); addView(box)
         }
         // 닫기: 누를 자리를 넉넉히 두고 가는 선으로 본문과 나눈다.
         val divider = View(context).apply {
@@ -231,14 +241,14 @@ class OverlayBanner(private val context: Context) : TripBanner {
             addView(v, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.TOP or Gravity.END))
         }
         wm.addView(frame, p)
-        root = frame; card = v; shown = null; fraction = 0f; icon = iconView; title = titleView; dots = dotsView; detail = detailView; params = p; night = dark
+        root = frame; card = v; shown = null; fraction = 0f; icon = iconView; title = titleView; dots = dotsView; detail = detailView; detailBox = box; params = p; night = dark
     }
 
     override fun hide() {
         handler.removeCallbacks(animate)
         val v = root ?: return
         motion?.cancel(); motion = null
-        root = null; card = null; shown = null; icon = null; title = null; dots = null; detail = null; params = null
+        root = null; card = null; shown = null; icon = null; title = null; dots = null; detail = null; detailBox = null; params = null
         try { wm.removeView(v) } catch (_: Exception) {}
     }
 
