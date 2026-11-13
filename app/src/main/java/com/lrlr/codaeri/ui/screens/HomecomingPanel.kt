@@ -86,6 +86,8 @@ fun HomecomingPanel(
     onCallDriver: (() -> Unit)? = null,
     /** 별 버튼: 이 기사님을 우선 요청 기사님으로 정하거나 해제한다 */
     onStar: (() -> Unit)? = null,
+    /** 있으면 주차 위치 줄에 "수정"이 보인다(운행을 마친 화면) */
+    onEditParking: (() -> Unit)? = null,
 ) {
     var showDetails by rememberSaveable(card.tripId) { mutableStateOf(false) }
     val parking = TripPresentation.parking(card)
@@ -125,7 +127,10 @@ fun HomecomingPanel(
             val payment = if (paidAt != null) "결제 완료" else "결제 대기"
             Fact("요금", "${h.fareText(card.fare)} · $payment (시연용)")
         }
-        Fact("주차 위치", parking.location, valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Fact("주차 위치", parking.location, Modifier.weight(1f), valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
+            if (onEditParking != null) IviButton("수정", onEditParking, size = ButtonSize.SMALL)
+        }
         // 이름표 칸만큼 들여 값과 같은 줄에 맞춘다.
         parking.note?.let { T(it, Type.labelSmall, Modifier.padding(start = FACT_LABEL), color = Ivi.colors.textTertiary) }
         if (card.memo.isNotBlank()) Fact("기사님 메모", TripPresentation.parkingMemo(card.memo))

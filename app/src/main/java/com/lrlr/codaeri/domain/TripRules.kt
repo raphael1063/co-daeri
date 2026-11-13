@@ -139,6 +139,10 @@ object TripRules {
     fun parkingChosen(trip: Trip, parking: ParkingResult?): Trip =
         if (trip.phase != TripPhase.WRAPPING_UP) trip else trip.copy(parking = parking)
 
+    /** 운행을 마친 뒤 주차 위치를 바로잡는다. 끝난 운행에만 쓴다. */
+    fun parkingCorrected(trip: Trip, parking: ParkingResult): Trip =
+        if (trip.phase != TripPhase.DONE) trip else trip.copy(parking = parking)
+
     /**
      * 차가 본 운행의 끝. 이것은 종료 "후보"이고, 종료를 확정하고 결제로 잇는 것은 서비스다.
      * P단은 정차일 뿐이고(다시 출발하면 같은 운행), 운전석 비움이나 마무리 버튼이 후보를 만든다.
