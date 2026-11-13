@@ -95,6 +95,26 @@ class HttpDaeriService(private val server: String) : DaeriService {
         return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
     }
 
+    override fun addContact(link: PhoneLink, kind: com.lrlr.codaeri.domain.ContactKind, label: String, phone: String): ServerState? {
+        var answer: String? = null
+        val body = kotlinx.serialization.json.buildJsonObject {
+            put("label", kotlinx.serialization.json.JsonPrimitive(label))
+            put("phone", kotlinx.serialization.json.JsonPrimitive(phone))
+        }.toString()
+        if (!call("POST", contactPath(kind), link, body) { answer = it }) return null
+        return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
+    }
+
+    override fun removeContact(link: PhoneLink, kind: com.lrlr.codaeri.domain.ContactKind, index: Int): ServerState? {
+        var answer: String? = null
+        val body = kotlinx.serialization.json.buildJsonObject { put("index", kotlinx.serialization.json.JsonPrimitive(index)) }.toString()
+        if (!call("DELETE", contactPath(kind), link, body) { answer = it }) return null
+        return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
+    }
+
+    private fun contactPath(kind: com.lrlr.codaeri.domain.ContactKind) =
+        if (kind == com.lrlr.codaeri.domain.ContactKind.EMERGENCY) "/emergency" else "/share"
+
     /** 연결한 휴대폰 브라우저를 모두 끊는다. */
     override fun unlinkAll(link: PhoneLink): Boolean = call("DELETE", "/readers", link, null)
 

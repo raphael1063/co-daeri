@@ -194,6 +194,8 @@ fun SettingsScreen(
     onAllowNotice: (() -> Unit)?,
     shareMessage: String = "",
     onToggleShare: (() -> Unit)? = null,
+    /** 비상연락처, 공유 연락처를 고치는 화면을 연다 */
+    onEditContacts: (com.lrlr.codaeri.domain.ContactKind) -> Unit = {},
 ) {
     Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
@@ -203,7 +205,8 @@ fun SettingsScreen(
         )
         SettingRow(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
-            null, null, Modifier.appear(1), note = "연결한 휴대폰에서 3명까지 등록할 수 있습니다.",
+            if (state.server.emergencyList.isEmpty()) "등록" else "수정", { onEditContacts(com.lrlr.codaeri.domain.ContactKind.EMERGENCY) }, Modifier.appear(1),
+            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 고칠 수 있습니다.",
             pairs = state.server.emergencyList.map { it.label to it.masked },
         )
         // 공유받을 사람은 비상연락처와 따로 둔다. 실제 발송은 아직 하지 않는다(시연용).
@@ -216,8 +219,9 @@ fun SettingsScreen(
                 else -> "꺼짐"
             },
             if (share.auto) "끄기" else "켜기", onToggleShare, Modifier.appear(2),
-            note = shareMessage.ifBlank { "공유할 연락처는 연결한 휴대폰에서 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
+            note = shareMessage.ifBlank { "공유할 연락처는 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
             pairs = share.contacts.map { it.label to it.masked },
+            second = "연락처 수정" to { onEditContacts(com.lrlr.codaeri.domain.ContactKind.SHARE) },
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
@@ -230,7 +234,11 @@ fun SettingsScreen(
 }
 
 @Composable
-internal fun SettingRow(title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList()) {
+internal fun SettingRow(
+    title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList(),
+    /** 둘째 버튼(이름과 할 일) */
+    second: Pair<String, () -> Unit>? = null,
+) {
     Panel(modifier.fillMaxWidth(), pad = 32.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             Column(Modifier.weight(1f)) {
@@ -242,6 +250,7 @@ internal fun SettingRow(title: String, value: String, action: String?, onClick: 
                     T(note, Type.labelSmall, color = Ivi.colors.textTertiary)
                 }
             }
+            if (second != null) IviButton(second.first, second.second)
             if (action != null && onClick != null) IviButton(action, onClick)
         }
     }
