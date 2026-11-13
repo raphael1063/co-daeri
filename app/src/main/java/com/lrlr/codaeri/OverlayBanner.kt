@@ -84,8 +84,16 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val p = params ?: return
         val v = root ?: return
         val full = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
-        p.width = if (expanded) full else WindowManager.LayoutParams.WRAP_CONTENT
-        p.height = dp(if (expanded) 150f else 100f)
+        val width = if (expanded) full else WindowManager.LayoutParams.WRAP_CONTENT
+        val height = dp(if (expanded) 150f else 100f)
+        val changed = p.width != width || p.height != height
+        p.width = width
+        p.height = height
+        // 창 크기가 바뀌는 사이 한 프레임 동안 어긋난 자리에 그려지는 것이 보이지 않게, 잠깐 감췄다가 자리를 잡은 뒤 보인다.
+        if (changed && v.isAttachedToWindow) {
+            v.alpha = 0f
+            handler.postDelayed({ root?.alpha = 1f }, 80)
+        }
         val iconSize = dp(if (expanded) 96f else 64f)
         icon?.layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply { marginEnd = dp(if (expanded) 24f else 16f) }
         val titleSize = if (expanded) 42f else 32f
