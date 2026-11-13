@@ -121,7 +121,7 @@ data class Booking(
     }
 }
 
-/** 서버가 알려 주는 묶음 상태. phone은 가운데를 가린 번호다. */
+/** 서버가 알려 주는 묶음 상태. phone은 차주 본인의 번호다(가리지 않는다. 연락처의 번호만 가린다). */
 @Serializable
 data class ServerState(
     val phone: String? = null,
