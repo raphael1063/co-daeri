@@ -209,6 +209,8 @@ fun SettingsScreen(
     onToggleShare: (() -> Unit)? = null,
     /** 비상연락처, 공유 연락처를 고치는 화면을 연다 */
     onEditContacts: (com.lrlr.codaeri.domain.ContactKind) -> Unit = {},
+    /** 우선 요청 기사님을 정하는 화면을 연다 */
+    onEditRegular: () -> Unit = {},
 ) {
     // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
     Column(page) {
@@ -241,7 +243,8 @@ fun SettingsScreen(
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
-            null, null, Modifier.appear(2), note = "연결한 휴대폰의 차주 페이지에서 설정합니다.",
+            if (state.server.regular != null) "수정" else "등록", onEditRegular, Modifier.appear(2),
+            note = "대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.",
         )
         SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))

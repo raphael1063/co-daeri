@@ -58,6 +58,7 @@ class DaeriController(
     private val emergencyViewer = EmergencyViewer(store, ports.service, env)
     private val shareSwitch = ShareSwitch(store, ports.service, env)
     private val contactEditor = ContactEditor(store, ports.service, env)
+    private val regularEditor = RegularEditor(store, ports.service, env)
     private val router = DestinationRouter(ports.routeGuide)
     private val recorder = TripRecorder(
         store, ports.car, ports.location, ports.restriction, ports.announcer, ports.links,
@@ -189,6 +190,11 @@ class DaeriController(
     fun addContact(kind: com.lrlr.codaeri.domain.ContactKind, label: String, phone: String) = contactEditor.add(kind, label, phone)
     fun removeContact(kind: com.lrlr.codaeri.domain.ContactKind, index: Int) = contactEditor.remove(kind, index)
     fun clearContactMessage() = contactEditor.clearMessage()
+    val regularBusy: StateFlow<Boolean> = regularEditor.busy
+    val regularMessage: StateFlow<String> = regularEditor.message
+    /** 우선 요청 기사님을 정한다. null이면 지운다. */
+    fun setRegular(driverId: String?) = regularEditor.set(driverId)
+    fun clearRegularMessage() = regularEditor.clearMessage()
     fun showEmergency() = emergencyViewer.show()
     fun hideEmergency() = emergencyViewer.hide()
 

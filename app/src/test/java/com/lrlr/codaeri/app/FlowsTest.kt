@@ -127,6 +127,22 @@ class FlowsTest {
         assertFalse(r.c.shareBusy.value)
     }
 
+    @Test fun regularDriverCanBeSetAndClearedFromTheCarOnlyAmongPastDrivers() = runTest {
+        val r = rig()
+        r.c.setRegular("d3"); r.pass(1)
+        assertNull(r.state.server.regular) // 이용 내역에 없는 기사님은 정하지 않는다
+        r.book(); r.gear(GearState.NOT_PARK); r.gear(GearState.PARK); r.c.closeByButton(); r.pass(1)
+        val driver = RegularEditor.candidates(r.state).single()
+        r.c.setRegular(driver.id); r.pass(1)
+        assertEquals(driver.id, r.state.server.regular?.id)
+        r.service.online = false
+        r.c.setRegular(null); r.pass(1)
+        assertEquals(RegularEditor.FAILED, r.c.regularMessage.value)
+        r.service.online = true
+        r.c.setRegular(null); r.pass(1)
+        assertNull(r.state.server.regular)
+    }
+
     @Test fun contactsCanBeEditedFromTheCarAndOnlyMaskedNumbersAreKept() = runTest {
         val r = rig()
         val emergency = com.lrlr.codaeri.domain.ContactKind.EMERGENCY

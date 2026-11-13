@@ -114,6 +114,14 @@ class HttpDaeriService(private val server: String) : DaeriService {
         return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
     }
 
+    override fun setRegular(link: PhoneLink, driverId: String?): ServerState? {
+        var answer: String? = null
+        val ok = if (driverId == null) call("DELETE", "/regular", link, null) { answer = it }
+        else call("POST", "/regular", link, kotlinx.serialization.json.buildJsonObject { put("driverId", kotlinx.serialization.json.JsonPrimitive(driverId)) }.toString()) { answer = it }
+        if (!ok) return null
+        return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
+    }
+
     private fun contactPath(kind: com.lrlr.codaeri.domain.ContactKind) =
         if (kind == com.lrlr.codaeri.domain.ContactKind.EMERGENCY) "/emergency" else "/share"
 

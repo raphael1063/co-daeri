@@ -43,6 +43,9 @@ interface DaeriService {
     /** index 번째 연락처를 지운다. 실패는 null. */
     fun removeContact(link: PhoneLink, kind: ContactKind, index: Int): ServerState?
 
+    /** 우선 요청 기사님을 정한다. driverId가 null이면 지운다. 실패는 null. */
+    fun setRegular(link: PhoneLink, driverId: String?): ServerState?
+
     /** 연결한 휴대폰 브라우저를 모두 끊는다. */
     fun unlinkAll(link: PhoneLink): Boolean
 }
