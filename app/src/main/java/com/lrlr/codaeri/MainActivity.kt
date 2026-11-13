@@ -74,15 +74,29 @@ class MainActivity : ComponentActivity() {
         noticeAllowed.value = controller.noticeAllowed()
     }
 
+    // 화면이 켜져 있어도 다른 창(후방 카메라, 내비게이션)에 가려져 초점이 없으면 보이지 않는 것으로 본다.
+    // 그래야 가려진 동안 지도 위 표시가 뜬다.
+    private var started = false
+    private var focused = false
+    private fun syncVisible() { controller.visible.value = started && focused }
+
     override fun onStart() {
         super.onStart()
-        controller.visible.value = true
+        started = true
+        syncVisible()
         noticeAllowed.value = controller.noticeAllowed()
     }
 
     override fun onStop() {
-        controller.visible.value = false
+        started = false
+        syncVisible()
         super.onStop()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        focused = hasFocus
+        syncVisible()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
