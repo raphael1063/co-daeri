@@ -173,6 +173,28 @@ class FlowsTest {
         assertNull(r.banner.line) // 운행이 끝나면 내린다
     }
 
+    @Test fun reverseGearDuringATripIsShownAsParkingUntilParkOrDrivingOn() = runTest {
+        val r = rig()
+        r.book()
+        r.c.visible.value = false; runCurrent()
+        r.gear(GearState.NOT_PARK)
+        assertFalse(r.c.parking.value)
+        r.gear(GearState.REVERSE)
+        assertTrue(r.c.parking.value)
+        assertEquals(BannerLine("박○○ 기사님 주차 중", DrivingBanner.PARKING_HINT, ongoing = true), r.banner.line)
+        // 주차하며 D단으로 잠깐 바꿔도 주차 중으로 둔다
+        r.gear(GearState.NOT_PARK); r.pass(5_000)
+        assertTrue(r.c.parking.value)
+        r.gear(GearState.REVERSE); r.gear(GearState.NOT_PARK); r.pass(ParkingWatch.HOLD_MS + 1)
+        // 계속 달리면 다시 운행 중
+        assertFalse(r.c.parking.value)
+        assertEquals("박○○ 기사님 운행 중", r.banner.line?.title)
+        r.gear(GearState.REVERSE); r.gear(GearState.PARK)
+        // P단에 서면 정차 중
+        assertFalse(r.c.parking.value)
+        assertEquals("박○○ 기사님 정차 중", r.banner.line?.title)
+    }
+
     @Test fun tripStartingInsideTheHomeRadiusDoesNotStartParkingGuide() = runTest {
         val card = ParkingCard(placeName = "우리 집", latitude = 37.5, longitude = 127.0, entrance = "동쪽 입구로 가세요.", zone = "지하 2층입니다.")
         val r = rig(bound.copy(cards = listOf(card)))

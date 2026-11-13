@@ -67,6 +67,10 @@ class DaeriController(
         onClosed = { card -> if (!visible.value) ports.notices.closed(handover.headline(card, env.clock())) },
     )
 
+    private val parkingWatch = ParkingWatch(env)
+    /** 운행 중 R단을 넣어 주차하는 중인지 */
+    val parking: StateFlow<Boolean> = parkingWatch.parking
+
     private fun hiddenAndParked() = !visible.value && ports.car.gear.value == GearState.PARK
 
     // ---------- 화면이 읽는 상태 ----------
@@ -112,7 +116,7 @@ class DaeriController(
         env.scope.launch { ports.location.entered.collect { guide.onNearHome() } }
         env.scope.launch {
             var previous = ports.car.gear.value
-            ports.car.gear.collect { current -> recorder.onGear(previous, current); voiceCall.onGearChanged(); previous = current }
+            ports.car.gear.collect { current -> recorder.onGear(previous, current); voiceCall.onGearChanged(); parkingWatch.onGear(current); previous = current }
         }
         env.scope.launch { ports.car.driverSeated.collect { recorder.onSeatChanged() } }
         env.scope.launch { ports.car.passengerSeats.collect { recorder.onPassengersChanged() } }
@@ -121,7 +125,7 @@ class DaeriController(
         env.scope.launch { visible.collect { if (it) { ports.notices.clear(); sync.refresh() } } }
         // 내비게이션이 앞에 있는 동안 지도 위에 운행 중임을 한 줄로 보여 준다(권한이 있는 차에서만).
         BannerPresenter(ports.banner, env.scope, visible)
-            .start(combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.line(s, g, v, handover) })
+            .start(combine(store.state, guide.state, visible, parking) { s, g, v, p -> DrivingBanner.line(s, g, v, handover, p) })
         outbox.watch(ports.connectivity)
         outbox.send()
         sync.startPolling()

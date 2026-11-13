@@ -111,6 +111,7 @@ class MainActivity : ComponentActivity() {
                 var editing by rememberSaveable { mutableStateOf(false) }
                 val canCall by c.canCall.collectAsStateWithLifecycle()
                 val cancellingBooking by c.cancellingBooking.collectAsStateWithLifecycle()
+                val parking by c.parking.collectAsStateWithLifecycle()
                 val cancelBookingMessage by c.cancelBookingMessage.collectAsStateWithLifecycle()
                 var confirmCancel by rememberSaveable { mutableStateOf(false) }
                 // 설정에서 고치고 있는 연락처 묶음
@@ -152,7 +153,7 @@ class MainActivity : ComponentActivity() {
                     ) { target ->
                         when (target) {
                             Screen.DRIVING -> trip?.let {
-                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap, emergencies = state.server.emergencyList, onEmergency = c::showEmergency)
+                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap, emergencies = state.server.emergencyList, onEmergency = c::showEmergency, parking = parking)
                             }
                             Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
                             Screen.WRAP -> trip?.let {
