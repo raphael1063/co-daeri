@@ -43,9 +43,10 @@ class BannerPresenter(
                 if (line == announced) {
                     banner.show(line, expanded = false)
                 } else {
-                    announced = line
                     banner.show(line, expanded = true)
                     delay(EXPANDED_MS)
+                    // 끝까지 보여 준 뒤에만 "알렸다"고 적는다. 도중에 가려졌으면 다음에 다시 펼친다.
+                    announced = line
                     banner.show(line, expanded = false)
                 }
             }
