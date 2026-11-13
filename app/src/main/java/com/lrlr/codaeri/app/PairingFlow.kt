@@ -7,6 +7,8 @@ import com.lrlr.codaeri.domain.ServerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import com.lrlr.codaeri.R
 import com.lrlr.codaeri.domain.text
@@ -35,6 +37,9 @@ class PairingFlow(
     /** QR이 화면에 떠 있는지. 떠 있는 동안에는 연결됐는지 자주 묻는다. */
     val showing: Boolean get() = _pairing.value.url != null
 
+    private val codeLock = Mutex()
+    private var codeSeq = 0
+
     /** 개인정보·위치 수집 안내에 동의했다. 동의한 뒤에만 연결 QR을 만든다. */
     fun agree() {
         if (store.value.consentAt == null) store.update { it.copy(consentAt = env.clock()) }
@@ -54,8 +59,15 @@ class PairingFlow(
         val code = links.pairCode()
         val short = links.shortCode()
         _pairing.value = Pairing(null, text(R.string.pairing_preparing))
+        // 코드 요청이 겹치면(동의 직후 화면이 한 번 더 청할 때) 서버에 마지막으로 등록된 코드와 화면의 코드가
+        // 어긋날 수 있다. 차례대로 등록하고, 가장 나중에 청한 코드만 화면에 올린다.
+        val mine = ++codeSeq
         env.scope.launch {
-            val ok = withContext(env.io) { service.registerPair(link, code, short) }
+            val ok = codeLock.withLock {
+                if (mine != codeSeq) return@launch
+                withContext(env.io) { service.registerPair(link, code, short) }
+            }
+            if (mine != codeSeq) return@launch
             _pairing.value = if (ok) {
                 Pairing(Links.pairUrl(server, link, code), text(R.string.pairing_ready), short)
             } else {
