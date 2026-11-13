@@ -210,8 +210,11 @@ fun SettingsScreen(
     /** 비상연락처, 공유 연락처를 고치는 화면을 연다 */
     onEditContacts: (com.lrlr.codaeri.domain.ContactKind) -> Unit = {},
 ) {
-    Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
+    Column(page) {
         TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
+        Spacer(Modifier.height(20.dp))
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SettingRow(
             "집 주차 안내", if (state.card.isUsable) "등록됨 · 집 근처에서 기사님께 읽어 드립니다" else "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다",
             if (state.card.isUsable) "수정" else "등록", onEditCard, Modifier.appear(1),
@@ -243,6 +246,7 @@ fun SettingsScreen(
         SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
         T("코-대리 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
+        }
     }
 }
 
