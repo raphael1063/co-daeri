@@ -179,6 +179,10 @@ class DaeriController(
     /** "운행 시작"을 눌러 둔 예약의 번호 */
     val startArmed: StateFlow<String?> = recorder.startArmed
     fun toggleStartByButton() = recorder.toggleStartByButton()
+    val startPin: StateFlow<StartPinUi?> = recorder.startPin
+    fun pressStart() = recorder.pressStart()
+    fun submitStartPin(pin: String) = recorder.submitStartPin(pin)
+    fun dismissStartPin() = recorder.dismissStartPin()
     fun closeByButton() = recorder.closeByButton()
     val closeAsk: StateFlow<CloseAsk?> = recorder.closeAsk
     fun confirmClose() = recorder.confirmClose()

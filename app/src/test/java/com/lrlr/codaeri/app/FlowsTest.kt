@@ -963,6 +963,28 @@ class FlowsTest {
         assertNotNull(near.c.state.value.lastCard)
     }
 
+    @Test fun startButtonAsksTheDriverPinAndArmsOnlyWhenItIsRight() = runTest {
+        val r = rig()
+        r.c.pressStart() // 예약이 없으면 묻지 않는다
+        assertNull(r.c.startPin.value)
+        r.book()
+        r.c.pressStart()
+        assertNotNull(r.c.startPin.value)
+        assertNull(r.c.startArmed.value)
+        r.c.submitStartPin("0000")
+        assertEquals(TripRecorder.PIN_WRONG, r.c.startPin.value!!.error)
+        assertNull(r.c.startArmed.value)
+        r.c.submitStartPin(TripRules.DEMO_START_PIN)
+        assertNull(r.c.startPin.value)
+        assertEquals("b1", r.c.startArmed.value)
+        r.c.pressStart() // 다시 누르면 PIN 없이 취소한다
+        assertNull(r.c.startArmed.value)
+        assertNull(r.c.startPin.value)
+        r.c.pressStart(); r.c.dismissStartPin()
+        assertNull(r.c.startPin.value)
+        assertNull(r.c.startArmed.value)
+    }
+
     private companion object {
         /** 2026-11-14 23:00 KST 무렵 */
         const val BASE = 1_794_664_800_000L

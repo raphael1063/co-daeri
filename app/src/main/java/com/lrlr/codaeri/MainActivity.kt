@@ -43,6 +43,7 @@ import com.lrlr.codaeri.ui.PairColumns
 import com.lrlr.codaeri.ui.screens.CardEditorScreen
 import com.lrlr.codaeri.ui.screens.ClosedScreen
 import com.lrlr.codaeri.ui.screens.ParkingEditPopup
+import com.lrlr.codaeri.ui.screens.StartPinPopup
 import com.lrlr.codaeri.ui.DaeriTheme
 import com.lrlr.codaeri.ui.screens.DrivingScreen
 import com.lrlr.codaeri.ui.Fading
@@ -206,7 +207,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Screen.HANDOVER -> {
                                 BackHandler { section = Section.MAIN }
-                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, manualStart = !judgesBoarding, onStart = c::toggleStartByButton, cancelling = cancellingBooking, cancelMessage = cancelBookingMessage, onCancel = { confirmCancel = true }, onBack = { section = Section.MAIN }) }
+                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, manualStart = !judgesBoarding, onStart = c::pressStart, cancelling = cancellingBooking, cancelMessage = cancelBookingMessage, onCancel = { confirmCancel = true }, onBack = { section = Section.MAIN }) }
                             }
                             Screen.RECORDS -> {
                                 BackHandler { section = Section.MAIN }
@@ -261,13 +262,18 @@ class MainActivity : ComponentActivity() {
                                 onSettings = { section = Section.SETTINGS },
                                 startLine = pending?.takeIf { startReady }?.let { "${it.driver.name} 기사님 · ${it.destination} · ${c.handover.fareText(it.fare)}" },
                                 armed = pending != null && startArmed == pending.id,
-                                onStart = c::toggleStartByButton,
+                                onStart = c::pressStart,
                                 canCall = canCall,
                                 cancelling = cancellingBooking, cancelMessage = cancelBookingMessage,
                                 onCancel = { confirmCancel = true },
                             )
                         }
                     }
+
+                    // 출발하기를 누르면 기사님 PIN을 묻는다. 예약이 사라지거나 운행이 시작되면 창도 닫는다.
+                    val startPin by c.startPin.collectAsStateWithLifecycle()
+                    LaunchedEffect(pending?.id, trip?.id) { if (pending == null || trip != null) c.dismissStartPin() }
+                    Fading(startPin) { ui -> StartPinPopup(ui.error, pending?.driver?.name.orEmpty(), c::submitStartPin, c::dismissStartPin) }
 
                     // 목적지에서 먼 곳에서 누른 운행 종료는 한 번 더 묻는다.
                     val closeAsk by c.closeAsk.collectAsStateWithLifecycle()

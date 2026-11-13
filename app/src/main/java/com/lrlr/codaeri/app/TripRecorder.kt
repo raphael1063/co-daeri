@@ -25,6 +25,9 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 /** 목적지에서 먼 곳에서 운행을 끝내려 할 때 화면에 묻는 내용 */
+/** 출발 전 기사님 PIN 입력창. error가 있으면 방금 넣은 PIN이 틀린 것이다. */
+data class StartPinUi(val error: String = "")
+
 data class CloseAsk(val destination: String, val km: Float)
 
 /**
@@ -65,6 +68,9 @@ class TripRecorder(
     private val _startArmed = MutableStateFlow<String?>(null)
     /** "운행 시작" 단추를 누른 예약의 번호. 이 예약은 좌석 값과 상관없이 기어가 P를 벗어날 때 시작한다. */
     val startArmed: StateFlow<String?> = _startArmed
+    private val _startPin = MutableStateFlow<StartPinUi?>(null)
+    /** 출발하기를 눌러 기사님 PIN을 묻는 중이면 그 창의 상태 */
+    val startPin: StateFlow<StartPinUi?> = _startPin
 
     /** 종료 뒤 문 잠금 신호를 기다리는 중인지 */
     val watchingLocks: Boolean get() = lockWatch?.isActive == true
@@ -107,6 +113,25 @@ class TripRecorder(
         if (booking == null || store.value.trip != null || car.gear.value.moving || restriction.restricted.value) return
         _startArmed.value = if (_startArmed.value == booking.id) null else booking.id
     }
+
+    /**
+     * 화면의 "출발하기" 버튼. 이미 눌러 둔 상태면 취소하고, 아니면 기사님 PIN을 묻는다.
+     * PIN이 맞아야 출발 대기로 넘어간다.
+     */
+    fun pressStart() {
+        val booking = store.value.pendingBooking(env.clock())
+        if (booking == null || store.value.trip != null || car.gear.value.moving || restriction.restricted.value) return
+        if (_startArmed.value == booking.id) _startArmed.value = null else _startPin.value = StartPinUi()
+    }
+
+    fun submitStartPin(pin: String) {
+        if (_startPin.value == null) return
+        if (!TripRules.startPinOk(pin)) { _startPin.value = StartPinUi(error = PIN_WRONG); return }
+        _startPin.value = null
+        if (!armed()) toggleStartByButton()
+    }
+
+    fun dismissStartPin() { _startPin.value = null }
 
     /** 지금 기다리는 예약에 "운행 시작"을 눌러 두었는가 */
     private fun armed(): Boolean = _startArmed.value != null && _startArmed.value == store.value.pendingBooking(env.clock())?.id
@@ -371,6 +396,7 @@ class TripRecorder(
     }
 
     companion object {
+        const val PIN_WRONG = "PIN이 맞지 않습니다. 다시 입력해 주세요."
         /** 기사님은 화면을 보지 않아도 기록된다는 사실을 한 번 듣는다. */
         const val DRIVER_NOTICE =
             "대리 운행의 시간과 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다."
