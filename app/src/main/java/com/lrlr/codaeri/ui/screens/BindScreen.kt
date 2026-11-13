@@ -53,14 +53,15 @@ import com.lrlr.codaeri.domain.ResultSource
 import com.lrlr.codaeri.domain.SpotChoice
 import com.lrlr.codaeri.domain.Trip
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.ColumnScope
 import com.lrlr.codaeri.ui.*
 
 @Composable
 fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairShort: String?, onAgree: () -> Unit, onNewCode: () -> Unit) {
     if (!consented) { ConsentScreen(onAgree); return }
     LaunchedEffect(Unit) { onNewCode() }
-    Row(page, horizontalArrangement = Arrangement.spacedBy(64.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
+    val intro: @Composable ColumnScope.() -> Unit = {
             Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 T("코-대리", Type.labelLarge, color = Ivi.colors.textTertiary)
                 Tag(DEMO_TAG)
@@ -80,8 +81,9 @@ fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairSho
             }
             Spacer(Modifier.height(28.dp))
             T("차 화면에는 번호 뒷자리 네 개만 표시됩니다.", Type.labelSmall, Modifier.appear(4), color = Ivi.colors.textTertiary)
-        }
-        Panel(Modifier.width(520.dp).appear(2, scaleFrom = 0.97f), pad = 40.dp) {
+    }
+    val code: @Composable (Modifier) -> Unit = { m ->
+        Panel(m.appear(2, scaleFrom = 0.97f), pad = 40.dp) {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (pairUrl != null) QrImage(pairUrl, 360.dp)
                 else Box(Modifier.size(360.dp), contentAlignment = Alignment.Center) { T("QR 준비 중", Type.bodySmall, color = Ivi.colors.textTertiary) }
@@ -99,6 +101,17 @@ fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairSho
             }
         }
     }
+    // 좁은 창(내비게이션과 나란히 둔 상태)에서는 설명 아래에 QR을 두고 통째로 스크롤한다.
+    if (isNarrow()) {
+        Column(page.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(Modifier.fillMaxWidth(), content = intro)
+            Spacer(Modifier.height(32.dp))
+            code(Modifier.widthIn(max = 520.dp).fillMaxWidth())
+        }
+    } else Row(page, horizontalArrangement = Arrangement.spacedBy(64.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f), content = intro)
+        code(Modifier.width(520.dp))
+    }
 }
 
 @Composable
@@ -114,7 +127,8 @@ internal fun Step(n: String, text: String) {
 /** 번호를 연결하기 전에 무엇을 모으고 어디에 쓰는지 알리고 동의를 받는다. */
 @Composable
 internal fun ConsentScreen(onAgree: () -> Unit) {
-    Column(page, verticalArrangement = Arrangement.Center) {
+    // 제목은 위에, 동의 버튼은 아래에 고정하고 안내만 스크롤한다(좁은 창에서도 버튼이 눌리지 않게).
+    Column(page) {
         Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             T("코-대리", Type.labelLarge, color = Ivi.colors.textTertiary)
             Tag(DEMO_TAG)
@@ -122,11 +136,13 @@ internal fun ConsentScreen(onAgree: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         T("연결 전에 확인해 주세요", Type.headlineSmall, Modifier.appear(1))
         Spacer(Modifier.height(24.dp))
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
         Panel(Modifier.fillMaxWidth().appear(2)) {
             ConsentRow("수집하는 정보", "휴대폰 번호, 차의 위치, 기어·운전석 착석·문·창문·배터리 상태, 주행거리")
             ConsentRow("사용 목적", "대리 예약 확인, 이용 내역 저장, 기사님께 차 위치 안내, 운행 중 알림")
             ConsentRow("보관 기간", "차와 서버에 30일. 영상과 음성은 기록하지 않습니다.")
             ConsentRow("동의 철회", "설정의 \"연결 해제\"를 누르면 철회되고 서버의 번호, 예약, 비상연락처, 차 위치가 바로 지워집니다. 이용 내역은 휴대폰에서 더 열 수 없게 되고 30일 뒤 지워집니다.", last = true)
+        }
         }
         Spacer(Modifier.height(28.dp))
         IviButton("동의하고 연결", onAgree, Modifier.fillMaxWidth().appear(3), filled = true, size = ButtonSize.LARGE)
@@ -136,7 +152,7 @@ internal fun ConsentScreen(onAgree: () -> Unit) {
 @Composable
 private fun ConsentRow(label: String, text: String, last: Boolean = false) {
     Row(verticalAlignment = Alignment.Top) {
-        T(label, Type.bodySmall, Modifier.width(270.dp), color = Ivi.colors.textTertiary)
+        T(label, Type.bodySmall, Modifier.width(if (isNarrow()) 180.dp else 270.dp), color = Ivi.colors.textTertiary)
         T(text, Type.bodySmall, Modifier.weight(1f))
     }
     if (!last) Spacer(Modifier.height(14.dp))

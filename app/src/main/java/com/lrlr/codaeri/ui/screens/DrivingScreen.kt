@@ -56,6 +56,7 @@ import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
 /** 달리는 동안 화면은 조용하다. 길 안내는 순정 내비게이션이 하고, 이 앱은 한 줄 상태만 보여 준다. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DrivingScreen(
     trip: Trip,
@@ -77,7 +78,7 @@ fun DrivingScreen(
 ) {
     val now = rememberNow()
     val c = Ivi.colors
-    Column(page, verticalArrangement = Arrangement.Center) {
+    Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             Box(Modifier.size(16.dp).clip(CircleShape).background(c.positive))
             // 예약이 아직 확인되지 않은 주행은 P에서 버려지므로 "기록 중"이라고 하지 않는다
@@ -100,10 +101,16 @@ fun DrivingScreen(
             Spacer(Modifier.height(12.dp))
             T(it, Type.bodyLarge, color = c.textTertiary)
         }
+        // 넓은 창으로 보고 있을 때만, 내비게이션과 나란히 두는 방법을 알린다.
+        if (booking != null && !isNarrow()) {
+            Spacer(Modifier.height(8.dp))
+            T(SPLIT_HINT, Type.labelLarge, color = c.textTertiary)
+        }
         // 길 안내는 내비게이션이 하므로, 이 화면을 열어 본 뒤 지도로 바로 돌아갈 수 있게 한다.
         if (booking != null && !(card.isUsable && guidance.started)) {
             Spacer(Modifier.height(40.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            // 좁은 창에서는 버튼이 다음 줄로 넘어간다.
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
                 // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
                 if (card.isUsable) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
@@ -124,19 +131,19 @@ fun DrivingScreen(
                 if (!restricted) guidance.current?.steps.orEmpty().forEach { step ->
                     Spacer(Modifier.height(10.dp))
                     Row(verticalAlignment = Alignment.Top) {
-                        T(Guidance.label(step), Type.bodyMedium, Modifier.width(260.dp).padding(top = 8.dp), color = c.textTertiary)
+                        T(Guidance.label(step), Type.bodyMedium, Modifier.width(if (isNarrow()) 150.dp else 260.dp).padding(top = 8.dp), color = c.textTertiary)
                         T(Guidance.text(card, step), Type.titleLarge, Modifier.weight(1f), maxLines = 2)
                     }
                 }
                 if (speaking) { Spacer(Modifier.height(6.dp)); T("읽는 중", Type.labelSmall, color = c.positiveText) }
             }
             Spacer(Modifier.height(20.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                IviButton(if (guidance.hasNext) "다음 안내" else "처음부터 다시", onNext, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
-                IviButton("다시 듣기", onRepeat, Modifier.weight(1f), size = ButtonSize.LARGE)
-                IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
-                IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
-            }
+            ButtonGrid(buttons = listOf(
+                { m -> IviButton(if (guidance.hasNext) "다음 안내" else "처음부터 다시", onNext, m, filled = true, size = ButtonSize.LARGE) },
+                { m -> IviButton("다시 듣기", onRepeat, m, size = ButtonSize.LARGE) },
+                { m -> IviButton("지도로 돌아가기", onMap, m, size = ButtonSize.LARGE) },
+                { m -> IviButton("비상연락처 보기", onEmergency, m, size = ButtonSize.LARGE) },
+            ))
         }
     }
 }

@@ -65,11 +65,11 @@ fun HandoverScreen(
     onCancel: () -> Unit = {},
     onBack: () -> Unit,
 ) {
-    Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
-        Column(Modifier.weight(1.15f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+    // 넓은 창에서는 좌우로, 좁은 창(내비게이션과 나란히)에서는 위아래로 놓는다.
+    Sides(page, firstWeight = 1.15f, first = {
             Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(36.dp)) {
                 BackButton(onBack)
-                T("배차 현황", Type.headlineSmall, maxLines = 1)
+                T("배차 현황", Type.headlineSmall, Modifier.weight(1f, fill = false), maxLines = 1)
                 Tag("$DEMO_TAG · 가상의 기사님")
             }
             Spacer(Modifier.height(36.dp))
@@ -98,8 +98,7 @@ fun HandoverScreen(
                 Spacer(Modifier.height(10.dp))
                 T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
             }
-        }
-        Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+        }, second = {
             Panel(Modifier.fillMaxWidth().appear(3)) {
                 T("기사님께", Type.labelLarge, color = Ivi.colors.textTertiary)
                 Spacer(Modifier.height(12.dp))
@@ -115,6 +114,8 @@ fun HandoverScreen(
                     },
                     Type.bodyLarge,
                 )
+                Spacer(Modifier.height(12.dp))
+                T(SPLIT_HINT, Type.labelLarge, color = Ivi.colors.textTertiary)
                 // 좌석 신호로 탑승을 판정하는 차에서는 출발하기를 첫 화면에만 둔다.
                 if (manualStart || armed) {
                     Spacer(Modifier.height(20.dp))
@@ -126,7 +127,5 @@ fun HandoverScreen(
                 }
 
             }
-        }
-    }
+        })
 }
-

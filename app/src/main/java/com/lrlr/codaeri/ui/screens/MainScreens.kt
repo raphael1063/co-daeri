@@ -78,10 +78,13 @@ fun HomeScreen(
     cancelling: Boolean = false, cancelMessage: String = "",
     onCancel: () -> Unit = {},
 ) {
+    val narrow = isNarrow()
     Box(page) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(painterResource(R.drawable.ic_app_clear), contentDescription = null, modifier = Modifier.size(280.dp).appear(0, scaleFrom = 0.97f))
-            Spacer(Modifier.height(48.dp))
+        // 좁은 창에서는 버튼을 위아래로 쌓으므로 그림을 줄이고, 넘치면 스크롤한다.
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            if (narrow) Spacer(Modifier.height(72.dp))
+            Image(painterResource(R.drawable.ic_app_clear), contentDescription = null, modifier = Modifier.size(if (narrow) 180.dp else 280.dp).appear(0, scaleFrom = 0.97f))
+            Spacer(Modifier.height(if (narrow) 28.dp else 48.dp))
             if (startLine != null) {
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
                 Spacer(Modifier.height(20.dp))
@@ -103,13 +106,24 @@ fun HomeScreen(
                     Spacer(Modifier.height(12.dp))
                     T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
                 }
-            } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                // 왼쪽에 가장 많이 쓰는 버튼을 크게, 오른쪽에 나머지 둘을 위아래로 둔다.
-                if (booked) HeroButton("배차 현황", "배정된 기사님과 목적지를 확인해요", R.drawable.ic_home_status, onStatus, Modifier.weight(1.85f))
-                else HeroButton("대리 부르기", "목적지와 요금을 확인하고 불러요", R.drawable.ic_home_call, onCall, Modifier.weight(1.85f), enabled = !restricted && canCall)
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HOME_GAP)) {
-                    SideButton("이용 내역", R.drawable.ic_home_records, onRecords, enabled = !restricted)
-                    SideButton("설정", R.drawable.ic_home_settings, onSettings, enabled = !restricted)
+            } else {
+                val hero: @Composable (Modifier) -> Unit = { m ->
+                    if (booked) HeroButton("배차 현황", "배정된 기사님과 목적지를 확인해요", R.drawable.ic_home_status, onStatus, m)
+                    else HeroButton("대리 부르기", "목적지와 요금을 확인하고 불러요", R.drawable.ic_home_call, onCall, m, enabled = !restricted && canCall)
+                }
+                val sides: @Composable (Modifier) -> Unit = { m ->
+                    Column(m, verticalArrangement = Arrangement.spacedBy(HOME_GAP)) {
+                        SideButton("이용 내역", R.drawable.ic_home_records, onRecords, enabled = !restricted)
+                        SideButton("설정", R.drawable.ic_home_settings, onSettings, enabled = !restricted)
+                    }
+                }
+                // 넓은 창: 왼쪽에 가장 많이 쓰는 버튼을 크게, 오른쪽에 나머지 둘. 좁은 창: 위에서 아래로 쌓는다.
+                if (narrow) Column(Modifier.fillMaxWidth().appear(1), verticalArrangement = Arrangement.spacedBy(HOME_GAP)) {
+                    hero(Modifier.fillMaxWidth())
+                    sides(Modifier.fillMaxWidth())
+                } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    hero(Modifier.weight(1.85f))
+                    sides(Modifier.weight(1f))
                 }
             }
             if (startLine == null && (restricted || (!canCall && !booked))) {

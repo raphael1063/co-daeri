@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -407,7 +408,59 @@ fun Tag(text: String, modifier: Modifier = Modifier) {
 }
 
 /** 이름표 칸의 너비. 같은 카드 안의 표도 이 너비에 맞춰 값이 한 줄로 선다. */
-val FACT_LABEL = 260.dp
+/** 이름표 칸의 너비. 좁은 창에서는 값이 들어갈 자리를 남기려고 줄인다. */
+val FACT_LABEL: Dp
+    @Composable get() = if (isNarrow()) 170.dp else 260.dp
+
+/**
+ * 창이 좁은가. Pleos에서는 앱 영역을 둘로 나눠 내비게이션과 나란히 둘 수 있고, 그때 너비가 절반(약 840dp)이 된다.
+ * 좁은 창에서는 좌우로 나눈 화면을 위아래로 쌓고, 한 줄에 늘어놓은 버튼을 여러 줄로 나눈다.
+ */
+@Composable
+fun isNarrow(): Boolean = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < NARROW_BELOW_DP
+
+const val NARROW_BELOW_DP = 1100
+
+/**
+ * 좌우 두 칸. 넓은 창에서는 나란히 놓고 각 칸의 내용을 세로 가운데에 둔다.
+ * 좁은 창에서는 위아래로 쌓고 통째로 스크롤한다(칸 안에 따로 스크롤하는 것을 두지 않는다).
+ */
+@Composable
+fun Sides(
+    modifier: Modifier = Modifier, gap: Dp = 56.dp, firstWeight: Float = 1f,
+    first: @Composable ColumnScope.() -> Unit, second: @Composable ColumnScope.() -> Unit,
+) {
+    if (isNarrow()) {
+        Column(modifier.verticalScroll(rememberScrollState())) {
+            Column(Modifier.fillMaxWidth(), content = first)
+            Spacer(Modifier.height(32.dp))
+            Column(Modifier.fillMaxWidth(), content = second)
+        }
+    } else {
+        Row(modifier, horizontalArrangement = Arrangement.spacedBy(gap)) {
+            Column(Modifier.weight(firstWeight).fillMaxHeight(), verticalArrangement = Arrangement.Center, content = first)
+            Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center, content = second)
+        }
+    }
+}
+
+/**
+ * 같은 너비의 버튼 줄. 넓은 창에서는 한 줄, 좁은 창에서는 두 개씩 여러 줄.
+ * 각 버튼은 받은 Modifier(같은 너비)를 그대로 써야 한다.
+ */
+@Composable
+fun ButtonGrid(modifier: Modifier = Modifier, buttons: List<@Composable (Modifier) -> Unit>) {
+    val perRow = if (isNarrow()) 2 else buttons.size.coerceAtLeast(1)
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        buttons.chunked(perRow).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                row.forEach { it(Modifier.weight(1f)) }
+                // 마지막 줄에 하나만 남아도 다른 줄의 버튼과 너비가 같게 한다
+                repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
 
 /** 이름표와 값 한 줄 */
 @Composable
