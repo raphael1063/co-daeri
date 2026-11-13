@@ -154,6 +154,9 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
 
     fun card(card: ParkingCard, trip: Trip, now: Long): HomecomingCard {
         val ended = trip.endedAt ?: now
+        // 집이 아닌 곳으로 간 운행에는 차주가 적어 둔 집 주차 자리를 적지 않는다(기사님이 남긴 위치는 그대로 적는다).
+        val home = TripRules.homeBound(trip, card)
+        val unconfirmed = trip.parking == null || trip.parking.source == ResultSource.UNCONFIRMED
         return HomecomingCard(
             tripId = trip.id,
             placeName = card.placeName,
@@ -161,7 +164,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
             endedAt = ended,
             elapsedMinutes = elapsedMinutes(trip.startedAt, ended),
             distanceKm = distanceKm(trip.startOdometerKm, trip.endOdometerKm),
-            parkingLine = parkingLine(card, trip.parking),
+            parkingLine = if (!home && unconfirmed) "" else parkingLine(card, trip.parking),
             parkingSource = trip.parking?.source ?: ResultSource.UNCONFIRMED,
             memo = trip.parking?.memo.orEmpty(),
             windowLine = windowLine(trip.windowsAtWrap),
@@ -171,7 +174,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
             updatedAt = now,
             stage = CardStage.DONE,
             arrivedAt = trip.guidanceStartedAt,
-            guidedLine = guidedLine(card),
+            guidedLine = if (home) guidedLine(card) else "",
             bookingId = trip.booking?.id.orEmpty(),
             driverId = trip.booking?.driver?.id.orEmpty(),
             driverName = trip.booking?.driver?.name.orEmpty(),
@@ -247,6 +250,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
      * 마무리 전송이 실패해도 휴대폰에는 도착 시각과 안내한 위치가 남는다.
      */
     fun progressCard(card: ParkingCard, trip: Trip, now: Long): HomecomingCard {
+        val home = TripRules.homeBound(trip, card)
         val arrived = trip.guidanceStartedAt
         return HomecomingCard(
             tripId = trip.id,
@@ -264,7 +268,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
             updatedAt = now,
             stage = if (arrived != null) CardStage.ARRIVED else CardStage.DRIVING,
             arrivedAt = arrived,
-            guidedLine = guidedLine(card),
+            guidedLine = if (home) guidedLine(card) else "",
             bookingId = trip.booking?.id.orEmpty(),
             driverId = trip.booking?.driver?.id.orEmpty(),
             driverName = trip.booking?.driver?.name.orEmpty(),

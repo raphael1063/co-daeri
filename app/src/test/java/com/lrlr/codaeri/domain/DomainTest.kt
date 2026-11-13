@@ -525,6 +525,10 @@ class DomainTest {
         assertTrue(TripRules.homeBound(trip(null, null), card))
         // 이미 안내를 시작했으면 집이다
         assertTrue(TripRules.homeBound(trip(37.4979, 127.0276).copy(guidanceStartedAt = 1), card))
+        // 집이 아닌 곳으로 간 운행의 이용 내역에는 집 주차 자리를 적지 않는다
+        val h = Handover()
+        assertEquals("", h.card(card, trip(37.4979, 127.0276), 1000).guidedLine)
+        assertTrue(h.card(card, trip(37.4021, 127.1087), 1000).guidedLine.contains("B-17"))
         // 주행 중 한 줄에는 층과 자리가 함께 나온다
         assertTrue(Guidance.segments(card).any { it.headline == "B2 B-17" })
     }
