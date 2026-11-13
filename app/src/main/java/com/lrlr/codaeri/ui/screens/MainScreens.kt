@@ -157,7 +157,7 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
         }
         state.history.forEachIndexed { i, card ->
             val latest = card.tripId == state.lastCard?.tripId
-            Row(Modifier.fillMaxWidth().appear(1 + i.coerceAtMost(3)), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+            Row(Modifier.fillMaxWidth().appear(1 + i.coerceAtMost(3))) {
                 val expanded = open == card.tripId
                 HomecomingPanel(
                     card, handover, now, Modifier.weight(1f),
@@ -167,11 +167,14 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     onToggle = { open = if (expanded) null else card.tripId },
                 )
                 // 가장 최근 운행의 기사님만 "다음에도 먼저 요청"으로 이을 수 있다
+                // 왼쪽 카드와 같은 박자로 폭과 높이가 함께 움직여야 아래 카드들이 튀지 않고 따라온다.
                 androidx.compose.animation.AnimatedVisibility(
                     expanded && latest && card.driverId.isNotBlank() && state.phoneLink != null,
-                    enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(Motion.FOLD, delayMillis = 80)) + androidx.compose.animation.expandHorizontally(androidx.compose.animation.core.tween(Motion.FOLD)),
-                    exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(Motion.EXIT)) + androidx.compose.animation.shrinkHorizontally(androidx.compose.animation.core.tween(Motion.FOLD)),
-                ) { DriverCard(state, card, Modifier.width(460.dp)) { calling = card.driverName } }
+                    enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(Motion.FOLD, delayMillis = 60)) +
+                        androidx.compose.animation.expandIn(androidx.compose.animation.core.tween(Motion.FOLD, easing = androidx.compose.animation.core.FastOutSlowInEasing), expandFrom = Alignment.TopEnd),
+                    exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(Motion.EXIT)) +
+                        androidx.compose.animation.shrinkOut(androidx.compose.animation.core.tween(Motion.FOLD, easing = androidx.compose.animation.core.FastOutSlowInEasing), shrinkTowards = Alignment.TopEnd),
+                ) { DriverCard(state, card, Modifier.padding(start = 28.dp).width(460.dp)) { calling = card.driverName } }
             }
         }
         }
@@ -225,7 +228,7 @@ fun SettingsScreen(
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
-            null, null, Modifier.appear(2), note = "이용 내역의 QR로 연결한 휴대폰에서 설정합니다.",
+            null, null, Modifier.appear(2), note = "연결한 휴대폰의 차주 페이지에서 설정합니다.",
         )
         SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
@@ -235,7 +238,7 @@ fun SettingsScreen(
 
 @Composable
 internal fun SettingRow(title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList()) {
-    Panel(modifier.fillMaxWidth(), pad = 28.dp) {
+    Panel(modifier.fillMaxWidth(), pad = 32.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             Column(Modifier.weight(1f)) {
                 T(title, Type.labelLarge, color = Ivi.colors.textTertiary)
