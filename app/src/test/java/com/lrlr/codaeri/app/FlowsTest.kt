@@ -724,6 +724,13 @@ class FlowsTest {
         assertFalse(r.c.canCall.value)
         r.c.startCall()
         assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        // R단, 기어 값을 모를 때, 받을 수 없을 때도 부를 수 없다. P단뿐이다.
+        for (g in listOf(GearState.REVERSE, GearState.UNKNOWN, GearState.UNAVAILABLE)) {
+            r.gear(g)
+            assertFalse(r.c.canCall.value)
+            r.c.startCall()
+            assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        }
         r.gear(GearState.PARK)
         assertTrue(r.c.canCall.value)
 
