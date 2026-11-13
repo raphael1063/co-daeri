@@ -113,14 +113,15 @@ fun WrapScreen(
                 }
             }
             Spacer(Modifier.height(40.dp))
-            // 단추는 한 줄에 같은 높이로 놓는다. 운행 종료는 되돌릴 수 없으니 붉은색으로 구분한다.
-            Row(Modifier.appear(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                IviButton("운행 종료", onClose, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE, loading = busy)
-                if (booking != null && emergencies.isNotEmpty()) {
-                    IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
+            // 운행 종료는 되돌릴 수 없으니 붉은색으로 한 줄을 차지하게 하고, 나머지 단추는 그 아래 한 줄에 같은 높이로 놓는다.
+            IviButton("운행 종료", onClose, Modifier.appear(3).fillMaxWidth(), danger = true, size = ButtonSize.LARGE, loading = busy)
+            if (booking != null) {
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.appear(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (emergencies.isNotEmpty()) IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
+                    // 잠깐 선 것뿐이면 종료하지 않고 지도로 돌아갈 수 있게 한다.
+                    IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
                 }
-                // 잠깐 선 것뿐이면 종료하지 않고 지도로 돌아갈 수 있게 한다.
-                if (booking != null) IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
             }
             Spacer(Modifier.height(16.dp))
             T(
