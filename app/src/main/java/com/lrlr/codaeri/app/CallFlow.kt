@@ -30,6 +30,8 @@ data class CallUi(
     val from: String = "", val km: Float? = null,
     /** 확인받는 말(읽어 준 그대로). message가 이것과 다르면 다시 묻는 말이나 오류다. */
     val asked: String = "",
+    /** 집을 골랐는데 집 위치가 등록되어 있지 않다. 설정으로 보내는 버튼을 보여 준다. */
+    val homeMissing: Boolean = false,
 )
 
 /**
@@ -99,7 +101,7 @@ class CallFlow(
     fun home() {
         if (!canStart()) return
         val home = VoiceCall.home(store.value.card)
-        if (home == null) _ui.value = CallUi(CallStage.CONFIRM, null, message = HOME_MISSING) else quote(home, byVoice = false)
+        if (home == null) _ui.value = CallUi(CallStage.CONFIRM, null, message = HOME_MISSING, homeMissing = true) else quote(home, byVoice = false)
     }
 
     /** 장소 선택: 고를 수 있는 장소 목록을 보여 준다. */
@@ -127,7 +129,7 @@ class CallFlow(
         val link = store.value.phoneLink ?: return cancel()
         when (val heard = text?.let { VoiceCall.destination(it, VoiceCall.home(store.value.card)) } ?: Heard.Unknown) {
             is Heard.Destination -> quote(heard.place, byVoice = true)
-            Heard.HomeMissing -> _ui.value = CallUi(CallStage.CONFIRM, null, message = HOME_MISSING, byVoice = true)
+            Heard.HomeMissing -> _ui.value = CallUi(CallStage.CONFIRM, null, message = HOME_MISSING, byVoice = true, homeMissing = true)
             else -> _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = true, message = if (text.isNullOrBlank()) "말씀을 듣지 못했습니다. 다시 말하기를 눌러 주세요." else "\"$text\" 목적지를 찾지 못했습니다. 다시 말하기를 눌러 주세요.")
         }
     }
@@ -217,7 +219,8 @@ class CallFlow(
         const val ASSIGN_TRIES = 10
         const val CANCELLED = "호출을 취소했습니다."
         const val CANCEL_FAILED = "호출을 취소하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
-        const val HOME_MISSING = "집 위치가 등록되어 있지 않습니다. 집 주차 안내를 먼저 등록해 주세요."
+        const val HOME_MISSING = "집 위치가 아직 등록되어 있지 않습니다"
+        const val HOME_MISSING_HINT = "설정에서 집 주차 안내를 등록하면 다음부터 집으로 바로 부를 수 있습니다. 지금은 다른 방법으로 목적지를 정할 수도 있습니다."
     }
 }
 

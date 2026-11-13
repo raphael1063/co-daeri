@@ -791,7 +791,7 @@ class FlowsTest {
         val r = rig()
         r.c.callByVoice()
         r.listener.hear("집까지 대리 불러 줘"); runCurrent()
-        assertTrue(r.c.voice.value.message.contains("집 주차 안내를 먼저 등록"))
+        assertTrue(r.c.voice.value.homeMissing && r.c.voice.value.message == CallFlow.HOME_MISSING)
         assertTrue(r.service.calls.isEmpty())
     }
 
@@ -859,7 +859,7 @@ class FlowsTest {
         val r = rig()
         r.c.startCall()
         r.c.callHome(); runCurrent()
-        assertTrue(r.c.voice.value.message.contains("집 주차 안내를 먼저 등록"))
+        assertTrue(r.c.voice.value.homeMissing && r.c.voice.value.message == CallFlow.HOME_MISSING)
         assertTrue(r.service.calls.isEmpty())
 
         r.c.saveCard(ParkingCard(placeName = "우리 집", latitude = 37.4, longitude = 127.1))

@@ -296,8 +296,11 @@ class MainActivity : ComponentActivity() {
                             onDismiss = c::cancelCall,
                             width = if (choosing) 1000.dp else if (confirm && v.place != null) 960.dp else 760.dp,
                             buttons = {
-                                IviButton("취소", c::cancelCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                // 집 위치가 없을 때는 막다른 "취소" 대신 갈 수 있는 두 길을 준다: 다른 방법, 집 설정하기
+                                if (v.homeMissing) IviButton("다른 방법", c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                else IviButton("취소", c::cancelCall, Modifier.weight(1f), size = ButtonSize.LARGE)
                                 when {
+                                    v.homeMissing -> IviButton("설정하기", { c.cancelCall(); section = Section.SETTINGS; editing = true }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
                                     v.stage == CallStage.CHOOSE -> {}
                                     v.stage == CallStage.PLACES -> IviButton("다른 방법", c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
                                     confirm && v.place != null -> IviButton("부르기", c::confirmCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
@@ -317,6 +320,7 @@ class MainActivity : ComponentActivity() {
                                     // 다시 묻는 말이나 통신 오류가 있으면 그것을 먼저 보여 준다
                                     asking && v.message != v.asked -> v.message
                                     asking -> if (v.byVoice) VoiceCall.ANSWER_HINT else VoiceCall.TAP_HINT
+                                    v.homeMissing -> com.lrlr.codaeri.app.CallFlow.HOME_MISSING_HINT
                                     else -> null
                                 },
                             )
