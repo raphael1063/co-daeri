@@ -1,8 +1,8 @@
 # 에뮬레이터 확인 기록
 
-코-대리 앱을 Pleos Connect Emulator 2.1.0(Android 14, API 34, 가로 2560 x 1440, 차종 IONIQ 5)에 설치해 확인한 내용입니다. 예약과 종료 확정, 결제 표시, 알림 판단은 시연용 서버가 맡았습니다. 차의 신호는 에뮬레이터의 Virtual Console과 `adb emu geo fix`(위치)로 바꿨습니다.
+코-대리 앱을 Pleos Connect Emulator 2.1.0(Android 14, API 34, 가로 2560 x 1440, 차종 IONIQ 5)에 설치해 확인한 내용입니다. 예약과 종료 확정, 결제 표시, 알림 판단은 시연용 서버가 맡았습니다. 차의 신호는 에뮬레이터의 Virtual Console과 `adb emu geo fix`(위치)로 바꿨습니다. 아래는 자료 제작 당시의 확인이며, 최신 0.8.54 전체를 다시 실행한 결과는 아닙니다. 최근 변경과 자료 버전은 [기획서 코드 대조](기획서_코드대조.md)에 구분했습니다.
 
-## 확인한 것
+## 기존 실행 확인 자료
 
 | 항목 | 확인한 내용 | 자료 |
 | --- | --- | --- |
@@ -10,8 +10,8 @@
 | 예약 인계 | 예약 뒤 15초 안에 차 화면에 배정된 기사님, 목적지, 확정 요금이 뜸 | [../영상/screens/car_handover.png](../영상/screens/car_handover.png) |
 | 운행 기록 | 기어가 P를 벗어나면 운행이 시작되고 목적지가 순정 내비게이션으로 넘어감. P단 정차 뒤 다시 출발하면 같은 운행으로 이어짐 | [car_driving.png](../영상/screens/car_driving.png), [car_navi.png](../영상/screens/car_navi.png), [car_stop.png](../영상/screens/car_stop.png) |
 | 집 주차 안내 | 위치가 집 반경 안으로 들어오면 안내가 스스로 시작됨 | [car_guide.png](../영상/screens/car_guide.png) |
-| 종료와 결제 | "운행 종료"를 누르면 차가 종료 신호를 보내고 서버가 종료를 확정, 자동 결제(시연용) 표시 | [car_finish.png](../영상/screens/car_finish.png), [car_final.png](../영상/screens/car_final.png), [web_paid.png](../영상/screens/web_paid.png) |
-| 귀가 카드 | 차 화면과 차주 휴대폰 페이지에 도착 시각, 주차 위치, 인계 전후 차 상태가 남음 | [car_card.png](../영상/screens/car_card.png), [web_card.png](../영상/screens/web_card.png) |
+| 종료와 결제 | 종료 후보 전송 후 서버의 종료 확정과 모의 결제 표시. 현재 소스의 종료 조건은 버튼 입력이며, 이전 영상의 하차 자동 종료와 구분 | [car_finish.png](../영상/screens/car_finish.png), [car_final.png](../영상/screens/car_final.png), [web_paid.png](../영상/screens/web_paid.png) |
+| 이용 내역 | 차 화면과 차주 휴대폰 페이지에 도착 시각, 주차 위치, 인계 전후 차 상태가 남음 | [car_card.png](../영상/screens/car_card.png), [web_card.png](../영상/screens/web_card.png) |
 | 기사님 미도착 재배정 | 도착 알림 뒤 운전석 착석이 확인되지 않으면 다른 기사님으로 다시 배정되고 차 화면의 기사님도 바뀜 | [verify_reassign.mp4](verify_reassign.mp4), [verify_reassign_car.png](verify_reassign_car.png), [verify_reassign_car_after_switch.png](verify_reassign_car_after_switch.png), [verify_reassign_phone.jpg](verify_reassign_phone.jpg) |
 | 경로 이탈 | 위치를 목적지 반대쪽으로 옮기면 차주 페이지에 알림, 돌아오면 정리됨 | [verify_route.mp4](verify_route.mp4), [verify_route_car.png](verify_route_car.png), [verify_route_phone.jpg](verify_route_phone.jpg) |
 | 긴 정차 | 목적지가 아닌 곳에 P단으로 5분 넘게 서 있으면 알림, 다시 출발하면 정리됨 | [verify_stop.mp4](verify_stop.mp4), [verify_stop_car.png](verify_stop_car.png), [verify_stop_phone.jpg](verify_stop_phone.jpg) |
@@ -23,6 +23,8 @@
 확인 녹화(`verify_*.mp4`)는 용량을 줄이려고 720p로 다시 인코딩한 것입니다.
 
 ## 확인하지 못한 것
+
+- 최신 0.8.54의 전체 흐름 재실행. 특히 내비 위 카드의 현재 위치·크기·주차 상태 표시와 비상연락처·공유 설정·호출 취소·버튼 종료를 함께 확인해야 합니다.
 
 - 안내 음성의 실제 소리. 재생 요청이 나간 기록만 확인했습니다.
 - 사람 목소리의 음성 인식. 에뮬레이터에 합성 음성을 넣어 시험했습니다.
