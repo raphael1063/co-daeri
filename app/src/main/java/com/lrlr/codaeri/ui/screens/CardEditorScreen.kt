@@ -66,6 +66,7 @@ fun CardEditorScreen(
     currentLocation: Pair<Double, Double>?,
     homeImport: HomeImportUi,
     onImportHome: () -> Unit,
+    onNeedLocation: () -> Unit,
     onSave: (ParkingCard) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -76,11 +77,11 @@ fun CardEditorScreen(
     val result = if (kind == PlaceKind.OTHER) c.copy(placeKind = PlaceKind.OTHER, floorLabel = "", spotLabel = free.trim())
     else c.copy(placeKind = PlaceKind.APARTMENT, placeName = c.placeName, floorLabel = c.floorLabel.trim(), spotLabel = c.spotLabel.trim())
     // 내비게이션 즐겨찾기의 집을 가져오면 위치를 채우고, 장소 이름이 비어 있으면 이름도 채운다. 저장은 차주가 누른다.
-    var fromNavi by remember(initial) { mutableStateOf(false) }
+    // 마지막으로 누른 버튼. 안내 문구는 방금 누른 버튼의 결과를 먼저 보여 준다.
+    var lastTap by remember(initial) { mutableStateOf("") }
     LaunchedEffect(homeImport.found) {
         homeImport.found?.let { home ->
             c = c.copy(latitude = home.lat, longitude = home.lng, placeName = c.placeName.ifBlank { home.name })
-            fromNavi = true
         }
     }
     // 저장과 취소는 스크롤하지 않아도 보이도록 아래에 고정한다.
@@ -96,21 +97,26 @@ fun CardEditorScreen(
         Field("장소 이름 (필수)", c.placeName) { c = c.copy(placeName = it) }
         // 두 버튼은 늘 같은 자리에 같은 크기로 있고, 결과는 그 아래 한 줄에 적는다.
         FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            IviButton("내비게이션 즐겨찾기의 집 가져오기", onImportHome, size = ButtonSize.SMALL, loading = homeImport.busy)
+            IviButton("내비게이션 즐겨찾기의 집 가져오기", { lastTap = "navi"; onImportHome() }, size = ButtonSize.SMALL, loading = homeImport.busy)
+            // 위치를 아직 못 받았어도 버튼은 눌린다. 그때는 이유를 알려 주고 위치를 다시 묻는다.
             IviButton(
                 "현재 위치를 집으로 설정",
-                { currentLocation?.let { (lat, lng) -> c = c.copy(latitude = lat, longitude = lng); fromNavi = false } },
-                enabled = currentLocation != null, size = ButtonSize.SMALL,
+                {
+                    val here = currentLocation
+                    if (here == null) { lastTap = "here-missing"; onNeedLocation() }
+                    else { c = c.copy(latitude = here.first, longitude = here.second); lastTap = "here" }
+                },
+                size = ButtonSize.SMALL,
             )
         }
         T(
             when {
-                homeImport.busy -> "내비게이션 즐겨찾기를 확인하고 있습니다."
-                fromNavi && homeImport.message.isNotBlank() -> homeImport.message
-                homeImport.found == null && homeImport.message.isNotBlank() -> homeImport.message
-                c.hasLocation && (c.latitude != initial.latitude || c.longitude != initial.longitude) -> "집 위치를 선택했습니다."
+                lastTap == "navi" && homeImport.busy -> "내비게이션 즐겨찾기를 확인하고 있습니다."
+                lastTap == "navi" && homeImport.message.isNotBlank() -> homeImport.message
+                lastTap == "here" -> "현재 위치를 집으로 선택했습니다."
+                lastTap == "here-missing" && currentLocation == null -> "현재 위치를 아직 받지 못했습니다. 위치 권한을 허용했는지 확인하고 잠시 뒤 다시 눌러 주세요."
+                lastTap == "here-missing" -> "현재 위치를 받았습니다. 다시 눌러 주세요."
                 c.hasLocation -> "등록된 집 위치 근처에서 주차 안내를 시작합니다."
-                currentLocation == null -> "현재 위치를 확인할 수 없습니다. 집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
                 else -> "집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
             },
             Type.labelSmall, color = Ivi.colors.textTertiary,

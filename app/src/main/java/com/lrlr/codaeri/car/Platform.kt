@@ -283,6 +283,8 @@ class GeofenceWatcher(context: Context) : LocationSource {
     private val locationListener = object : FusedLocationListener {
         override fun onChanged(location: LocationData?) {
             if (location == null) return
+            // 좌표는 적지 않고 처음 받았다는 사실만 남긴다.
+            if (_last.value == null) Log.i(TAG, "first location received")
             _last.value = location
             _position.value = GeoPoint(location.latitude, location.longitude)
             val t = target ?: return

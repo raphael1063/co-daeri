@@ -224,6 +224,7 @@ class MainActivity : ComponentActivity() {
                                     currentLocation = location?.let { it.lat to it.lng },
                                     homeImport = homeImport,
                                     onImportHome = c::importHomeFromNavi,
+                                    onNeedLocation = c::permissionsChanged,
                                     onSave = { c.saveCard(it); c.clearHomeImport(); editing = false },
                                     onBack = { c.clearHomeImport(); editing = false },
                                 )
