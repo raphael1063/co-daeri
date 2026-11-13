@@ -118,6 +118,42 @@ enum class ButtonSize(val height: Dp, val pad: Dp, val radius: Dp) {
     LARGE(120.dp, 52.dp, 36.dp), MEDIUM(100.dp, 44.dp, 30.dp), SMALL(84.dp, 36.dp, 26.dp)
 }
 
+/**
+ * 한 줄 글자들이 [maxWidthPx] 안에 모두 들어가는 글자 크기를 찾는다. 들어가면 원래 크기 그대로다.
+ * 여러 줄이 같은 크기를 쓰도록 가장 긴 글자에 맞춘다.
+ */
+@Composable
+fun fitStyle(texts: List<String>, style: TextStyle, maxWidthPx: Int): TextStyle {
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    return androidx.compose.runtime.remember(texts, style, maxWidthPx) {
+        if (maxWidthPx <= 0 || maxWidthPx == androidx.compose.ui.unit.Constraints.Infinity) return@remember style
+        val widest = texts.maxOfOrNull { measurer.measure(it, style, maxLines = 1, softWrap = false).size.width } ?: 0
+        if (widest <= maxWidthPx) return@remember style
+        // 글자 너비는 크기에 거의 비례한다. 반올림 오차로 넘치지 않게 맞을 때까지 조금씩 더 줄인다.
+        var scale = maxWidthPx.toFloat() / widest
+        var fitted = style.copy(fontSize = style.fontSize * scale)
+        repeat(8) {
+            val w = texts.maxOf { measurer.measure(it, fitted, maxLines = 1, softWrap = false).size.width }
+            if (w <= maxWidthPx) return@remember fitted
+            scale *= 0.97f
+            fitted = style.copy(fontSize = style.fontSize * scale)
+        }
+        fitted
+    }
+}
+
+/** 한 줄로 적되 자르지 않는다. 자리가 모자라면 글자 크기를 줄인다. */
+@Composable
+fun FitT(text: String, style: TextStyle, modifier: Modifier = Modifier, color: Color = Ivi.colors.textPrimary) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier) {
+        val rowHeight = with(androidx.compose.ui.platform.LocalDensity.current) { style.lineHeight.toDp() }
+        val fitted = fitStyle(listOf(text), style, constraints.maxWidth)
+        Box(Modifier.height(rowHeight), contentAlignment = Alignment.CenterStart) {
+            Text(text, color = color, style = fitted, maxLines = 1, softWrap = false, overflow = TextOverflow.Visible)
+        }
+    }
+}
+
 /** 이름과 값을 두 열로 맞춰 적는다(비상연락처의 관계와 번호). 이름 열의 너비는 가장 긴 이름에 맞는다. */
 @Composable
 fun PairColumns(pairs: List<Pair<String, String>>, nameStyle: TextStyle, valueStyle: TextStyle, modifier: Modifier = Modifier, gap: Dp = 12.dp) {
@@ -126,8 +162,17 @@ fun PairColumns(pairs: List<Pair<String, String>>, nameStyle: TextStyle, valueSt
             // 값의 글자가 더 커도 줄이 어긋나지 않게 두 열의 줄 높이를 값 쪽에 맞춘다
             pairs.forEach { (name, _) -> Box(Modifier.height(with(androidx.compose.ui.platform.LocalDensity.current) { valueStyle.lineHeight.toDp() }), contentAlignment = Alignment.CenterStart) { T(name, nameStyle, color = Ivi.colors.textSecondary, maxLines = 1) } }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-            pairs.forEach { (_, value) -> T(value, valueStyle, maxLines = 1) }
+        // 값(전화번호)은 잘리면 안 된다. 남은 너비에 가장 긴 값이 들어가도록 글자 크기를 함께 줄인다.
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.weight(1f, fill = false)) {
+            val fitted = fitStyle(pairs.map { it.second }, valueStyle, constraints.maxWidth)
+            val rowHeight = with(androidx.compose.ui.platform.LocalDensity.current) { valueStyle.lineHeight.toDp() }
+            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                pairs.forEach { (_, value) ->
+                    Box(Modifier.height(rowHeight), contentAlignment = Alignment.CenterStart) {
+                        Text(value, color = Ivi.colors.textPrimary, style = fitted, maxLines = 1, softWrap = false, overflow = TextOverflow.Visible)
+                    }
+                }
+            }
         }
     }
 }

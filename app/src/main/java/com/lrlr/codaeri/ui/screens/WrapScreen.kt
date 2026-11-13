@@ -150,7 +150,7 @@ internal fun Tile(label: String, value: String, modifier: Modifier = Modifier) {
     Panel(modifier, pad = 24.dp) {
         T(label, Type.labelLarge, color = Ivi.colors.textTertiary)
         Spacer(Modifier.height(4.dp))
-        T(value, Type.headlineMedium, maxLines = 1)
+        FitT(value, Type.headlineMedium, Modifier.fillMaxWidth())
     }
 }
 
