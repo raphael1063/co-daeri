@@ -5,6 +5,8 @@ import com.lrlr.codaeri.domain.CardStage
 import com.lrlr.codaeri.domain.ClosedBy
 import com.lrlr.codaeri.domain.EmergencyContact
 import com.lrlr.codaeri.domain.GearState
+import com.lrlr.codaeri.domain.SpotChoice
+import com.lrlr.codaeri.domain.ResultSource
 import com.lrlr.codaeri.domain.Handover
 import com.lrlr.codaeri.domain.ParkingCard
 import com.lrlr.codaeri.domain.PhoneLink
@@ -375,6 +377,32 @@ class FlowsTest {
         assertNotNull(r.state.lastCard?.confirmedAt)
     }
 
+    @Test fun parkingSpotCanBeCorrectedAfterTheTripHasEnded() = runTest {
+        val r = rig()
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        r.gear(GearState.PARK)
+        r.c.chooseParking(r.c.handover.confirmedAsGuided(r.clock()))
+        // 끝나기 전에는 수정 경로로 바뀌지 않는다
+        val fix = r.c.handover.driverInput(SpotChoice.OTHER_FLOOR, "지하 3층", "C-12", "", r.clock())
+        r.c.correctParking(fix)
+        assertEquals(SpotChoice.AS_GUIDED, r.state.trip?.parking?.choice)
+        r.c.closeByButton(); r.pass(1)
+        val before = r.state.lastCard!!
+        assertNotNull(before.confirmedAt)
+
+        r.c.correctParking(fix); r.pass(1)
+        val after = r.state.lastCard!!
+        assertTrue(after.parkingLine.contains("지하 3층") && after.parkingLine.contains("C-12"))
+        assertEquals(ResultSource.DRIVER_INPUT, after.parkingSource)
+        // 같은 운행의 내역으로 서비스에 다시 보내고, 종료 확정과 이용 내역 목록은 그대로 이어진다
+        assertEquals(after.parkingLine, r.service.uploads.last().parkingLine)
+        assertEquals(before.tripId, after.tripId)
+        assertNotNull(after.confirmedAt)
+        assertEquals(after.parkingLine, r.state.history.first().parkingLine)
+        assertEquals(1, r.state.history.count { it.tripId == after.tripId })
+    }
+
     @Test fun restartDuringTripIsWrittenAsGap() = runTest {
         val trip = TripRules.start("t1", "home", BASE - 600_000, 100f, booking = null)
         val r = Rig(this, bound.copy(trip = trip, aliveAt = BASE - 300_000))
@@ -724,6 +752,13 @@ class FlowsTest {
         assertFalse(r.c.canCall.value)
         r.c.startCall()
         assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        // R단, 기어 값을 모를 때, 받을 수 없을 때도 부를 수 없다. P단뿐이다.
+        for (g in listOf(GearState.REVERSE, GearState.UNKNOWN, GearState.UNAVAILABLE)) {
+            r.gear(g)
+            assertFalse(r.c.canCall.value)
+            r.c.startCall()
+            assertEquals(CallStage.OFF, r.c.voice.value.stage)
+        }
         r.gear(GearState.PARK)
         assertTrue(r.c.canCall.value)
 

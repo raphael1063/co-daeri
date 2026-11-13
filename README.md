@@ -10,7 +10,7 @@
 
 - **이전 시연 영상(0.8.1 화면 기준, 100초)**: [docs/영상/코-대리_시연영상.mp4](docs/영상/코-대리_시연영상.mp4)
 - **직접 눌러 보기**: 심사용 콘솔 https://lrlr-master.com/daeri/console/ (아래 [빠른 시작](#심사위원용-빠른-시작-5분))
-- **단위 테스트 97개** (실행: `./gradlew testDebugUnitTest`), 에뮬레이터 확인 기록은 [docs/검증](docs/검증/README.md)
+- **단위 테스트 98개** (실행: `./gradlew testDebugUnitTest`), 에뮬레이터 확인 기록은 [docs/검증](docs/검증/README.md)
 
 ## 차량 신호로 귀가 과정을 관리합니다
 

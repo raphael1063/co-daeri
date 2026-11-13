@@ -42,6 +42,7 @@ import com.lrlr.codaeri.ui.Fact
 import com.lrlr.codaeri.ui.PairColumns
 import com.lrlr.codaeri.ui.screens.CardEditorScreen
 import com.lrlr.codaeri.ui.screens.ClosedScreen
+import com.lrlr.codaeri.ui.screens.ParkingEditPopup
 import com.lrlr.codaeri.ui.DaeriTheme
 import com.lrlr.codaeri.ui.screens.DrivingScreen
 import com.lrlr.codaeri.ui.Fading
@@ -136,6 +137,7 @@ class MainActivity : ComponentActivity() {
                 val contactBusy by c.contactBusy.collectAsStateWithLifecycle()
                 val contactMessage by c.contactMessage.collectAsStateWithLifecycle()
                 var otherSpot by rememberSaveable { mutableStateOf(false) }
+                var editParking by rememberSaveable { mutableStateOf(false) }
                 var confirmUnbind by rememberSaveable { mutableStateOf(false) }
                 var section by rememberSaveable { mutableStateOf(Section.MAIN) }
                 // 연결이 풀리면 해제 확인창도 닫는다(다시 연결했을 때 예전 창이 남아 있지 않게)
@@ -191,7 +193,7 @@ class MainActivity : ComponentActivity() {
                                     onBack = { c.resetDictation(); otherSpot = false },
                                 )
                             }
-                            Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip) }
+                            Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip, onEditParking = { editParking = true }) }
                             Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode)
                             Screen.EDITOR -> {
                                 BackHandler { editing = false }
@@ -358,6 +360,16 @@ class MainActivity : ComponentActivity() {
                                 PopupTitle("비상연락처", em.message)
                             }
                         }
+                    }
+
+                    // 운행을 마친 화면에서만 주차 위치를 수정한다. 화면을 떠나면 닫는다.
+                    LaunchedEffect(screen) { if (screen != Screen.CLOSED) editParking = false }
+                    Fading(if (editParking && screen == Screen.CLOSED) state.lastTrip else null) { last ->
+                        ParkingEditPopup(
+                            state.card, last.parking, c.handover,
+                            onSave = { c.correctParking(it); editParking = false },
+                            onDismiss = { editParking = false },
+                        )
                     }
 
                     Fading(if (confirmUnbind && screen == Screen.SETTINGS) pairing.status else null) { status ->

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,9 +88,10 @@ fun HomeScreen(
             if (startLine != null) {
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
                 Spacer(Modifier.height(20.dp))
-                Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    HomeButton(if (armed) "출발 대기 중" else "출발하기", R.drawable.ic_home_call, onStart, Modifier.weight(1f), filled = !armed, enabled = !armed && !restricted)
-                }
+                HeroButton(
+                    if (armed) "출발 대기 중" else "출발하기", if (armed) "D단으로 출발하면 운행을 시작해요" else "목적지와 요금을 확인하고 출발해요",
+                    R.drawable.ic_home_call, onStart, Modifier.fillMaxWidth().appear(1), filled = !armed, enabled = !armed && !restricted,
+                )
                 Spacer(Modifier.height(20.dp))
                 T(
                     if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다." else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
@@ -104,10 +107,13 @@ fun HomeScreen(
                     T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
                 }
             } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                if (booked) HomeButton("대리 현황", R.drawable.ic_home_status, onStatus, Modifier.weight(1f), filled = true)
-                else HomeButton("대리 부르기", R.drawable.ic_home_call, onCall, Modifier.weight(1f), filled = true, enabled = !restricted && canCall)
-                HomeButton("이용 내역", R.drawable.ic_home_records, onRecords, Modifier.weight(1f), enabled = !restricted)
-                HomeButton("설정", R.drawable.ic_home_settings, onSettings, Modifier.weight(1f), enabled = !restricted)
+                // 왼쪽에 가장 많이 쓰는 버튼을 크게, 오른쪽에 나머지 둘을 위아래로 둔다.
+                if (booked) HeroButton("대리 현황", "배정된 기사님과 목적지를 확인해요", R.drawable.ic_home_status, onStatus, Modifier.weight(1.85f))
+                else HeroButton("대리 부르기", "목적지와 요금을 확인하고 불러요", R.drawable.ic_home_call, onCall, Modifier.weight(1.85f), enabled = !restricted && canCall)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HOME_GAP)) {
+                    SideButton("이용 내역", R.drawable.ic_home_records, onRecords, enabled = !restricted)
+                    SideButton("설정", R.drawable.ic_home_settings, onSettings, enabled = !restricted)
+                }
             }
             if (startLine == null && (restricted || (!canCall && !booked))) {
                 Spacer(Modifier.height(20.dp))
@@ -115,6 +121,55 @@ fun HomeScreen(
             }
         }
         T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.BottomCenter), color = Ivi.colors.textTertiary)
+    }
+}
+
+private val HOME_GAP = 24.dp
+private val SIDE_H = 190.dp
+
+/** 메인 화면 왼쪽의 큰 버튼: 아이콘, 큰 이름, 한 줄 설명, 오른쪽 아래 화살표. 배경에 콧수염을 옅게 깐다. */
+@Composable
+internal fun HeroButton(title: String, subtitle: String, icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier, filled: Boolean = true, enabled: Boolean = true) {
+    val c = Ivi.colors
+    val bg = if (enabled && filled) c.buttonFilledEnabled else c.buttonBasicEnabled
+    val fg = when { !enabled -> c.textQuaternary; filled -> c.onButtonFilled; else -> c.textPrimary }
+    Box(modifier.height(SIDE_H * 2 + HOME_GAP).clip(RoundedCornerShape(40.dp)).background(bg).pressable(enabled = enabled, onClick = onClick)) {
+        Image(
+            painterResource(R.drawable.mustache), contentDescription = null,
+            // 시안처럼 크게 깔고 오른쪽 끝은 카드 밖으로 살짝 잘리게 한다.
+            modifier = Modifier.align(Alignment.TopEnd).padding(top = 36.dp).offset(x = 70.dp).height(190.dp),
+            colorFilter = ColorFilter.tint(fg.copy(alpha = fg.alpha * 0.14f)),
+        )
+        Column(Modifier.fillMaxSize().padding(start = 52.dp, top = 48.dp, bottom = 44.dp, end = 180.dp), verticalArrangement = Arrangement.SpaceBetween) {
+            Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(96.dp), colorFilter = ColorFilter.tint(fg))
+            Column {
+                T(title, Type.headlineLarge, color = fg, maxLines = 1)
+                Spacer(Modifier.height(8.dp))
+                T(subtitle, Type.bodyMedium, color = if (enabled) fg.copy(alpha = 0.72f) else fg, maxLines = 1)
+            }
+        }
+        Box(
+            Modifier.align(Alignment.BottomEnd).padding(end = 48.dp, bottom = 44.dp).size(96.dp).clip(CircleShape)
+                .background(if (enabled) c.negative else c.textQuaternary.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(painterResource(R.drawable.ic_arrow_right), contentDescription = null, modifier = Modifier.size(52.dp), colorFilter = ColorFilter.tint(if (enabled) Color.White else c.textQuaternary))
+        }
+    }
+}
+
+/** 메인 화면 오른쪽의 버튼: 아이콘, 이름, 오른쪽 끝 화살표 */
+@Composable
+internal fun SideButton(text: String, icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val c = Ivi.colors
+    val fg = if (enabled) c.textPrimary else c.textQuaternary
+    Row(
+        modifier.fillMaxWidth().height(SIDE_H).clip(RoundedCornerShape(40.dp)).background(c.buttonBasicEnabled).pressable(enabled = enabled, onClick = onClick).padding(start = 44.dp, end = 36.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(28.dp),
+    ) {
+        Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(72.dp), colorFilter = ColorFilter.tint(fg))
+        T(text, Type.headlineSmall, Modifier.weight(1f), color = fg, maxLines = 1)
+        Image(painterResource(R.drawable.ic_chevron_right), contentDescription = null, modifier = Modifier.size(56.dp), colorFilter = ColorFilter.tint(fg))
     }
 }
 

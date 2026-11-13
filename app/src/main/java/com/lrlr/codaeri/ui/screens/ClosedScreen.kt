@@ -56,7 +56,7 @@ import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
 @Composable
-fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uploading: Boolean, onDone: () -> Unit) {
+fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uploading: Boolean, onDone: () -> Unit, onEditParking: (() -> Unit)? = null) {
     val now = rememberNow()
     // 제목과 "메인으로"는 위에 고정하고 내역만 스크롤한다.
     Column(page, verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -73,7 +73,7 @@ fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uplo
             IviButton("메인으로", onDone, filled = true)
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-            HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt)
+            HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt, onEditParking = onEditParking)
         }
     }
 }

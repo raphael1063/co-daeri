@@ -237,6 +237,18 @@ class TripRecorder(
         store.update { s -> s.copy(trip = s.trip?.let { TripRules.parkingChosen(it, result) }) }
     }
 
+    /** "운행을 마쳤습니다" 화면에서 주차 위치를 수정한다. 이용 내역을 다시 만들어 서비스에도 보낸다. */
+    fun correctParking(result: ParkingResult) {
+        if (restriction.restricted.value) return
+        val s = store.value
+        val source = s.lastTrip?.takeIf { it.id == s.lastCard?.tripId } ?: return
+        val updated = TripRules.parkingCorrected(source, result)
+        if (updated == source) return
+        val card = handover.card(s.card, updated, env.clock()).copy(confirmedAt = s.lastCard?.confirmedAt)
+        store.update { it.copy(lastTrip = updated, lastCard = card).queued(card) }
+        outbox.send()
+    }
+
     /** "운행 종료" 단추. 운행은 이 단추로만 끝낸다(차 전원이 꺼진 경우만 예외). */
     fun closeByButton() {
         if (restriction.restricted.value || car.gear.value.moving) return

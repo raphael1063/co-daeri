@@ -5,8 +5,8 @@ enum class GearState { PARK, REVERSE, NOT_PARK, UNKNOWN, UNAVAILABLE }
 
 val GearState.moving: Boolean get() = this == GearState.NOT_PARK || this == GearState.REVERSE
 
-/** 대리를 부를 수 있는 기어: P단. 기어 신호가 없는 차는 주행 제한 여부로만 가린다. */
-val GearState.callable: Boolean get() = this == GearState.PARK || this == GearState.UNAVAILABLE
+/** 대리를 부를 수 있는 기어는 P단뿐이다. 기어 값을 아직 모르거나 받을 수 없으면 부를 수 없다. */
+val GearState.callable: Boolean get() = this == GearState.PARK
 
 /** 기어가 바뀌었을 때 운행에 일어나는 일 */
 enum class GearEvent { NONE, START, PARKED, RESUMED }
@@ -138,6 +138,10 @@ object TripRules {
     /** 기사가 마무리 화면에서 고른 주차 결과. 고르지 않아도 운행은 닫힌다. */
     fun parkingChosen(trip: Trip, parking: ParkingResult?): Trip =
         if (trip.phase != TripPhase.WRAPPING_UP) trip else trip.copy(parking = parking)
+
+    /** 운행을 마친 뒤 주차 위치를 바로잡는다. 끝난 운행에만 쓴다. */
+    fun parkingCorrected(trip: Trip, parking: ParkingResult): Trip =
+        if (trip.phase != TripPhase.DONE) trip else trip.copy(parking = parking)
 
     /**
      * 차가 본 운행의 끝. 이것은 종료 "후보"이고, 종료를 확정하고 결제로 잇는 것은 서비스다.
