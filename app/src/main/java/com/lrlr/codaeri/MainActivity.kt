@@ -152,7 +152,7 @@ class MainActivity : ComponentActivity() {
                     tripPhase = trip?.takeIf { it.booking != null }?.phase, hasCard = state.lastCard != null, bound = state.bound, restricted = restricted,
                     editing = editing, otherSpot = otherSpot, section = section, hasBooking = pending != null,
                 )
-                // 예약이 잡히거나 기사님이 바뀌면 대리 현황을 연다
+                // 예약이 잡히거나 기사님이 바뀌면 배차 현황을 연다
                 LaunchedEffect(pending?.id, pending?.driver?.id) { section = Route.onBookingChanged(section, pending != null, restricted) }
                 // 동승 신호가 있으면 메인의 "출발하기"를 크게 보여 준다
                 LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false; contacts = null; regularOpen = false } }

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * 예약의 목적지를 순정 내비게이션에 한 번 넘긴다. 출발할 때 넘긴다:
- * 경로가 잡히면 내비게이션이 앞으로 나오므로, 서 있는 동안에는 대리 현황 화면이 가려지지 않게 한다.
+ * 경로가 잡히면 내비게이션이 앞으로 나오므로, 서 있는 동안에는 배차 현황 화면이 가려지지 않게 한다.
  */
 class DestinationRouter(private val routeGuide: RouteGuide) {
     private var asked: String? = null

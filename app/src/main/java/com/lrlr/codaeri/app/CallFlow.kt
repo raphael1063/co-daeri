@@ -75,7 +75,7 @@ class CallFlow(
     private val _cancelMessage = MutableStateFlow("")
     val cancelMessage: StateFlow<String> = _cancelMessage
 
-    /** 대리 현황의 "호출 취소": 출발하기 전의 예약을 취소한다. 운행이 시작된 뒤에는 취소하지 않는다. */
+    /** 배차 현황의 "호출 취소": 출발하기 전의 예약을 취소한다. 운행이 시작된 뒤에는 취소하지 않는다. */
     fun cancelBooking() {
         val link = store.value.phoneLink ?: return
         if (_cancelling.value || store.value.trip != null || store.value.pendingBooking(env.clock()) == null) return

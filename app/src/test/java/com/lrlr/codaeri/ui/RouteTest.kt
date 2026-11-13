@@ -16,7 +16,7 @@ class RouteTest {
         assertEquals(Screen.RECORDS, screen(section = Section.RECORDS))
         assertEquals(Screen.SETTINGS, screen(section = Section.SETTINGS))
         assertEquals(Screen.EDITOR, screen(section = Section.SETTINGS, editing = true))
-        // 대리 현황은 예약이 있을 때만 열린다
+        // 배차 현황은 예약이 있을 때만 열린다
         assertEquals(Screen.HOME, screen(section = Section.STATUS))
         assertEquals(Screen.HANDOVER, screen(section = Section.STATUS, hasBooking = true))
         assertEquals(Screen.HOME, screen(hasBooking = true))

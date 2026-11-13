@@ -69,7 +69,7 @@ fun HandoverScreen(
         Column(Modifier.weight(1.15f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
             Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(36.dp)) {
                 BackButton(onBack)
-                T("대리 현황", Type.headlineSmall, maxLines = 1)
+                T("배차 현황", Type.headlineSmall, maxLines = 1)
                 Tag("$DEMO_TAG · 가상의 기사님")
             }
             Spacer(Modifier.height(36.dp))
@@ -119,7 +119,10 @@ fun HandoverScreen(
                 if (manualStart || armed) {
                     Spacer(Modifier.height(20.dp))
                     IviButton(if (armed) "출발 대기 중" else "출발하기", onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted && !armed)
-                    if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
+                    if (armed) {
+                        Spacer(Modifier.height(12.dp))
+                        IviButton("출발 확인 취소", onStart, Modifier.fillMaxWidth(), quiet = true, enabled = !restricted)
+                    }
                 }
 
             }

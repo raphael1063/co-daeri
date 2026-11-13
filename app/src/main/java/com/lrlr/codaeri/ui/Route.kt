@@ -36,8 +36,8 @@ object Route {
     }
 
     /**
-     * 예약이 새로 잡히면 대리 현황을 스스로 연다(기사님이 타서 누르지 않아도 보이게).
-     * 예약이 사라지면 대리 현황만 닫고, 다른 화면은 그대로 둔다.
+     * 예약이 새로 잡히면 배차 현황을 스스로 연다(기사님이 타서 누르지 않아도 보이게).
+     * 예약이 사라지면 배차 현황만 닫고, 다른 화면은 그대로 둔다.
      * 달리는 중에는 화면을 스스로 바꾸지 않는다.
      */
     fun onBookingChanged(section: Section, hasBooking: Boolean, restricted: Boolean = false): Section = when {

@@ -60,7 +60,7 @@ import com.lrlr.codaeri.ui.*
 
 @Composable
 fun HomeScreen(
-    /** 배정된 예약이 있으면 첫 단추가 "대리 현황"으로 바뀐다 */
+    /** 배정된 예약이 있으면 첫 단추가 "배차 현황"으로 바뀐다 */
     booked: Boolean,
     restricted: Boolean,
     onCall: () -> Unit,
@@ -105,7 +105,7 @@ fun HomeScreen(
                 }
             } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 // 왼쪽에 가장 많이 쓰는 버튼을 크게, 오른쪽에 나머지 둘을 위아래로 둔다.
-                if (booked) HeroButton("대리 현황", "배정된 기사님과 목적지를 확인해요", R.drawable.ic_home_status, onStatus, Modifier.weight(1.85f))
+                if (booked) HeroButton("배차 현황", "배정된 기사님과 목적지를 확인해요", R.drawable.ic_home_status, onStatus, Modifier.weight(1.85f))
                 else HeroButton("대리 부르기", "목적지와 요금을 확인하고 불러요", R.drawable.ic_home_call, onCall, Modifier.weight(1.85f), enabled = !restricted && canCall)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HOME_GAP)) {
                     SideButton("이용 내역", R.drawable.ic_home_records, onRecords, enabled = !restricted)
