@@ -187,7 +187,7 @@ PC 브라우저에서 **https://lrlr-master.com/daeri/console/** 을 엽니다. 
 - Pleos Playground SDK: Vehicle, FusedLocation, TextToSpeech, SpeechToText, NaviHelper
 - Kotlin, Jetpack Compose, minSdk 28 / targetSdk 34
 
-에뮬레이터에서 확인한 것: 번호 연결, 예약 인계, 주행, 정차 후 재출발, 운전석 하차로 종료, 자동 결제 표시, 주차 안내의 위치 시작, 내비게이션 목적지 전달, 재부팅 뒤 예약 알림. 확인하지 못한 것: 안내 음성의 실제 소리(재생 요청 기록만 확인), 실제 차량.
+에뮬레이터에서 확인한 것: 번호 연결, 예약 인계, 주행, 정차 후 재출발, "운행 종료" 단추로 종료, 자동 결제 표시, 주차 안내의 위치 시작, 내비게이션 목적지 전달, 재부팅 뒤 예약 알림. 확인하지 못한 것: 안내 음성의 실제 소리(재생 요청 기록만 확인), 실제 차량.
 
 ## 개인정보
 
