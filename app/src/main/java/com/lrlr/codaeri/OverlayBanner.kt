@@ -14,7 +14,7 @@ import com.lrlr.codaeri.app.TripBanner
 
 /**
  * 내비게이션 위에 띄우는 한 줄(다른 앱 위에 표시). 누르면 코-대리 화면이 열린다.
- * "다른 앱 위에 표시" 권한이 없으면 아무것도 띄우지 않는다. 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위에 두고, 밝은 지도와 어두운 안내 어디서나 보이게 색을 넣는다.
+ * "다른 앱 위에 표시" 권한이 없으면 아무것도 띄우지 않는다. 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위(2D 단추 왼쪽)에 두고, 밝은 지도와 어두운 안내 어디서나 보이게 색을 넣는다.
  */
 class OverlayBanner(private val context: Context) : TripBanner {
     private val wm = context.getSystemService(WindowManager::class.java)
@@ -27,15 +27,15 @@ class OverlayBanner(private val context: Context) : TripBanner {
         try {
             val existing = view
             if (existing != null) { existing.text = text; return }
-            val pad = dp(18f)
+            val pad = dp(26f)
             val v = TextView(context).apply {
                 this.text = text
                 setTextColor(0xFFFFFFFF.toInt())
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 34f)
                 maxLines = 1
                 setPadding(pad, pad / 2, pad, pad / 2)
                 background = GradientDrawable().apply {
-                    setColor(0xFF0F766E.toInt()); cornerRadius = dp(28f).toFloat(); setStroke(dp(2f), 0xFFFFFFFF.toInt())
+                    setColor(0xFF0F766E.toInt()); cornerRadius = dp(36f).toFloat(); setStroke(dp(2f), 0xFFFFFFFF.toInt())
                 }
                 elevation = dp(6f).toFloat()
                 setOnClickListener {
@@ -50,7 +50,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT,
-            ).apply { gravity = Gravity.TOP or Gravity.END; x = dp(110f); y = dp(64f) }
+            ).apply { gravity = Gravity.TOP or Gravity.END; x = dp(185f); y = dp(64f) }
             wm.addView(v, params)
             view = v
         } catch (e: Exception) {
