@@ -80,6 +80,10 @@ fun HomecomingPanel(
     card: HomecomingCard, h: Handover, now: Long, modifier: Modifier = Modifier, delivery: String? = null, paidAt: Long? = null,
     expanded: Boolean = true,
     onToggle: (() -> Unit)? = null,
+    /** 차주가 우선 요청으로 정해 둔 기사님인지 */
+    regular: Boolean = false,
+    /** 있으면 기사님 줄에 "전화하기"가 보인다 */
+    onCallDriver: (() -> Unit)? = null,
 ) {
     var showDetails by rememberSaveable(card.tripId) { mutableStateOf(false) }
     val parking = TripPresentation.parking(card)
@@ -124,7 +128,14 @@ fun HomecomingPanel(
         parking.note?.let { T(it, Type.labelSmall, Modifier.padding(start = FACT_LABEL), color = Ivi.colors.textTertiary) }
         if (card.memo.isNotBlank()) Fact("기사님 메모", TripPresentation.parkingMemo(card.memo))
         Fact("문 잠금", TripPresentation.lockStatus(card, h))
-        if (card.driverName.isNotBlank()) Fact("배정 기사님", "${card.driverName} 기사님")
+        // 기사님 줄에서 바로 전화할 수 있다(두고 내린 물건처럼 확인할 일이 있을 때).
+        if (card.driverName.isNotBlank()) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                T("배정 기사님", Type.labelLarge, Modifier.width(FACT_LABEL), color = Ivi.colors.textTertiary)
+                T("${card.driverName} 기사님" + if (regular) " · 우선 요청" else "", Type.bodySmall, Modifier.weight(1f))
+                if (onCallDriver != null) IviButton("전화하기", onCallDriver, size = ButtonSize.SMALL, icon = R.drawable.ic_phone)
+            }
+        }
         if (card.gapNote != null) {
             Spacer(Modifier.height(10.dp))
             T("운행 중 일부 정보를 기록하지 못했습니다. 차량 정보가 빠져 있을 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
@@ -175,20 +186,5 @@ internal fun CompareTable(card: HomecomingCard, h: Handover) {
                 T(TripPresentation.vehicleValue(line.label, line.after), Type.bodySmall, Modifier.weight(1f), color = if (line.after != line.before) c.textPrimary else c.textSecondary)
             }
         }
-    }
-}
-
-/** 모셔다 드린 기사님 카드. 두고 내린 물건처럼 확인할 일이 있을 때 그 기사님께 전화한다. 우선 요청은 차주의 휴대폰 페이지에서 정한다. */
-@Composable
-internal fun DriverCard(state: AppState, card: HomecomingCard, modifier: Modifier = Modifier, onCall: () -> Unit) {
-    val regular = state.server.regular?.id == card.driverId
-    Panel(modifier) {
-        T(if (regular) "우선 요청 기사님" else "배정 기사님", Type.labelLarge, color = Ivi.colors.textTertiary)
-        Spacer(Modifier.height(10.dp))
-        T("${card.driverName} 기사님", Type.titleMedium)
-        Spacer(Modifier.height(12.dp))
-        T("두고 내린 물건처럼 확인할 일이 있으면 전화로 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
-        Spacer(Modifier.height(20.dp))
-        IviButton("전화하기", onCall, Modifier.fillMaxWidth(), size = ButtonSize.LARGE, icon = R.drawable.ic_phone)
     }
 }

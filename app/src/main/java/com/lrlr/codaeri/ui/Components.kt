@@ -213,7 +213,7 @@ fun IviButton(
                 modifier = Modifier.size(when (size) { ButtonSize.SMALL -> 32.dp; ButtonSize.MEDIUM -> 40.dp; ButtonSize.LARGE -> 44.dp }),
                 colorFilter = ColorFilter.tint(fg),
             )
-            T(text, when (size) { ButtonSize.SMALL -> Type.bodySmall; ButtonSize.MEDIUM -> Type.bodyLarge; ButtonSize.LARGE -> Type.titleSmall }.copy(fontWeight = Type.labelLarge.fontWeight), color = fg, maxLines = 1)
+            T(text, when (size) { ButtonSize.SMALL -> Type.buttonSmall; ButtonSize.MEDIUM -> Type.buttonMedium; ButtonSize.LARGE -> Type.buttonLarge }, color = fg, maxLines = 1)
         }
     }
 }
@@ -361,7 +361,7 @@ fun Tag(text: String, modifier: Modifier = Modifier) {
 }
 
 /** 이름표 칸의 너비. 같은 카드 안의 표도 이 너비에 맞춰 값이 한 줄로 선다. */
-val FACT_LABEL = 230.dp
+val FACT_LABEL = 260.dp
 
 /** 이름표와 값 한 줄 */
 @Composable

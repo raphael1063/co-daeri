@@ -113,17 +113,21 @@ private fun style(size: Int, line: Int, weight: FontWeight) =
 
 /** 가이드의 글자 위계(Foundations > Typography)를 따르되, 운전석에서 한눈에 읽히도록 본문과 라벨을 가이드 값보다 키웠다. */
 object Type {
-    val headlineLarge = style(68, 88, FontWeight.ExtraBold)
-    val headlineMedium = style(62, 78, FontWeight.ExtraBold)
-    val headlineSmall = style(54, 70, FontWeight.Bold)
-    val titleLarge = style(48, 60, FontWeight.Bold)
-    val titleMedium = style(44, 54, FontWeight.Bold)
-    val titleSmall = style(40, 50, FontWeight.Bold)
-    val bodyLarge = style(36, 46, FontWeight.Normal)
-    val bodyMedium = style(34, 44, FontWeight.Normal)
-    val bodySmall = style(32, 42, FontWeight.Normal)
-    val labelLarge = style(30, 40, FontWeight.SemiBold)
-    val labelSmall = style(26, 36, FontWeight.Normal)
+    val headlineLarge = style(72, 92, FontWeight.ExtraBold)
+    val headlineMedium = style(66, 82, FontWeight.ExtraBold)
+    val headlineSmall = style(58, 74, FontWeight.Bold)
+    val titleLarge = style(54, 66, FontWeight.Bold)
+    val titleMedium = style(50, 62, FontWeight.Bold)
+    val titleSmall = style(46, 58, FontWeight.Bold)
+    val bodyLarge = style(42, 54, FontWeight.Normal)
+    val bodyMedium = style(40, 52, FontWeight.Normal)
+    val bodySmall = style(38, 50, FontWeight.Normal)
+    val labelLarge = style(36, 46, FontWeight.SemiBold)
+    val labelSmall = style(32, 42, FontWeight.Normal)
+    /** 버튼 글자. 한 줄에 버튼 여러 개가 들어가야 하므로 본문과 따로 둔다. */
+    val buttonLarge = style(40, 50, FontWeight.SemiBold)
+    val buttonMedium = style(36, 46, FontWeight.SemiBold)
+    val buttonSmall = style(32, 42, FontWeight.SemiBold)
     /** 화면에서 가장 큰 숫자 한두 개에만 쓴다 */
     val hero = style(104, 116, FontWeight.ExtraBold)
     val heroCompact = style(72, 84, FontWeight.ExtraBold)

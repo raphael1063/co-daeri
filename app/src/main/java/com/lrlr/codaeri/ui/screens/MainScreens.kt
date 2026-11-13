@@ -165,16 +165,9 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     paidAt = card.paidAt ?: if (latest) state.lastPaidAt else null,
                     expanded = expanded,
                     onToggle = { open = if (expanded) null else card.tripId },
+                    regular = card.driverId.isNotBlank() && state.server.regular?.id == card.driverId,
+                    onCallDriver = if (card.driverId.isNotBlank()) ({ calling = card.driverName }) else null,
                 )
-                // 가장 최근 운행의 기사님만 "다음에도 먼저 요청"으로 이을 수 있다
-                // 왼쪽 카드와 같은 박자로 폭과 높이가 함께 움직여야 아래 카드들이 튀지 않고 따라온다.
-                androidx.compose.animation.AnimatedVisibility(
-                    expanded && latest && card.driverId.isNotBlank() && state.phoneLink != null,
-                    enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(Motion.FOLD, delayMillis = 60)) +
-                        androidx.compose.animation.expandIn(androidx.compose.animation.core.tween(Motion.FOLD, easing = androidx.compose.animation.core.FastOutSlowInEasing), expandFrom = Alignment.TopEnd),
-                    exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(Motion.EXIT)) +
-                        androidx.compose.animation.shrinkOut(androidx.compose.animation.core.tween(Motion.FOLD, easing = androidx.compose.animation.core.FastOutSlowInEasing), shrinkTowards = Alignment.TopEnd),
-                ) { DriverCard(state, card, Modifier.padding(start = 28.dp).width(460.dp)) { calling = card.driverName } }
             }
         }
         }
