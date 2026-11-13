@@ -270,6 +270,8 @@ class GeofenceWatcher(context: Context) : LocationSource {
 
     private val _inside = MutableStateFlow(false)
     override val inside: StateFlow<Boolean> = _inside
+    private val _away = MutableStateFlow(false)
+    override val away: StateFlow<Boolean> = _away
     private val _entered = MutableSharedFlow<Unit>(extraBufferCapacity = 4)
     /** 반경 밖에서 안으로 들어올 때마다 한 번 */
     override val entered: SharedFlow<Unit> = _entered
@@ -283,7 +285,9 @@ class GeofenceWatcher(context: Context) : LocationSource {
             _last.value = location
             _position.value = GeoPoint(location.latitude, location.longitude)
             val t = target ?: return
-            setInside(distanceMeters(location.latitude, location.longitude, t.first, t.second) <= t.third)
+            val within = distanceMeters(location.latitude, location.longitude, t.first, t.second) <= t.third
+            _away.value = !within
+            setInside(within)
         }
         override fun onError(exception: Exception) {
             Log.w(TAG, "location error", exception)
@@ -295,6 +299,7 @@ class GeofenceWatcher(context: Context) : LocationSource {
             this@GeofenceWatcher.alertId = alertId
         }
         override fun onTransition(event: ProximityAlertEvent) {
+            if (event.transition == ProximityTransition.EXIT) _away.value = true
             setInside(event.transition == ProximityTransition.ENTER)
         }
         override fun onError(exception: Exception) {
@@ -324,6 +329,7 @@ class GeofenceWatcher(context: Context) : LocationSource {
         alertId?.let { id -> runCatching { fused.removeProximityAlert(id) } }
         alertId = null
         _inside.value = false
+        _away.value = false
         if (lat == null || lng == null) {
             target = null
             return

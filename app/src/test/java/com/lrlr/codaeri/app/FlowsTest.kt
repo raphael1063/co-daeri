@@ -148,6 +148,13 @@ class FlowsTest {
         assertFalse(r.c.guidance.value.started) // 집 근처에서 출발했을 뿐 도착한 것이 아니다
         r.c.visible.value = false; runCurrent()
         assertEquals("대리 운행 중", r.banner.line?.title)
+        // 위치를 처음 받아 "들어왔다"는 신호가 와도, 밖에 있던 적이 없으면 도착이 아니다
+        r.location.entered.emit(Unit); runCurrent()
+        assertFalse(r.c.guidance.value.started)
+        assertEquals("대리 운행 중", r.banner.line?.title)
+        // 반경 밖으로 나갔다가 돌아오면 그때 시작한다
+        r.location.away.value = true; runCurrent()
+        r.location.away.value = false
         r.location.entered.emit(Unit); runCurrent()
         assertEquals("주차 안내", r.banner.line?.title)
     }
@@ -673,6 +680,7 @@ class FlowsTest {
         r.gear(GearState.NOT_PARK)
         assertFalse(r.c.guidance.value.started)
 
+        r.location.away.value = true; runCurrent()
         r.location.entered.emit(Unit); runCurrent()
         assertTrue(r.c.guidance.value.started)
         assertNotNull(r.state.trip?.guidanceStartedAt)

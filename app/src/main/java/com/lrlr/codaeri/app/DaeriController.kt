@@ -100,6 +100,7 @@ class DaeriController(
         store.value.card.let { ports.location.watch(it.latitude, it.longitude, it.radiusMeters) }
         recorder.restore()
 
+        env.scope.launch { ports.location.away.collect { if (it) guide.onAwayFromHome() } }
         env.scope.launch { ports.location.entered.collect { guide.onNearHome() } }
         env.scope.launch {
             var previous = ports.car.gear.value

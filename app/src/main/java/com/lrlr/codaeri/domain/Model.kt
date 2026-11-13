@@ -183,6 +183,8 @@ data class Trip(
     val lockAtStart: Observed<Boolean>? = null,
     /** 시작 직후 기사에게 보여 주는 고지 화면을 확인했는지 */
     val noticeAcknowledged: Boolean = false,
+    /** 이 운행 중에 차가 집 반경 밖에 있는 것을 본 적이 있는가. 집에서 떠났다가 돌아올 때만 도착으로 본다. */
+    val leftHome: Boolean = false,
     /** 지오펜스 진입으로 기본 안내를 시작한 시각 */
     val guidanceStartedAt: Long? = null,
     /** 기사가 들은 안내 항목 */

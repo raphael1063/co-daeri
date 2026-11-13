@@ -120,6 +120,7 @@ class FakeCar : CarSignals {
 
 class FakeLocation : LocationSource {
     override val inside = MutableStateFlow(false)
+    override val away = MutableStateFlow(false)
     override val entered = MutableSharedFlow<Unit>()
     override val position = MutableStateFlow<GeoPoint?>(GeoPoint(37.4, 127.1))
     var watched: Triple<Double?, Double?, Float>? = null
