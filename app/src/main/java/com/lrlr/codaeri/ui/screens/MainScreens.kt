@@ -120,7 +120,7 @@ fun HomeScreen(
                 T("정차 중에만 이용할 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
             }
         }
-        T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.BottomCenter), color = Ivi.colors.textTertiary)
+        T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.TopEnd), color = Ivi.colors.textTertiary)
     }
 }
 
