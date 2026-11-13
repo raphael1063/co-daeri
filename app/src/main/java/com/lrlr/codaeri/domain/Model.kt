@@ -121,11 +121,17 @@ data class ServerState(
     val emergency: Emergency? = null,
     /** 비상연락처 전체(3명까지). 서버가 목록을 주지 않으면 emergency 하나로 본다. */
     val emergencies: List<Emergency> = emptyList(),
+    /** 운행 상태 공유 설정. 공유받을 사람은 비상연락처와 따로 등록한다. */
+    val share: ShareSetting = ShareSetting(),
     val demo: Boolean = true,
 ) {
     /** 화면에 보일 비상연락처 목록(가린 번호) */
     val emergencyList: List<Emergency> get() = emergencies.ifEmpty { listOfNotNull(emergency) }.take(Emergency.MAX)
 }
+
+/** 운행 상태 자동 공유를 켰는지와 공유받을 사람(가린 번호). 연락처는 연결한 휴대폰에서 등록한다. */
+@Serializable
+data class ShareSetting(val auto: Boolean = false, val contacts: List<Emergency> = emptyList())
 
 /** 비상연락처의 관계와 가린 번호(예: 배우자, 010-****-5678) */
 @Serializable

@@ -87,6 +87,14 @@ class HttpDaeriService(private val server: String) : DaeriService {
         return answer?.let(Json::decodeContacts)
     }
 
+    /** 운행 상태 자동 공유 켜고 끄기. 서버가 돌려준 새 상태를 읽는다. */
+    override fun setShareAuto(link: PhoneLink, on: Boolean): ServerState? {
+        var answer: String? = null
+        val body = kotlinx.serialization.json.buildJsonObject { put("auto", kotlinx.serialization.json.JsonPrimitive(on)) }.toString()
+        if (!call("POST", "/share", link, body) { answer = it }) return null
+        return try { answer?.let(Json::decodeServer) } catch (e: Exception) { null }
+    }
+
     /** 연결한 휴대폰 브라우저를 모두 끊는다. */
     override fun unlinkAll(link: PhoneLink): Boolean = call("DELETE", "/readers", link, null)
 

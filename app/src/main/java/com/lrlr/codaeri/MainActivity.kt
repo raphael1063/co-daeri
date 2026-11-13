@@ -102,6 +102,8 @@ class MainActivity : ComponentActivity() {
                 val emergencyUi by c.emergency.collectAsStateWithLifecycle()
                 val startArmed by c.startArmed.collectAsStateWithLifecycle()
                 val startReady by c.startReady.collectAsStateWithLifecycle()
+                val shareBusy by c.shareBusy.collectAsStateWithLifecycle()
+                val shareMessage by c.shareMessage.collectAsStateWithLifecycle()
                 val judgesBoarding by c.judgesBoarding.collectAsStateWithLifecycle()
                 val voicePartial by c.voicePartial.collectAsStateWithLifecycle()
                 var editing by rememberSaveable { mutableStateOf(false) }
@@ -181,6 +183,8 @@ class MainActivity : ComponentActivity() {
                                     onUnbind = { confirmUnbind = true },
                                     onAllowNotice = if (noticeAllowed.value || Build.VERSION.SDK_INT < 33) null
                                     else ({ askNotice.launch(Manifest.permission.POST_NOTIFICATIONS) }),
+                                    shareMessage = shareMessage,
+                                    onToggleShare = if (shareBusy || restricted) null else c::toggleShare,
                                 )
                             }
                             Screen.HOME -> HomeScreen(

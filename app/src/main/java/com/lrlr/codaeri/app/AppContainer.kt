@@ -4,6 +4,7 @@ import android.content.Context
 import com.lrlr.codaeri.AndroidConnectivity
 import com.lrlr.codaeri.BuildConfig
 import com.lrlr.codaeri.Notifier
+import com.lrlr.codaeri.OverlayBanner
 import com.lrlr.codaeri.ServiceKeepAlive
 import com.lrlr.codaeri.car.GeofenceWatcher
 import com.lrlr.codaeri.car.Navigator
@@ -40,6 +41,7 @@ class AppContainer(context: Context) {
                 notices = Notifier(appContext),
                 keepAlive = ServiceKeepAlive(appContext),
                 connectivity = AndroidConnectivity(appContext),
+                banner = OverlayBanner(appContext),
             ),
             server = BuildConfig.CARD_SERVER,
             env = Env(CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate), Dispatchers.IO, System::currentTimeMillis),

@@ -10,7 +10,7 @@
 | 예약 인계 | 예약 뒤 15초 안에 차 화면에 배정된 기사님, 목적지, 확정 요금이 뜸 | [../영상/screens/car_handover.png](../영상/screens/car_handover.png) |
 | 운행 기록 | 기어가 P를 벗어나면 운행이 시작되고 목적지가 순정 내비게이션으로 넘어감. P단 정차 뒤 다시 출발하면 같은 운행으로 이어짐 | [car_driving.png](../영상/screens/car_driving.png), [car_navi.png](../영상/screens/car_navi.png), [car_stop.png](../영상/screens/car_stop.png) |
 | 집 주차 안내 | 위치가 집 반경 안으로 들어오면 안내가 스스로 시작됨 | [car_guide.png](../영상/screens/car_guide.png) |
-| 종료와 결제 | 운전석이 비면 차가 종료 신호를 보내고 서버가 종료를 확정, 자동 결제(시연용) 표시 | [car_finish.png](../영상/screens/car_finish.png), [car_final.png](../영상/screens/car_final.png), [web_paid.png](../영상/screens/web_paid.png) |
+| 종료와 결제 | "운행 종료"를 누르면 차가 종료 신호를 보내고 서버가 종료를 확정, 자동 결제(시연용) 표시 | [car_finish.png](../영상/screens/car_finish.png), [car_final.png](../영상/screens/car_final.png), [web_paid.png](../영상/screens/web_paid.png) |
 | 귀가 카드 | 차 화면과 차주 휴대폰 페이지에 도착 시각, 주차 위치, 인계 전후 차 상태가 남음 | [car_card.png](../영상/screens/car_card.png), [web_card.png](../영상/screens/web_card.png) |
 | 기사님 미도착 재배정 | 도착 알림 뒤 운전석 착석이 확인되지 않으면 다른 기사님으로 다시 배정되고 차 화면의 기사님도 바뀜 | [verify_reassign.mp4](verify_reassign.mp4), [verify_reassign_car.png](verify_reassign_car.png), [verify_reassign_car_after_switch.png](verify_reassign_car_after_switch.png), [verify_reassign_phone.jpg](verify_reassign_phone.jpg) |
 | 경로 이탈 | 위치를 목적지 반대쪽으로 옮기면 차주 페이지에 알림, 돌아오면 정리됨 | [verify_route.mp4](verify_route.mp4), [verify_route_car.png](verify_route_car.png), [verify_route_phone.jpg](verify_route_phone.jpg) |

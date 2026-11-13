@@ -46,8 +46,9 @@ class FlowsTest {
         val notices = FakeNotices()
         val keepAlive = FakeKeepAlive()
         val connectivity = FakeConnectivity()
+        val banner = FakeBanner()
         val c = DaeriController(
-            Adapters(repo, service, FakeLinks(), car, location, restriction, announcer, listener, route, notices, keepAlive, connectivity),
+            Adapters(repo, service, FakeLinks(), car, location, restriction, announcer, listener, route, notices, keepAlive, connectivity, banner),
             "https://example.test",
             Env(scope.backgroundScope, StandardTestDispatcher(scope.testScheduler), clock),
         )
@@ -111,6 +112,39 @@ class FlowsTest {
         assertNull(r.state.trip)
         // 끝난 예약은 다시 잡힌 예약으로 보지 않는다
         assertNull(r.state.pendingBooking(r.clock()))
+    }
+
+    @Test fun shareSwitchFollowsTheServiceAnswerAndReportsFailure() = runTest {
+        val r = rig()
+        assertFalse(r.state.server.share.auto)
+        r.c.toggleShare(); r.pass(1)
+        assertTrue(r.state.server.share.auto)
+        assertEquals("", r.c.shareMessage.value)
+        r.service.online = false
+        r.c.toggleShare(); r.pass(1)
+        assertTrue(r.state.server.share.auto) // 실패하면 그대로 둔다
+        assertEquals(ShareSwitch.FAILED, r.c.shareMessage.value)
+        assertFalse(r.c.shareBusy.value)
+    }
+
+    @Test fun bannerShowsOverTheMapOnlyWhileDrivingWithTheScreenHidden() = runTest {
+        val r = rig()
+        r.book()
+        r.c.visible.value = true; runCurrent()
+        r.gear(GearState.NOT_PARK)
+        assertNull(r.banner.text) // 앱 화면이 보이는 동안에는 띄우지 않는다
+        r.c.visible.value = false; runCurrent()
+        assertEquals("코-대리 운행 중 · 판교 삼평동으로", r.banner.text)
+        r.gear(GearState.PARK)
+        assertNull(r.banner.text) // 정차하면 내린다
+    }
+
+    @Test fun bannerStaysOffWithoutThePermission() = runTest {
+        val r = rig()
+        r.banner.allowed = false
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        assertNull(r.banner.text)
     }
 
     @Test fun shortStopIsNotTheEndAndTheSameTripResumes() = runTest {

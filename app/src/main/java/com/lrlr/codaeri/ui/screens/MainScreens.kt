@@ -180,6 +180,8 @@ fun SettingsScreen(
     onUnbind: () -> Unit,
     /** 알림을 아직 허용하지 않았을 때만 단추가 보인다 */
     onAllowNotice: (() -> Unit)?,
+    shareMessage: String = "",
+    onToggleShare: (() -> Unit)? = null,
 ) {
     Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
@@ -191,6 +193,19 @@ fun SettingsScreen(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
             null, null, Modifier.appear(1), note = "연결한 휴대폰에서 3명까지 등록할 수 있습니다.",
             pairs = state.server.emergencyList.map { it.label to it.masked },
+        )
+        // 공유받을 사람은 비상연락처와 따로 둔다. 실제 발송은 아직 하지 않는다(시연용).
+        val share = state.server.share
+        SettingRow(
+            "운행 상태 자동 공유",
+            when {
+                share.auto && share.contacts.isEmpty() -> "켜짐 · 공유할 연락처가 없습니다"
+                share.auto -> "켜짐 · 출발과 도착을 아래 연락처에 알립니다"
+                else -> "꺼짐"
+            },
+            if (share.auto) "끄기" else "켜기", onToggleShare, Modifier.appear(2),
+            note = shareMessage.ifBlank { "공유할 연락처는 연결한 휴대폰에서 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
+            pairs = share.contacts.map { it.label to it.masked },
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
