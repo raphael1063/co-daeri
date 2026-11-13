@@ -136,7 +136,11 @@ class FlowsTest {
         r.c.visible.value = false; runCurrent()
         assertEquals(BannerLine("박○○ 기사님 운행 중", "판교 삼평동으로", ongoing = true), r.banner.line)
         r.gear(GearState.PARK)
-        assertNull(r.banner.line) // 정차하면 내린다
+        // 정차하면 정차 중임과 종료 방법을 알린다(운행은 단추로만 끝나므로)
+        assertEquals(BannerLine("박○○ 기사님 정차 중", "운행을 마쳤다면 눌러서 종료해 주세요", ongoing = false), r.banner.line)
+        assertTrue(r.banner.expanded)
+        r.c.closeByButton(); runCurrent()
+        assertNull(r.banner.line) // 운행이 끝나면 내린다
     }
 
     @Test fun tripStartingInsideTheHomeRadiusDoesNotStartParkingGuide() = runTest {
