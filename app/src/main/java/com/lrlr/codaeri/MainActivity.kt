@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity() {
                                 WrapScreen(
                                     trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy, link = state.phoneLink,
                                     emergencies = state.server.emergencyList,
-                                    onParking = c::chooseParking, onOtherSpot = { otherSpot = true }, onClose = c::closeByButton, onEmergency = c::showEmergency,
+                                    onParking = c::chooseParking, onOtherSpot = { otherSpot = true }, onClose = c::closeByButton, onEmergency = c::showEmergency, onMap = ::backToMap,
                                 )
                             }
                             Screen.OTHER_SPOT -> {

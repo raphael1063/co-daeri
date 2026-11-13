@@ -71,6 +71,8 @@ fun WrapScreen(
     onOtherSpot: () -> Unit,
     onClose: () -> Unit,
     onEmergency: () -> Unit,
+    /** 순정 내비게이션 화면으로 돌아간다 */
+    onMap: () -> Unit,
 ) {
     val now = rememberNow()
     val c = Ivi.colors
@@ -112,6 +114,8 @@ fun WrapScreen(
                 if (booking != null && emergencies.isNotEmpty()) {
                     IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
                 }
+                // 잠깐 선 것뿐이면 종료하지 않고 지도로 돌아갈 수 있게 한다.
+                if (booking != null) IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
             }
             Spacer(Modifier.height(16.dp))
             T(
