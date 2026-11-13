@@ -150,7 +150,16 @@ internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modi
  * 화면 제목은 위에 고정하고 카드만 스크롤한다. 카드는 제목 줄을 눌러 접고 펼친다(가장 최근 것만 펼쳐 둔다).
  */
 @Composable
-fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBack: () -> Unit) {
+fun RecordsScreen(
+    state: AppState, handover: Handover, uploading: Boolean,
+    /** 우선 요청 기사님을 바꾸는 중과 실패했을 때의 한 줄 */
+    regularBusy: Boolean = false, regularMessage: String = "",
+    /** 우선 요청 기사님을 정한다. null이면 해제한다. */
+    onSetRegular: (String?) -> Unit = {},
+    onBack: () -> Unit,
+) {
+    // 별 버튼을 누른 기사님(번호, 이름). 팝업에서 한 번 더 묻는다.
+    var starring by remember { mutableStateOf<Pair<String, String>?>(null) }
     val now = rememberNow()
     var open by rememberSaveable { mutableStateOf(state.history.firstOrNull()?.tripId) }
     // 전화할 기사님의 이름. 시연에는 실제 기사님이 없어 전화를 걸지 않고 안내만 한다.
@@ -159,6 +168,10 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
     Column(page) {
         TopBar("이용 내역", onBack, Modifier.appear(0))
         T("최근 30일의 이용 내역을 최대 20건 보관합니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
+        Reveal(regularMessage.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            T(regularMessage, Type.labelLarge, color = Ivi.colors.negative)
+        }
         Spacer(Modifier.height(28.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (state.history.isEmpty()) {
@@ -180,9 +193,23 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     onToggle = { open = if (expanded) null else card.tripId },
                     regular = card.driverId.isNotBlank() && state.server.regular?.id == card.driverId,
                     onCallDriver = if (card.driverId.isNotBlank()) ({ calling = card.driverName }) else null,
+                    onStar = if (card.driverId.isNotBlank() && !regularBusy) ({ starring = card.driverId to card.driverName }) else null,
                 )
             }
         }
+        }
+    }
+    Fading(starring) { (id, name) ->
+        val isRegular = state.server.regular?.id == id
+        IviPopup(
+            onDismiss = { starring = null },
+            buttons = {
+                IviButton("닫기", { starring = null }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                IviButton(if (isRegular) "해제" else "설정", { onSetRegular(if (isRegular) null else id); starring = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+            },
+        ) {
+            if (isRegular) PopupTitle("$name 기사님의 우선 요청을 해제할까요?", "해제하면 대리를 부를 때 기사님을 따로 정하지 않고 요청합니다.")
+            else PopupTitle("$name 기사님을 우선 요청 기사님으로 설정할까요?", "대리를 부를 때 이 기사님께 먼저 요청합니다. 배정을 보장하지는 않습니다.")
         }
     }
     Fading(calling) { name ->

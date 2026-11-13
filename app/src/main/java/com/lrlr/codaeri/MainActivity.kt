@@ -208,7 +208,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Screen.RECORDS -> {
                                 BackHandler { section = Section.MAIN }
-                                RecordsScreen(state, c.handover, uploading) { section = Section.MAIN }
+                                RecordsScreen(state, c.handover, uploading, regularBusy, regularMessage, onSetRegular = { c.setRegular(it) }) { section = Section.MAIN }
                             }
                             Screen.SETTINGS -> contacts?.let { kind ->
                                 val close = { c.clearContactMessage(); contacts = null }
