@@ -106,6 +106,11 @@ fun WrapScreen(
                         chosen?.source == ResultSource.DRIVER_INPUT, onOtherSpot,
                     )
                 }
+                // 기사님이 남긴 메모(말로 남긴 것 포함)는 고른 자리 아래에 그대로 보여 준다.
+                chosen?.memo?.takeIf { it.isNotBlank() }?.let { memo ->
+                    Spacer(Modifier.height(10.dp))
+                    T("메모: ${TripPresentation.parkingMemo(memo)}", Type.bodyMedium, color = c.textSecondary, maxLines = 2)
+                }
             }
             Spacer(Modifier.height(40.dp))
             // 단추는 한 줄에 같은 높이로 놓는다. 운행 종료는 되돌릴 수 없으니 붉은색으로 구분한다.

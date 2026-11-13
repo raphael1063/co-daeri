@@ -127,7 +127,10 @@ fun OtherSpotScreen(
         }
         val fullMemo = listOf(memo, dictation.text).filter { it.isNotBlank() }.joinToString(" ")
         val result = handover.driverInput(choice, floor, pillar, fullMemo, System.currentTimeMillis())
-        T(TripPresentation.parkingLocation(handover.parkingLine(card, result)), Type.bodyMedium, color = Ivi.colors.positiveText)
+        T(
+            listOf(TripPresentation.parkingLocation(handover.parkingLine(card, result)), fullMemo).filter { it.isNotBlank() }.joinToString(" · "),
+            Type.bodyMedium, color = Ivi.colors.positiveText, maxLines = 2,
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton("취소", onBack, Modifier.weight(1f))
             IviButton("저장", { onResult(result) }, Modifier.weight(1f), filled = true, enabled = choice != SpotChoice.OTHER_FLOOR || floor.isNotEmpty())
