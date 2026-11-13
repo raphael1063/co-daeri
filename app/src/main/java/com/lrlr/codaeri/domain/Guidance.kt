@@ -29,7 +29,11 @@ object Guidance {
         GuideStep.ENTRANCE -> card.entrance
         GuideStep.ENTRY_METHOD -> card.entryMethod
         GuideStep.ZONE -> locationWithNote(card.floorLabel, card.zone)
-        GuideStep.PREFERRED_SPOT -> locationWithNote(card.spotLabel.takeIf { it.isNotBlank() }?.let { "$it 근처에 주차해 주세요" }.orEmpty(), card.preferredSpot, card.spotLabel)
+        GuideStep.PREFERRED_SPOT -> locationWithNote(
+            // 기타 장소는 차주가 적은 문장을 그대로 전한다("근처"를 붙이면 어색해진다)
+            card.spotLabel.takeIf { it.isNotBlank() }?.let { if (card.placeKind == PlaceKind.OTHER) "주차할 위치는 ${it}입니다" else "$it 근처에 주차해 주세요" }.orEmpty(),
+            card.preferredSpot, card.spotLabel,
+        )
         GuideStep.FALLBACK -> card.fallback
     }.trim()
 

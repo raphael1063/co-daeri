@@ -26,13 +26,21 @@ data class ParkingCard(
     val fallback: String = "",
     /** 휴대폰 카드에 짧게 보일 층 이름. 예: "지하 2층" */
     val floorLabel: String = "",
-    /** 휴대폰 카드에 짧게 보일 선호 자리. 예: "B-17" */
+    /** 휴대폰 카드에 짧게 보일 선호 자리. 예: "B-17". 기타 장소에서는 자유롭게 적은 주차 위치 전체다. */
     val spotLabel: String = "",
+    /** 주차할 위치를 적는 방식. 아파트·오피스텔은 층과 기둥 번호, 기타는 자유 입력(층은 비운다). */
+    val placeKind: PlaceKind = PlaceKind.APARTMENT,
 ) {
+    /** 저장할 수 있는지: 장소 이름과 주차할 위치가 모두 있어야 한다. */
+    val isComplete: Boolean
+        get() = placeName.isNotBlank() && spotLabel.isNotBlank() && (placeKind == PlaceKind.OTHER || floorLabel.isNotBlank())
     val hasLocation: Boolean get() = latitude != null && longitude != null
     val isUsable: Boolean
         get() = listOf(entrance, entryMethod, zone, preferredSpot, fallback, floorLabel, spotLabel).any { it.isNotBlank() }
 }
+
+@Serializable
+enum class PlaceKind { APARTMENT, OTHER }
 
 /** 주차 결과의 출처. 사람이 확정한 사실과 확인하지 못한 것을 구분한다. */
 @Serializable

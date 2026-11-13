@@ -503,5 +503,19 @@ class DomainTest {
         assertEquals(listOf("배우자"), Json.decodeContacts("""{"label":"배우자","phone":"01012345678"}""")!!.map { it.label })
         assertEquals(null, Json.decodeContacts("""{"error":"no_contact"}"""))
     }
-}
 
+    @Test fun parkingCardNeedsNameAndSpotAndOtherPlacesUseFreeText() {
+        // 아파트·오피스텔: 장소 이름, 층, 기둥 번호가 모두 있어야 저장할 수 있다
+        val apt = ParkingCard(placeName = "우리 집", floorLabel = "지하 2층", spotLabel = "B-17")
+        assertTrue(apt.isComplete)
+        assertFalse(apt.copy(placeName = " ").isComplete)
+        assertFalse(apt.copy(floorLabel = "").isComplete)
+        assertFalse(apt.copy(spotLabel = "").isComplete)
+        assertEquals("B-17 근처에 주차해 주세요", Guidance.text(apt, GuideStep.PREFERRED_SPOT))
+        // 기타: 층 없이 자유롭게 적은 위치만 있으면 되고, 적은 문장을 그대로 안내한다
+        val other = ParkingCard(placeName = "사무실", spotLabel = "건물 뒤 주차장 왼쪽 끝", placeKind = PlaceKind.OTHER)
+        assertTrue(other.isComplete)
+        assertFalse(other.copy(spotLabel = "").isComplete)
+        assertEquals("주차할 위치는 건물 뒤 주차장 왼쪽 끝입니다", Guidance.text(other, GuideStep.PREFERRED_SPOT))
+    }
+}

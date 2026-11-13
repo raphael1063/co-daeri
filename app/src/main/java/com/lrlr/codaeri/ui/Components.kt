@@ -424,6 +424,26 @@ fun Choice(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modif
     IviButton(text, onClick, modifier, filled = selected, size = ButtonSize.SMALL)
 }
 
+/** 여럿 가운데 하나를 고르는 라디오 버튼. 동그라미와 이름을 함께 누를 수 있다. 색은 OS 버튼 색만 쓴다. */
+@Composable
+fun IviRadio(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = Ivi.colors
+    val dot by animateFloatAsState(if (selected) 1f else 0f, tween(Motion.FOLD), label = "radio")
+    val on = c.buttonFilledEnabled
+    val edge = c.textQuaternary
+    Row(
+        modifier.heightIn(min = 96.dp).pressable(role = Role.RadioButton, onClick = onClick).padding(end = 24.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        androidx.compose.foundation.Canvas(Modifier.size(56.dp)) {
+            val stroke = 4.dp.toPx()
+            drawCircle(if (selected) on else edge, radius = size.minDimension / 2 - stroke / 2, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+            if (dot > 0f) drawCircle(on, radius = size.minDimension * 0.26f * dot)
+        }
+        T(text, Type.titleSmall, maxLines = 1)
+    }
+}
+
 /** 켜고 끄는 체크박스. 켜지면 채운 버튼과 같은 색으로 칠하고 체크 표시를 그린다. 색은 OS 버튼 색만 쓴다. */
 @Composable
 fun IviCheckBox(checked: Boolean, onChange: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {

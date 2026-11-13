@@ -48,6 +48,7 @@ import com.lrlr.codaeri.domain.GuidanceState
 import com.lrlr.codaeri.domain.Handover
 import com.lrlr.codaeri.domain.HomecomingCard
 import com.lrlr.codaeri.domain.ParkingCard
+import com.lrlr.codaeri.domain.PlaceKind
 import com.lrlr.codaeri.domain.ParkingResult
 import com.lrlr.codaeri.domain.ResultSource
 import com.lrlr.codaeri.domain.SpotChoice
@@ -62,7 +63,12 @@ fun CardEditorScreen(
     onSave: (ParkingCard) -> Unit,
     onBack: () -> Unit,
 ) {
-    var c by remember(initial) { mutableStateOf(initial) }
+    var c by remember(initial) { mutableStateOf(if (initial.placeKind == PlaceKind.OTHER) initial.copy(spotLabel = "") else initial) }
+    // 아파트·오피스텔과 기타의 입력은 따로 들고 있어서, 오가도 적은 내용이 지워지지 않는다.
+    var kind by remember(initial) { mutableStateOf(initial.placeKind) }
+    var free by remember(initial) { mutableStateOf(if (initial.placeKind == PlaceKind.OTHER) initial.spotLabel else "") }
+    val result = if (kind == PlaceKind.OTHER) c.copy(placeKind = PlaceKind.OTHER, floorLabel = "", spotLabel = free.trim())
+    else c.copy(placeKind = PlaceKind.APARTMENT, placeName = c.placeName, floorLabel = c.floorLabel.trim(), spotLabel = c.spotLabel.trim())
     // 저장과 취소는 스크롤하지 않아도 보이도록 아래에 고정한다.
     Column(page, verticalArrangement = Arrangement.spacedBy(16.dp)) {
     // 제목은 위에, 저장과 취소는 아래에 고정한다.
@@ -73,7 +79,7 @@ fun CardEditorScreen(
             Type.labelLarge, color = Ivi.colors.textTertiary,
         )
         T("집 위치", Type.titleSmall)
-        Field("장소 이름", c.placeName) { c = c.copy(placeName = it) }
+        Field("장소 이름 (필수)", c.placeName) { c = c.copy(placeName = it) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton(
                 "현재 위치를 집으로 설정",
@@ -93,9 +99,17 @@ fun CardEditorScreen(
         Spacer(Modifier.height(12.dp))
         T("주차할 위치", Type.titleSmall)
         T("아래 위치를 기사님께 안내하고, 이용 내역에서도 확인할 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Field("주차 층", c.floorLabel, Modifier.weight(1f)) { c = c.copy(floorLabel = it) }
-            Field("구역·자리 또는 기둥 번호", c.spotLabel, Modifier.weight(1f)) { c = c.copy(spotLabel = it) }
+        Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+            IviRadio("아파트·오피스텔", kind == PlaceKind.APARTMENT, { kind = PlaceKind.APARTMENT })
+            IviRadio("기타", kind == PlaceKind.OTHER, { kind = PlaceKind.OTHER })
+        }
+        if (kind == PlaceKind.APARTMENT) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Field("주차 층 (필수)", c.floorLabel, Modifier.weight(1f)) { c = c.copy(floorLabel = it) }
+                Field("구역·자리 또는 기둥 번호 (필수)", c.spotLabel, Modifier.weight(1f)) { c = c.copy(spotLabel = it) }
+            }
+        } else {
+            Field("주차할 위치 (필수). 예: 건물 뒤 주차장 왼쪽 끝", free) { free = it.take(60) }
         }
         Spacer(Modifier.height(12.dp))
         T("기사님께 전달할 안내 (선택)", Type.titleSmall)
@@ -107,7 +121,8 @@ fun CardEditorScreen(
     }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton("취소", onBack, Modifier.weight(1f))
-            IviButton("저장", { onSave(c) }, Modifier.weight(1f), filled = true)
+            // 필수 입력(장소 이름, 주차할 위치)이 비어 있으면 저장할 수 없다.
+            IviButton("저장", { onSave(result) }, Modifier.weight(1f), filled = true, enabled = result.isComplete)
         }
     }
 }
