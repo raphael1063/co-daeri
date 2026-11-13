@@ -32,7 +32,7 @@ object VoiceCall {
     private val noWords = listOf("아니", "취소", "됐어", "안해", "하지마", "그만")
     private val yesWords = listOf("네", "예", "응", "어", "넵", "불러", "맞아", "좋아", "그래", "부탁", "해줘", "오케이", "콜", "그렇게")
     /** 대답을 듣기 전에 화면에 적는 안내. 한 글자 대답("네")은 잘못 알아듣는 일이 있어 긴 말을 권한다. */
-    const val ANSWER_HINT = "\"불러 줘\" 또는 \"취소\"라고 말하거나 단추를 눌러 주세요. 운행이 끝나면 등록된 결제수단으로 자동 결제됩니다."
+    const val ANSWER_HINT = "\"불러 줘\" 또는 \"취소\"라고 말하거나 버튼을 눌러 주세요. 운행이 끝나면 등록된 결제수단으로 자동 결제됩니다."
     /** 대답을 알아듣지 못했을 때. 들은 말을 그대로 보여 주고 다시 묻는다(비슷한 말로 짐작해 부르지 않는다). */
     fun retryLine(heard: String?) =
         if (heard.isNullOrBlank()) "대답을 듣지 못했습니다. \"불러 줘\" 또는 \"취소\"라고 말씀해 주세요."
@@ -67,6 +67,26 @@ object VoiceCall {
         return Heard.Unknown
     }
 
-    fun confirmLine(place: Place, fareText: String) = "${place.name}까지 확정 요금 ${fareText}입니다. 부를까요?"
+    /** 출발지 이름. 시연에서는 아는 장소에서 1.5km 안이면 그 이름을 붙이고, 아니면 "현재 위치"라고만 적는다(실제 서비스에서는 주소가 붙는다). */
+    fun originName(lat: Double?, lng: Double?, home: Place?): String {
+        if (lat == null || lng == null) return HERE
+        val near = (listOfNotNull(home) + places).minByOrNull { straightKm(lat, lng, it.lat, it.lng) } ?: return HERE
+        return if (straightKm(lat, lng, near.lat, near.lng) <= 1.5f) "$HERE (${near.name} 부근)" else HERE
+    }
+    const val HERE = "현재 위치"
+
+    /** 두 지점 사이의 직선 거리(km). 시연용 요금도 이 거리로 계산한다. */
+    fun straightKm(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Float {
+        val rad = Math.PI / 180
+        val dLat = (lat2 - lat1) * rad
+        val dLng = (lng2 - lng1) * rad
+        val h = Math.sin(dLat / 2).let { it * it } + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2).let { it * it }
+        return (12742 * Math.asin(Math.sqrt(h))).toFloat()
+    }
+
+    /** 부르기 전에 확인받는 말: 출발지, 목적지, 거리, 요금을 모두 읽는다. */
+    fun confirmLine(from: String, place: Place, distanceText: String?, fareText: String) =
+        "${from.substringBefore(" (")}에서 ${place.name}까지" + (distanceText?.let { " 약 $it," } ?: "") + " 확정 요금 ${fareText}입니다. 부를까요?"
+    const val CONFIRM_TITLE = "이 내용으로 대리를 부를까요?"
     fun doneLine(driverName: String) = "$driverName 기사님이 배정됐습니다."
 }

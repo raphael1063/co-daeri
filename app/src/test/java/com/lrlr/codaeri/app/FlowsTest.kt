@@ -745,6 +745,10 @@ class FlowsTest {
         assertEquals(CallStage.CONFIRM, r.c.voice.value.stage)
         assertEquals("판교 삼평동", r.c.voice.value.place?.name)
         assertEquals(25_000, r.c.voice.value.fare)
+        // 확인 화면은 출발지, 목적지, 거리, 요금을 모두 담는다
+        assertEquals("현재 위치 (판교 삼평동 부근)", r.c.voice.value.from)
+        assertEquals(0.8f, r.c.voice.value.km!!, 0.1f)
+        assertEquals("현재 위치에서 판교 삼평동까지 약 0.8km, 확정 요금 25,000원입니다. 부를까요?", r.c.voice.value.message)
         r.pass(15_000)
         assertFalse(r.listener.listening)
         assertTrue(r.service.calls.none { it.second })

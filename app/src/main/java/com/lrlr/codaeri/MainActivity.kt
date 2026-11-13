@@ -37,6 +37,8 @@ import com.lrlr.codaeri.ui.screens.BindScreen
 import com.lrlr.codaeri.R
 import com.lrlr.codaeri.ui.ButtonSize
 import com.lrlr.codaeri.ui.CallChoice
+import com.lrlr.codaeri.ui.Divider
+import com.lrlr.codaeri.ui.Fact
 import com.lrlr.codaeri.ui.PairColumns
 import com.lrlr.codaeri.ui.screens.CardEditorScreen
 import com.lrlr.codaeri.ui.screens.ClosedScreen
@@ -255,7 +257,7 @@ class MainActivity : ComponentActivity() {
                         }
                         IviPopup(
                             onDismiss = c::cancelCall,
-                            width = if (choosing) 1000.dp else 760.dp,
+                            width = if (choosing) 1000.dp else if (confirm && v.place != null) 960.dp else 760.dp,
                             buttons = {
                                 IviButton("취소", c::cancelCall, Modifier.weight(1f), size = ButtonSize.LARGE)
                                 when {
@@ -268,17 +270,28 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                         ) {
+                            val asking = confirm && v.place != null
                             PopupTitle(
-                                v.message,
+                                if (asking) VoiceCall.CONFIRM_TITLE else v.message,
                                 when {
                                     v.stage == CallStage.CHOOSE -> "편한 방법으로 목적지를 입력해 주세요."
                                     v.stage == CallStage.PLACES -> "시연에서는 아래 장소만 고를 수 있습니다."
                                     listening -> voicePartial.ifBlank { VoiceCall.EXAMPLE }
-                                    confirm && v.place != null && !v.byVoice -> VoiceCall.TAP_HINT
-                                    confirm && v.place != null -> if (v.retries == 0) VoiceCall.ANSWER_HINT else "${v.place.name} · 확정 요금 ${c.handover.fareText(v.fare ?: 0)}"
+                                    // 다시 묻는 말이나 통신 오류가 있으면 그것을 먼저 보여 준다
+                                    asking && v.message != v.asked -> v.message
+                                    asking -> if (v.byVoice) VoiceCall.ANSWER_HINT else VoiceCall.TAP_HINT
                                     else -> null
                                 },
                             )
+                            if (asking && v.place != null) {
+                                Spacer(Modifier.height(20.dp))
+                                Divider()
+                                Spacer(Modifier.height(10.dp))
+                                Fact("출발지", v.from, valueStyle = Type.bodyLarge)
+                                Fact("목적지", v.place.name, valueStyle = Type.bodyLarge)
+                                Fact("예상 거리", v.km?.let { "약 ${c.handover.distanceText(it)} (직선 거리 기준)" } ?: "현재 위치를 확인하지 못했습니다", valueStyle = Type.bodyLarge)
+                                Fact("확정 요금", "${c.handover.fareText(v.fare ?: 0)} (시연용)", valueStyle = Type.bodyLarge)
+                            }
                             if (choosing) {
                                 Spacer(Modifier.height(28.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
