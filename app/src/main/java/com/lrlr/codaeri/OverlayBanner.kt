@@ -9,9 +9,11 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.text.TextUtils
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -20,18 +22,26 @@ import com.lrlr.codaeri.app.BannerLine
 import com.lrlr.codaeri.app.TripBanner
 
 /**
- * 내비게이션 위에 띄우는 작은 표시(다른 앱 위에 표시). 누르면 코-대리 화면이 열린다.
- * 앱 화면과 같은 바탕·글자색에 앱 아이콘을 붙여 코-대리의 표시임을 알 수 있게 한다.
- * 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위(2D 단추 왼쪽)에, 그 단추와 같은 모양으로 둔다.
+ * 내비게이션 위에 띄우는 작은 표시(다른 앱 위에 표시). 누르면 코-대리 화면이 열리고, ✕ 를 누르면 내려간다.
+ * 앱 화면과 같은 바탕·글자색에 앱 아이콘을 붙여 코-대리의 표시임을 알 수 있게 하고,
+ * 내비게이션의 단추와 카드처럼 모서리가 각지고 그림자 없이 가는 테두리만 둔다.
+ *
+ * 평소에는 오른쪽 위(2D 단추 왼쪽)에 그 단추와 같은 높이의 한 줄로 접혀 있고,
+ * 알릴 내용이 있을 때만 왼쪽으로 늘어나 두 줄을 크게 보여 준다(회전 안내 카드와 2D 단추 사이, 회전 안내 카드의 구분선 높이까지).
+ * 크기는 순정 내비게이션 화면(2560x1440) 배치에 맞춘 값이다.
  * "다른 앱 위에 표시" 권한이 없으면 아무것도 띄우지 않는다.
  */
 class OverlayBanner(private val context: Context) : TripBanner {
+    override var onDismiss: (() -> Unit)? = null
+
     private val wm = context.getSystemService(WindowManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
     private var root: LinearLayout? = null
+    private var icon: ImageView? = null
     private var title: TextView? = null
     private var dots: TextView? = null
     private var detail: TextView? = null
+    private var params: WindowManager.LayoutParams? = null
     private var night: Boolean? = null
     private var tick = 0
     private val animate = object : Runnable {
@@ -45,7 +55,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
 
     override fun available(): Boolean = try { Settings.canDrawOverlays(context) } catch (_: Exception) { false }
 
-    override fun show(line: BannerLine) {
+    override fun show(line: BannerLine, expanded: Boolean) {
         if (!available()) return
         try {
             val dark = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
@@ -53,14 +63,15 @@ class OverlayBanner(private val context: Context) : TripBanner {
             if (root == null) build(dark)
             title?.text = line.title
             detail?.text = line.detail
+            resize(expanded)
             handler.removeCallbacks(animate)
             if (line.ongoing) {
                 tick = 0
                 dots?.text = DOTS[0]
-                dots?.visibility = TextView.VISIBLE
+                dots?.visibility = View.VISIBLE
                 handler.postDelayed(animate, 500)
             } else {
-                dots?.visibility = TextView.GONE
+                dots?.visibility = View.GONE
             }
         } catch (e: Exception) {
             Log.w("OverlayBanner", "show failed", e)
@@ -68,27 +79,34 @@ class OverlayBanner(private val context: Context) : TripBanner {
         }
     }
 
+    /** 접힌 모양(한 줄, 내용만큼의 너비)과 펼친 모양(두 줄, 빈 자리 전체) 사이를 오간다. */
+    private fun resize(expanded: Boolean) {
+        val p = params ?: return
+        val v = root ?: return
+        val full = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
+        p.width = if (expanded) full else WindowManager.LayoutParams.WRAP_CONTENT
+        p.height = dp(if (expanded) 150f else 100f)
+        val iconSize = dp(if (expanded) 96f else 64f)
+        icon?.layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply { marginEnd = dp(if (expanded) 24f else 16f) }
+        val titleSize = if (expanded) 42f else 32f
+        title?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
+        dots?.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize)
+        detail?.visibility = if (expanded) View.VISIBLE else View.GONE
+        wm.updateViewLayout(v, p)
+    }
+
     private fun build(dark: Boolean) {
-        // 앱 화면(Theme.kt)과 같은 색: 카드 바탕, 글자, 구분선.
+        // 앱 화면(Theme.kt)과 같은 바탕과 글자색. 밝은 화면의 테두리는 내비게이션 단추의 테두리와 같은 색.
         val surface = if (dark) 0xFF313236.toInt() else 0xFFFFFFFF.toInt()
         val ink = if (dark) 0xFFFFFFFF.toInt() else 0xFF131417.toInt()
         val sub = if (dark) 0xA3FFFFFF.toInt() else 0xA3131417.toInt()
-        val line = if (dark) 0xFF44464E.toInt() else 0xFFBDBDBD.toInt() // 밝은 화면에서는 내비게이션 단추의 테두리와 같은 색
+        val line = if (dark) 0xFF44464E.toInt() else 0xFFBDBDBD.toInt()
 
-        val icon = ImageView(context).apply {
-            setImageResource(R.drawable.ic_app_clear)
-            layoutParams = LinearLayout.LayoutParams(dp(96f), dp(96f)).apply { marginEnd = dp(24f) }
-        }
-        val titleView = TextView(context).apply {
-            setTextColor(ink); setTextSize(TypedValue.COMPLEX_UNIT_SP, 42f); typeface = Typeface.DEFAULT_BOLD; maxLines = 1
-        }
-        val dotsView = TextView(context).apply {
-            setTextColor(ink); setTextSize(TypedValue.COMPLEX_UNIT_SP, 42f); typeface = Typeface.MONOSPACE; maxLines = 1
-            setPadding(dp(4f), 0, 0, 0)
-        }
+        val iconView = ImageView(context).apply { setImageResource(R.drawable.ic_app_clear) }
+        val titleView = TextView(context).apply { setTextColor(ink); typeface = Typeface.DEFAULT_BOLD; maxLines = 1 }
+        val dotsView = TextView(context).apply { setTextColor(ink); typeface = Typeface.MONOSPACE; maxLines = 1; setPadding(dp(4f), 0, 0, 0) }
         val detailView = TextView(context).apply {
-            setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f); maxLines = 1
-            ellipsize = android.text.TextUtils.TruncateAt.END
+            setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f); maxLines = 1; ellipsize = TextUtils.TruncateAt.END
         }
         val head = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -96,15 +114,27 @@ class OverlayBanner(private val context: Context) : TripBanner {
         }
         val texts = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             addView(head); addView(detailView)
         }
-        val v = LinearLayout(context).apply {
+        // 닫기: 누를 자리를 넉넉히 두고 가는 선으로 본문과 나눈다.
+        val divider = View(context).apply {
+            setBackgroundColor(line)
+            layoutParams = LinearLayout.LayoutParams(dp(1f), LinearLayout.LayoutParams.MATCH_PARENT).apply { marginStart = dp(20f) }
+        }
+        val close = TextView(context).apply {
+            text = "✕"
+            contentDescription = "표시 닫기"
+            setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 34f); gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(dp(96f), LinearLayout.LayoutParams.MATCH_PARENT)
+            setOnClickListener { onDismiss?.invoke() }
+        }
+        val body = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(28f), dp(12f), dp(28f), dp(12f))
-            // 내비게이션의 단추와 카드처럼 모서리가 각지고 그림자 없이 가는 테두리만 둔다.
-            background = GradientDrawable().apply { setColor(surface); setStroke(dp(1f), line) }
-            addView(icon); addView(texts)
+            setPadding(dp(24f), 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+            addView(iconView); addView(texts)
             setOnClickListener {
                 context.startActivity(
                     Intent(context, MainActivity::class.java)
@@ -112,23 +142,26 @@ class OverlayBanner(private val context: Context) : TripBanner {
                 )
             }
         }
-        // 지도 위쪽의 빈 자리를 채운다: 왼쪽 회전 안내 카드와 오른쪽 2D 단추 사이의 너비, 회전 안내 카드의 첫 칸(구분선까지) 높이.
-        // 순정 내비게이션 화면(2560x1440) 배치에 맞춘 값이고, 더 좁은 화면에서는 화면 너비 안으로 줄인다.
-        val width = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
-        val params = WindowManager.LayoutParams(
-            width, dp(150f),
+        val v = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = GradientDrawable().apply { setColor(surface); setStroke(dp(1f), line) }
+            addView(body); addView(divider); addView(close)
+        }
+        val p = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT, dp(100f),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
         ).apply { gravity = Gravity.TOP or Gravity.END; x = dp(160f); y = dp(24f) }
-        wm.addView(v, params)
-        root = v; title = titleView; dots = dotsView; detail = detailView; night = dark
+        wm.addView(v, p)
+        root = v; icon = iconView; title = titleView; dots = dotsView; detail = detailView; params = p; night = dark
     }
 
     override fun hide() {
         handler.removeCallbacks(animate)
         val v = root ?: return
-        root = null; title = null; dots = null; detail = null
+        root = null; icon = null; title = null; dots = null; detail = null; params = null
         try { wm.removeView(v) } catch (_: Exception) {}
     }
 

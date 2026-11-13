@@ -159,6 +159,25 @@ class FlowsTest {
         assertEquals("주차 안내", r.banner.line?.title)
     }
 
+    @Test fun bannerExpandsForNewsThenFoldsAndComesBackAfterVisitingTheApp() = runTest {
+        val r = rig()
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        r.c.visible.value = false; runCurrent()
+        assertTrue(r.banner.expanded) // 출발을 알릴 때는 펼친다
+        advanceTimeBy(BannerPresenter.EXPANDED_MS + 1); runCurrent()
+        assertNotNull(r.banner.line)
+        assertFalse(r.banner.expanded) // 잠시 뒤 작게 접는다
+
+        r.banner.onDismiss?.invoke(); runCurrent()
+        assertNull(r.banner.line) // 닫기를 누르면 내린다
+
+        r.c.visible.value = true; runCurrent()
+        r.c.visible.value = false; runCurrent()
+        assertNotNull(r.banner.line) // 앱 화면에 다녀오면 다시 뜬다
+        assertFalse(r.banner.expanded) // 이미 알린 내용이므로 접힌 채로
+    }
+
     @Test fun bannerStaysOffWithoutThePermission() = runTest {
         val r = rig()
         r.banner.allowed = false

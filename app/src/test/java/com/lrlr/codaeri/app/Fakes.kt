@@ -178,8 +178,10 @@ class FakeKeepAlive : KeepAlive {
 class FakeBanner : TripBanner {
     var allowed = true
     var line: BannerLine? = null
+    var expanded = false
+    override var onDismiss: (() -> Unit)? = null
     override fun available(): Boolean = allowed
-    override fun show(line: BannerLine) { this.line = line }
+    override fun show(line: BannerLine, expanded: Boolean) { this.line = line; this.expanded = expanded }
     override fun hide() { line = null }
 }
 

@@ -30,6 +30,9 @@ interface Connectivity {
  */
 interface TripBanner {
     fun available(): Boolean
-    fun show(line: BannerLine)
+    /** expanded 이면 두 줄을 크게 펼쳐 보여 주고, 아니면 한 줄로 작게 접어 둔다. */
+    fun show(line: BannerLine, expanded: Boolean)
     fun hide()
+    /** 표시의 닫기를 눌렀을 때 부를 것 */
+    var onDismiss: (() -> Unit)?
 }
