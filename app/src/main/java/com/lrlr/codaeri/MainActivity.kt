@@ -141,19 +141,26 @@ class MainActivity : ComponentActivity() {
                     ) { target ->
                         when (target) {
                             Screen.DRIVING -> trip?.let {
-                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide)
+                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap)
                             }
                             Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
                             Screen.WRAP -> trip?.let {
                                 WrapScreen(
-                                    trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy, link = state.phoneLink,
+                                    trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy,
                                     emergencies = state.server.emergencyList,
-                                    onParking = c::chooseParking, onOtherSpot = { otherSpot = true }, onClose = c::closeByButton, onEmergency = c::showEmergency,
+                                    onParking = c::chooseParking, onOtherSpot = { otherSpot = true }, onClose = c::closeByButton, onEmergency = c::showEmergency, onMap = ::backToMap,
                                 )
                             }
                             Screen.OTHER_SPOT -> {
-                                BackHandler { otherSpot = false }
-                                OtherSpotScreen(state.card, c.handover, { c.chooseParking(it); otherSpot = false }, { otherSpot = false })
+                                val dictation by c.spotDictation.collectAsStateWithLifecycle()
+                                val heard by c.voicePartial.collectAsStateWithLifecycle()
+                                BackHandler { c.resetDictation(); otherSpot = false }
+                                OtherSpotScreen(
+                                    state.card, c.handover, dictation, heard,
+                                    onDictate = c::dictateSpot, onStopDictation = c::stopDictation, onClearDictation = c::resetDictation,
+                                    onResult = { c.chooseParking(it); c.resetDictation(); otherSpot = false },
+                                    onBack = { c.resetDictation(); otherSpot = false },
+                                )
                             }
                             Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip) }
                             Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode)
@@ -286,5 +293,20 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
+    /**
+     * 순정 내비게이션 화면으로 돌아간다. 지도 앱을 앞으로 부르고, 부를 수 없는 차에서는
+     * 이 앱을 뒤로 보내 바로 앞에 보던 화면(내비게이션)이 다시 보이게 한다.
+     */
+    private fun backToMap() {
+        try {
+            startActivity(
+                android.content.Intent.makeMainSelectorActivity(android.content.Intent.ACTION_MAIN, android.content.Intent.CATEGORY_APP_MAPS)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        } catch (e: Exception) {
+            android.util.Log.w("MainActivity", "map app not found, moving to back", e)
+            moveTaskToBack(true)
+        }
+    }
+}

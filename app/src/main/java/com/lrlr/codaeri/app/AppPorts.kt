@@ -25,11 +25,14 @@ interface Connectivity {
 }
 
 /**
- * 다른 앱(내비게이션) 위에 한 줄을 띄운다. 운행 중 화면이 가려져 있을 때 "운행 중"임을 보여 주려는 것이다.
+ * 다른 앱(내비게이션) 위에 작은 표시를 띄운다. 운행 중 화면이 가려져 있을 때 "운행 중"임을 보여 주려는 것이다.
  * 권한이 없는 차에서는 available()이 false이고 아무것도 하지 않는다.
  */
 interface TripBanner {
     fun available(): Boolean
-    fun show(text: String)
+    /** expanded 이면 두 줄을 크게 펼쳐 보여 주고, 아니면 한 줄로 작게 접어 둔다. */
+    fun show(line: BannerLine, expanded: Boolean)
     fun hide()
+    /** 표시의 닫기를 눌렀을 때 부를 것 */
+    var onDismiss: (() -> Unit)?
 }

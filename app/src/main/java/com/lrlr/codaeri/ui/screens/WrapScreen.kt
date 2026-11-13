@@ -64,13 +64,14 @@ fun WrapScreen(
     handover: Handover,
     seatCloses: Boolean,
     busy: Boolean,
-    link: PhoneLink?,
     /** 차주가 등록해 둔 비상연락처(가린 번호). 없으면 단추를 보이지 않는다. */
     emergencies: List<Emergency>,
     onParking: (ParkingResult?) -> Unit,
     onOtherSpot: () -> Unit,
     onClose: () -> Unit,
     onEmergency: () -> Unit,
+    /** 순정 내비게이션 화면으로 돌아간다 */
+    onMap: () -> Unit,
 ) {
     val now = rememberNow()
     val c = Ivi.colors
@@ -89,6 +90,10 @@ fun WrapScreen(
                 Tile("이용 시간", handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
                 if (booking != null) Tile("이용 요금", handover.fareText(booking.fare), Modifier.weight(1f))
             }
+            if (booking != null) {
+                Spacer(Modifier.height(10.dp))
+                T("운행이 종료되면 차주님이 등록한 결제수단으로 ${handover.fareText(booking.fare)}이 자동 결제됩니다. (시연용)", Type.labelLarge, Modifier.appear(1), color = c.textTertiary)
+            }
             if (card.isUsable) {
                 Spacer(Modifier.height(28.dp))
                 T("주차를 마치셨다면 위치를 남겨 주세요 (선택)", Type.labelLarge, Modifier.appear(2), color = c.textTertiary)
@@ -104,13 +109,21 @@ fun WrapScreen(
                         chosen?.source == ResultSource.DRIVER_INPUT, onOtherSpot,
                     )
                 }
+                // 기사님이 남긴 메모(말로 남긴 것 포함)는 고른 자리 아래에 그대로 보여 준다.
+                chosen?.memo?.takeIf { it.isNotBlank() }?.let { memo ->
+                    Spacer(Modifier.height(10.dp))
+                    T("메모: ${TripPresentation.parkingMemo(memo)}", Type.bodyMedium, color = c.textSecondary, maxLines = 2)
+                }
             }
             Spacer(Modifier.height(40.dp))
-            // 단추는 한 줄에 같은 높이로 놓는다. 운행 종료는 되돌릴 수 없으니 붉은색으로 구분한다.
-            Row(Modifier.appear(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                IviButton("운행 종료", onClose, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE, loading = busy)
-                if (booking != null && emergencies.isNotEmpty()) {
-                    IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
+            // 운행 종료는 되돌릴 수 없으니 붉은색으로 한 줄을 차지하게 하고, 나머지 단추는 그 아래 한 줄에 같은 높이로 놓는다.
+            IviButton("운행 종료", onClose, Modifier.appear(3).fillMaxWidth(), danger = true, size = ButtonSize.LARGE, loading = busy)
+            if (booking != null) {
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.appear(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (emergencies.isNotEmpty()) IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
+                    // 잠깐 선 것뿐이면 종료하지 않고 지도로 돌아갈 수 있게 한다.
+                    IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -121,19 +134,6 @@ fun WrapScreen(
             if (booking != null && emergencies.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
                 T("차주님과 의사소통이 어려울 때 연락할 분(${emergencies.joinToString(", ") { it.label }})입니다.", Type.labelLarge, Modifier.appear(4), color = c.textTertiary)
-            }
-        }
-        if (link != null) {
-            Column(Modifier.width(480.dp).fillMaxHeight().appear(2, scaleFrom = 0.97f), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
-                QrPanel(
-                    "기사님 운행 내역 보기", Links.tripUrl(BuildConfig.CARD_SERVER, link, trip.shareId),
-                    "휴대폰으로 QR을 찍으면 이 운행의 내역을 볼 수 있습니다.",
-                )
-                if (booking != null) Panel(Modifier.fillMaxWidth(), pad = 24.dp) {
-                    T("결제 (시연용)", Type.labelLarge)
-                    Spacer(Modifier.height(6.dp))
-                    T("운행이 종료되면 차주님이 등록한 결제수단으로 ${handover.fareText(booking.fare)}이 자동 결제됩니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
-                }
             }
         }
     }

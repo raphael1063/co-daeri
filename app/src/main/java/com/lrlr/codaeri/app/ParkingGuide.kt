@@ -38,10 +38,20 @@ class ParkingGuide(
         _state.value = g.copy(position = position)
     }
 
-    /** 집 반경에 들어왔다. 예약된 운행 중이고 아직 안내를 시작하지 않았으면 스스로 시작한다. */
+    /** 운행 중에 차가 집 반경 밖에 있는 것을 확인했다. 이 뒤에 반경에 들어오면 도착이다. */
+    fun onAwayFromHome() {
+        val trip = store.value.trip ?: return
+        if (trip.booking == null || trip.leftHome) return
+        store.update { it.copy(trip = it.trip?.copy(leftHome = true)) }
+    }
+
+    /**
+     * 집 반경에 들어왔다. 예약된 운행 중이고 아직 안내를 시작하지 않았으면 스스로 시작한다.
+     * 집 반경 안에서 출발했거나 위치를 처음 받은 것뿐이면(밖에 있던 적이 없으면) 도착이 아니므로 시작하지 않는다.
+     */
     fun onNearHome() {
         val trip = store.value.trip ?: return
-        if (trip.phase != TripPhase.ACTIVE || trip.booking == null || _state.value.started) return
+        if (trip.phase != TripPhase.ACTIVE || trip.booking == null || !trip.leftHome || _state.value.started) return
         store.update { it.copy(trip = TripRules.guidanceStarted(trip, clock())) }
         onArrived()
         advance(start = true, afterCurrent = true)

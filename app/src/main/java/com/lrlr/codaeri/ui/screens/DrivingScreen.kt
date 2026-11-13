@@ -67,6 +67,8 @@ fun DrivingScreen(
     restricted: Boolean,
     onNext: () -> Unit,
     onRepeat: () -> Unit,
+    /** 순정 내비게이션 화면으로 돌아간다 */
+    onMap: () -> Unit,
 ) {
     val now = rememberNow()
     val c = Ivi.colors
@@ -92,10 +94,14 @@ fun DrivingScreen(
             Spacer(Modifier.height(12.dp))
             T(it, Type.bodyLarge, color = c.textTertiary)
         }
-        // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
-        if (booking != null && card.isUsable && !guidance.started) {
+        // 길 안내는 내비게이션이 하므로, 이 화면을 열어 본 뒤 지도로 바로 돌아갈 수 있게 한다.
+        if (booking != null && !(card.isUsable && guidance.started)) {
             Spacer(Modifier.height(40.dp))
-            IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
+                // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
+                if (card.isUsable) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
+            }
         }
         if (booking != null && card.isUsable && guidance.started) {
             Spacer(Modifier.height(40.dp))
@@ -120,6 +126,7 @@ fun DrivingScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 IviButton(if (guidance.hasNext) "다음 안내" else "처음부터 다시", onNext, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
                 IviButton("다시 듣기", onRepeat, Modifier.weight(1f), size = ButtonSize.LARGE)
+                IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
             }
         }
     }

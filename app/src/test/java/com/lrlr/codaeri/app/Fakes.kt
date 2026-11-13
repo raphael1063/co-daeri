@@ -120,6 +120,7 @@ class FakeCar : CarSignals {
 
 class FakeLocation : LocationSource {
     override val inside = MutableStateFlow(false)
+    override val away = MutableStateFlow(false)
     override val entered = MutableSharedFlow<Unit>()
     override val position = MutableStateFlow<GeoPoint?>(GeoPoint(37.4, 127.1))
     var watched: Triple<Double?, Double?, Float>? = null
@@ -176,10 +177,12 @@ class FakeKeepAlive : KeepAlive {
 
 class FakeBanner : TripBanner {
     var allowed = true
-    var text: String? = null
+    var line: BannerLine? = null
+    var expanded = false
+    override var onDismiss: (() -> Unit)? = null
     override fun available(): Boolean = allowed
-    override fun show(text: String) { this.text = text }
-    override fun hide() { text = null }
+    override fun show(line: BannerLine, expanded: Boolean) { this.line = line; this.expanded = expanded }
+    override fun hide() { line = null }
 }
 
 class FakeConnectivity : Connectivity {

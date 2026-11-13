@@ -71,7 +71,19 @@ fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uplo
             }
             IviButton("메인으로", onDone, filled = true)
         }
-        HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt)
+        val link = state.phoneLink
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            HomecomingPanel(card, handover, now, Modifier.weight(1f).appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt)
+            // 기사님이 자기 운행 내역을 가져가는 것은 운행을 마친 뒤 이 화면에서만 한다.
+            if (link != null && card.shareId.isNotBlank() && card.bookingId.isNotBlank()) {
+                Column(Modifier.width(480.dp).appear(2, scaleFrom = 0.97f)) {
+                    QrPanel(
+                        "기사님 운행 내역 보기", Links.tripUrl(BuildConfig.CARD_SERVER, link, card.shareId),
+                        "휴대폰으로 QR을 찍으면 이 운행의 내역을 볼 수 있습니다.",
+                    )
+                }
+            }
+        }
     }
 }
 

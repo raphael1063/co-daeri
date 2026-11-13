@@ -78,6 +78,12 @@ class DaeriController(
     val pairing: StateFlow<Pairing> = pairingFlow.pairing
     val voice: StateFlow<CallUi> = voiceCall.ui
     val voicePartial: StateFlow<String> = ports.listener.partial
+    private val dictation = SpotDictation(ports.listener)
+    /** 주차한 자리를 말로 남기는 상태 */
+    val spotDictation: StateFlow<DictationState> = dictation.state
+    fun dictateSpot() = dictation.start()
+    fun stopDictation() = dictation.stop()
+    fun resetDictation() = dictation.reset()
     val emergency: StateFlow<EmergencyUi?> = emergencyViewer.ui
     val routed: StateFlow<String?> = router.routed
     val restricted: StateFlow<Boolean> = ports.restriction.restricted
@@ -100,6 +106,7 @@ class DaeriController(
         store.value.card.let { ports.location.watch(it.latitude, it.longitude, it.radiusMeters) }
         recorder.restore()
 
+        env.scope.launch { ports.location.away.collect { if (it) guide.onAwayFromHome() } }
         env.scope.launch { ports.location.entered.collect { guide.onNearHome() } }
         env.scope.launch {
             var previous = ports.car.gear.value
@@ -111,11 +118,8 @@ class DaeriController(
         // 화면이 다시 보이면 바로 한 번 묻는다
         env.scope.launch { visible.collect { if (it) { ports.notices.clear(); sync.refresh() } } }
         // 내비게이션이 앞에 있는 동안 지도 위에 운행 중임을 한 줄로 보여 준다(권한이 있는 차에서만).
-        env.scope.launch {
-            combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.text(s, g, v, handover) }
-                .distinctUntilChanged()
-                .collect { text -> if (text != null && ports.banner.available()) ports.banner.show(text) else ports.banner.hide() }
-        }
+        BannerPresenter(ports.banner, env.scope, visible)
+            .start(combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.line(s, g, v, handover) })
         outbox.watch(ports.connectivity)
         outbox.send()
         sync.startPolling()

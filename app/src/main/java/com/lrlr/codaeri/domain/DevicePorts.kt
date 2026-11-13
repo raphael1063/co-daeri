@@ -38,6 +38,8 @@ data class GeoPoint(val lat: Double, val lng: Double)
 interface LocationSource {
     /** 감시하는 반경 안에 있는지. 위치가 끊겨도 마지막 판단을 유지한다. */
     val inside: StateFlow<Boolean>
+    /** 받은 위치로 반경 밖에 있음을 확인했는지. 위치를 아직 못 받았으면 false(밖이라고 단정하지 않는다). */
+    val away: StateFlow<Boolean>
     /** 반경 밖에서 안으로 들어올 때마다 한 번 */
     val entered: SharedFlow<Unit>
     /** 마지막으로 받은 위치. 아직 못 받았으면 null */

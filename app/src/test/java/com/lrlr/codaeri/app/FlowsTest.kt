@@ -132,11 +132,70 @@ class FlowsTest {
         r.book()
         r.c.visible.value = true; runCurrent()
         r.gear(GearState.NOT_PARK)
-        assertNull(r.banner.text) // 앱 화면이 보이는 동안에는 띄우지 않는다
+        assertNull(r.banner.line) // 앱 화면이 보이는 동안에는 띄우지 않는다
         r.c.visible.value = false; runCurrent()
-        assertEquals("코-대리 운행 중 · 판교 삼평동으로", r.banner.text)
+        assertEquals(BannerLine("박○○ 기사님 운행 중", "판교 삼평동으로", ongoing = true), r.banner.line)
         r.gear(GearState.PARK)
-        assertNull(r.banner.text) // 정차하면 내린다
+        // 정차하면 정차 중임과 종료 방법을 알린다(운행은 단추로만 끝나므로)
+        assertEquals(BannerLine("박○○ 기사님 정차 중", "운행을 마쳤다면 눌러서 종료해 주세요", ongoing = false), r.banner.line)
+        assertTrue(r.banner.expanded)
+        r.c.closeByButton(); runCurrent()
+        assertNull(r.banner.line) // 운행이 끝나면 내린다
+    }
+
+    @Test fun tripStartingInsideTheHomeRadiusDoesNotStartParkingGuide() = runTest {
+        val card = ParkingCard(placeName = "우리 집", latitude = 37.5, longitude = 127.0, entrance = "동쪽 입구로 가세요.", zone = "지하 2층입니다.")
+        val r = rig(bound.copy(cards = listOf(card)))
+        r.location.inside.value = true
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        assertFalse(r.c.guidance.value.started) // 집 근처에서 출발했을 뿐 도착한 것이 아니다
+        r.c.visible.value = false; runCurrent()
+        assertEquals("박○○ 기사님 운행 중", r.banner.line?.title)
+        // 위치를 처음 받아 "들어왔다"는 신호가 와도, 밖에 있던 적이 없으면 도착이 아니다
+        r.location.entered.emit(Unit); runCurrent()
+        assertFalse(r.c.guidance.value.started)
+        assertEquals("박○○ 기사님 운행 중", r.banner.line?.title)
+        // 반경 밖으로 나갔다가 돌아오면 그때 시작한다
+        r.location.away.value = true; runCurrent()
+        r.location.away.value = false
+        r.location.entered.emit(Unit); runCurrent()
+        assertEquals("주차 안내", r.banner.line?.title)
+    }
+
+    @Test fun bannerExpandsForNewsThenFoldsAndComesBackAfterVisitingTheApp() = runTest {
+        val r = rig()
+        r.book()
+        r.gear(GearState.NOT_PARK)
+        r.c.visible.value = false; runCurrent()
+        assertTrue(r.banner.expanded) // 출발을 알릴 때는 펼친다
+        advanceTimeBy(BannerPresenter.EXPANDED_MS + 1); runCurrent()
+        assertNotNull(r.banner.line)
+        assertFalse(r.banner.expanded) // 잠시 뒤 작게 접는다
+
+        r.banner.onDismiss?.invoke(); runCurrent()
+        assertNull(r.banner.line) // 닫기를 누르면 내린다
+
+        r.c.visible.value = true; runCurrent()
+        r.c.visible.value = false; runCurrent()
+        assertNotNull(r.banner.line) // 앱 화면에 다녀오면 다시 뜬다
+        assertFalse(r.banner.expanded) // 이미 알린 내용이므로 접힌 채로
+    }
+
+    @Test fun parkedSpotCanBeLeftBySpeakingAndOnlyTheTextIsKept() = runTest {
+        val r = rig()
+        r.c.dictateSpot()
+        assertTrue(r.c.spotDictation.value.listening)
+        r.listener.hear(null); runCurrent()
+        assertTrue(r.c.spotDictation.value.failed) // 듣지 못하면 그렇다고 알린다
+        r.c.dictateSpot()
+        r.listener.hear(" 지하 3층 C 12 옆에 댔습니다 "); runCurrent()
+        assertEquals("지하 3층 C 12 옆에 댔습니다", r.c.spotDictation.value.text)
+        assertFalse(r.c.spotDictation.value.listening)
+        r.c.dictateSpot()
+        r.c.resetDictation() // 화면을 닫으면 마이크도 끈다
+        assertFalse(r.listener.listening)
+        assertEquals("", r.c.spotDictation.value.text)
     }
 
     @Test fun bannerStaysOffWithoutThePermission() = runTest {
@@ -144,7 +203,7 @@ class FlowsTest {
         r.banner.allowed = false
         r.book()
         r.gear(GearState.NOT_PARK)
-        assertNull(r.banner.text)
+        assertNull(r.banner.line)
     }
 
     @Test fun shortStopIsNotTheEndAndTheSameTripResumes() = runTest {
@@ -660,6 +719,7 @@ class FlowsTest {
         r.gear(GearState.NOT_PARK)
         assertFalse(r.c.guidance.value.started)
 
+        r.location.away.value = true; runCurrent()
         r.location.entered.emit(Unit); runCurrent()
         assertTrue(r.c.guidance.value.started)
         assertNotNull(r.state.trip?.guidanceStartedAt)

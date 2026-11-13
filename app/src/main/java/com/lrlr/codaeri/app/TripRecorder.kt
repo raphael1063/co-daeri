@@ -193,7 +193,8 @@ class TripRecorder(
                 outbox.queueProgress()
                 router.route(booking)
                 announcer.say(DRIVER_NOTICE)
-                if (location.inside.value) guide.onNearHome()
+                // 집 반경 밖에서 출발했으면 적어 둔다. 반경 안에서 출발한 운행은 밖으로 나갔다 돌아와야 주차 안내를 시작한다.
+                if (location.away.value) guide.onAwayFromHome()
             }
             // 값을 읽는 사이에 다시 P로 섰을 수 있다
             onGear(GearState.NOT_PARK, car.gear.value)
