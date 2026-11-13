@@ -73,8 +73,10 @@ class MainActivity : ComponentActivity() {
     /** 지금 보여 줄 화면. 운행 상태가 화면을 정하고, 사람이 고르는 것은 주차 안내 편집뿐이다. */
     private val controller get() = (application as DaeriApp).controller
     private val noticeAllowed = mutableStateOf(true)
-    // 허락하지 않아도 한 번은 시도한다(인식은 차의 음성 서비스가 한다). 안 되면 화면에 "듣지 못했습니다"가 뜬다.
-    private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { controller.callByVoice() }
+    // 허락하면 바로 듣고, 거절하면 까닭을 알리고 다른 방법을 고르게 한다.
+    private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) controller.callByVoice() else controller.callMicDenied()
+    }
     private val askNotice = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         noticeAllowed.value = controller.noticeAllowed()
     }
@@ -82,7 +84,12 @@ class MainActivity : ComponentActivity() {
     private val askBasics = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
         noticeAllowed.value = controller.noticeAllowed()
         if (result[PERMISSION_LOCATION] == true) controller.permissionsChanged()
+        locationAllowed.value = locationGranted()
     }
+    private val locationAllowed = mutableStateOf(true)
+    private fun locationGranted() = checkSelfPermission(PERMISSION_LOCATION) == PackageManager.PERMISSION_GRANTED
+    /** 설정의 "허용" 버튼: 위치 권한을 다시 묻는다. */
+    private fun askLocation() = askBasics.launch(arrayOf(PERMISSION_LOCATION))
     private var askedBasics = false
     private fun askBasicsOnce() {
         if (askedBasics) return
@@ -102,6 +109,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        locationAllowed.value = locationGranted()
         started = true
         syncVisible()
         noticeAllowed.value = controller.noticeAllowed()
@@ -267,6 +275,8 @@ class MainActivity : ComponentActivity() {
                                     onBack = { section = Section.MAIN },
                                     onEditCard = { editing = true },
                                     onUnbind = { confirmUnbind = true },
+                                    locationAllowed = locationAllowed.value,
+                                    onAskLocation = ::askLocation,
                                     noticeOn = noticeAllowed.value && !state.noticesOff,
                                     onToggleNotice = {
                                         if (noticeAllowed.value && !state.noticesOff) c.setNotices(false)
@@ -443,7 +453,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             PopupTitle(
                                 "번호 연결을 해제할까요?",
-                                status.ifBlank { "번호, 예약, 휴대폰 연결 정보가 삭제됩니다. 차에 저장된 이용 내역은 남습니다." },
+                                status.ifBlank { "서버의 번호, 예약, 비상연락처, 차 위치가 삭제됩니다. 차에 저장된 이용 내역은 남습니다." },
                             )
                         }
                     }

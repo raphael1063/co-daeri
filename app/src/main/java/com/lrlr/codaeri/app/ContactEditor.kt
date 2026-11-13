@@ -59,7 +59,8 @@ class ContactEditor(private val store: AppStateStore, private val service: Daeri
 
     companion object {
         const val LABEL_MAX = 12
-        val PHONE = Regex("^0[0-9]{8,10}$")
+        /** 010은 11자리, 그 밖의 휴대폰과 지역 번호는 9~11자리 */
+        val PHONE = Regex("^(010[0-9]{8}|01[1-9][0-9]{7,8}|0[2-9][0-9]{7,9})$")
         const val NEED_LABEL = "관계를 골라 주세요."
         const val BAD_PHONE = "전화번호를 다시 확인해 주세요."
         const val FULL = "3명까지 등록할 수 있습니다. 하나를 지운 뒤 추가해 주세요."

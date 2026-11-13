@@ -139,6 +139,21 @@ object TripRules {
     /** 후진에 들어가면 안내 음성을 멈춘다. */
     fun shouldSilence(current: GearState): Boolean = current == GearState.REVERSE
 
+    /**
+     * 이 운행이 집으로 가는 길인지. 주차 안내를 이미 시작했으면 집이고,
+     * 목적지와 집 위치를 모두 알면 둘 사이가 가까울 때만 집이다. 알 수 없으면 집으로 본다(안내를 막지 않는다).
+     */
+    fun homeBound(trip: Trip, card: ParkingCard): Boolean {
+        if (trip.guidanceStartedAt != null) return true
+        val booking = trip.booking ?: return false
+        val lat = booking.lat ?: return true
+        val lng = booking.lng ?: return true
+        val homeLat = card.latitude ?: return true
+        val homeLng = card.longitude ?: return true
+        return VoiceCall.straightKm(lat, lng, homeLat, homeLng) <= HOME_BOUND_KM
+    }
+    const val HOME_BOUND_KM = 1.0f
+
     fun guidanceStarted(trip: Trip, now: Long): Trip =
         if (trip.guidanceStartedAt != null) trip else trip.copy(guidanceStartedAt = now)
 

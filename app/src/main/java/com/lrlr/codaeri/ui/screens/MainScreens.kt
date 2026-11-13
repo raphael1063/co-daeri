@@ -300,6 +300,9 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onEditCard: () -> Unit,
     onUnbind: () -> Unit,
+    /** 차 위치 권한을 받았는지. 받지 못했으면 다시 묻는 줄을 보여 준다. */
+    locationAllowed: Boolean = true,
+    onAskLocation: () -> Unit = {},
     /** 이용 알림이 켜져 있는지(차의 알림 허용과 이 설정이 모두 켜짐) */
     noticeOn: Boolean,
     onToggleNotice: () -> Unit,
@@ -317,6 +320,9 @@ fun SettingsScreen(
         TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
         Spacer(Modifier.height(20.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        if (!locationAllowed) SettingRow(
+            "차 위치 권한", "허용되지 않음 · 출발지 확인과 집 근처 주차 안내에 사용합니다", "허용", onAskLocation, Modifier.appear(1),
+        )
         SettingRow(
             "집 주차 안내", when {
                 state.card.isUsable -> "등록됨 · 집 근처에서 기사님께 안내해 드립니다"

@@ -52,6 +52,8 @@ class ParkingGuide(
     fun onNearHome() {
         val trip = store.value.trip ?: return
         if (trip.phase != TripPhase.ACTIVE || trip.booking == null || !trip.leftHome || _state.value.started) return
+        // 다른 곳으로 가는 길에 집 근처를 지나는 것은 도착이 아니다.
+        if (!TripRules.homeBound(trip, store.value.card)) return
         store.update { it.copy(trip = TripRules.guidanceStarted(trip, clock())) }
         onArrived()
         advance(start = true, afterCurrent = true)

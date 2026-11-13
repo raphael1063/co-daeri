@@ -91,10 +91,12 @@ fun DrivingScreen(
             if (booking == null) "예약을 확인하는 중입니다" else if (parking) "주차 중입니다" else "${handover.toward(booking.destination)} 운행 중",
             Type.headlineLarge, maxLines = 2,
         )
+        // 집으로 가는 운행에서만 집 주차 안내를 말한다.
+        val guide = card.isUsable && com.lrlr.codaeri.domain.TripRules.homeBound(trip, card)
         val description = when {
             booking == null -> "예약이 확인되면 이용 내역에 남깁니다."
             parking -> "주차를 마치고 P단에 놓으면 운행 종료 버튼이 나옵니다."
-            card.isUsable -> "등록한 집 근처에 도착하면 주차 안내를 들려드립니다."
+            guide && !guidance.started -> "등록한 집 근처에 도착하면 주차 안내를 들려드립니다."
             else -> null
         }
         description?.let {
@@ -102,19 +104,19 @@ fun DrivingScreen(
             T(it, Type.bodyLarge, color = c.textTertiary)
         }
         // 길 안내는 내비게이션이 하므로, 이 화면을 열어 본 뒤 지도로 바로 돌아갈 수 있게 한다.
-        if (booking != null && !(card.isUsable && guidance.started)) {
+        if (booking != null && !(guide && guidance.started)) {
             Spacer(Modifier.height(40.dp))
             // 좁은 창에서는 버튼이 다음 줄로 넘어간다.
             FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // 내비게이션과 나란히 보는 중이면 지도가 이미 옆에 있으므로 버튼을 두지 않는다.
                 if (!isNarrow()) IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
                 // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
-                if (card.isUsable) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
+                if (guide) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
                 // 유사시 연락할 곳이므로 달리는 동안에도 열 수 있다.
                 IviButton("비상연락처 보기", onEmergency, size = ButtonSize.LARGE)
             }
         }
-        if (booking != null && card.isUsable && guidance.started) {
+        if (booking != null && guide && guidance.started) {
             Spacer(Modifier.height(40.dp))
             Panel(Modifier.fillMaxWidth()) {
                 T("주차 안내", Type.labelLarge, color = c.textTertiary)

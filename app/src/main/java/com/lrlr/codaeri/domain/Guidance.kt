@@ -75,7 +75,10 @@ object Guidance {
                 steps = group,
                 // 칸 이름은 화면에만 쓴다. 내용이 이미 문장이라 이름까지 읽으면 같은 말이 겹친다.
                 speech = prefix + group.joinToString(" ") { sentence(text(card, it)) },
-                headline = text(card, group.first()),
+                // 주행 중 한 줄에는 층과 자리를 함께 적는다(층만 보이면 자리를 알 수 없다).
+                headline = listOf(card.floorLabel, card.spotLabel).filter { it.isNotBlank() }.joinToString(" ")
+                    .takeIf { it.isNotBlank() && GuideStep.ZONE in group && GuideStep.PREFERRED_SPOT in group }
+                    ?: text(card, group.first()),
             )
         }
         return result

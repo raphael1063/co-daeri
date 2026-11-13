@@ -929,6 +929,13 @@ class FlowsTest {
         assertTrue(r.service.calls.isEmpty())
 
         r.c.saveCard(ParkingCard(placeName = "우리 집", latitude = 37.4, longitude = 127.1))
+        // 이미 집에 있으면 요금을 묻지 않고 다른 목적지를 고르게 한다
+        r.c.startCall()
+        r.c.callHome(); runCurrent()
+        assertTrue(r.c.voice.value.message.startsWith(CallFlow.ALREADY_HOME))
+        assertTrue(r.service.calls.isEmpty())
+
+        r.location.position.value = com.lrlr.codaeri.domain.GeoPoint(37.4979, 127.0276)
         r.c.startCall()
         r.c.callHome(); runCurrent()
         assertEquals(CallStage.CONFIRM, r.c.voice.value.stage)

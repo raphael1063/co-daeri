@@ -172,6 +172,7 @@ class DaeriController(
     fun showPlaces() = voiceCall.places()
     fun callTo(place: Place) = voiceCall.pick(place)
     fun callByVoice() = voiceCall.voice()
+    fun callMicDenied() = voiceCall.micDenied()
     fun confirmCall() = voiceCall.confirm()
     fun cancelCall() = voiceCall.cancel()
 

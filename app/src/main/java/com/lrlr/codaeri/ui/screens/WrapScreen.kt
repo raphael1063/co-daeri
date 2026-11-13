@@ -96,7 +96,7 @@ fun WrapScreen(
                 Spacer(Modifier.height(10.dp))
                 T("운행이 종료되면 차주님이 등록한 결제수단으로 ${handover.fareText(booking.fare)}이 자동 결제됩니다. (시연용)", Type.labelLarge, Modifier.appear(1), color = c.textTertiary)
             }
-            if (card.isUsable) {
+            if (card.isUsable && com.lrlr.codaeri.domain.TripRules.homeBound(trip, card)) {
                 Spacer(Modifier.height(28.dp))
                 T("주차를 마치셨다면 위치를 남겨 주세요 (선택)", Type.labelLarge, Modifier.appear(2), color = c.textTertiary)
                 Spacer(Modifier.height(12.dp))

@@ -124,6 +124,12 @@ class CallFlow(
         listener.listen { text -> onDestinationHeard(text) }
     }
 
+    /** 마이크 권한을 받지 못했다. 듣는 척하지 않고 까닭을 알린다. */
+    fun micDenied() {
+        if (!canStart()) return
+        _ui.value = CallUi(CallStage.CONFIRM, null, message = MIC_DENIED)
+    }
+
     private fun onDestinationHeard(text: String?) {
         if (_ui.value.stage != CallStage.LISTENING) return
         val link = store.value.phoneLink ?: return cancel()
@@ -137,6 +143,12 @@ class CallFlow(
     /** 정한 목적지까지의 요금을 물어 확인받는다. 목소리로 부르는 중이면 대답도 듣는다. */
     private fun quote(place: Place, byVoice: Boolean) {
         val link = store.value.phoneLink ?: return cancel()
+        // 이미 집에 있으면 집으로 부를 일이 없다. 요금을 묻지 않고 다른 목적지를 고르게 한다.
+        val here = location.position.value
+        if (here != null && place == VoiceCall.home(store.value.card) && VoiceCall.straightKm(here.lat, here.lng, place.lat, place.lng) <= AT_HOME_KM) {
+            _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = ALREADY_HOME + if (byVoice) " 다시 말하기를 눌러 주세요." else " 다른 방법을 눌러 목적지를 선택해 주세요.")
+            return
+        }
         _ui.value = CallUi(CallStage.QUOTING, place, message = "${place.name}까지 요금을 확인하는 중입니다", byVoice = byVoice)
         job?.cancel()
         job = env.scope.launch {
@@ -219,6 +231,9 @@ class CallFlow(
         const val ASSIGN_TRIES = 10
         const val CANCELLED = "호출을 취소했습니다."
         const val CANCEL_FAILED = "호출을 취소하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
+        const val AT_HOME_KM = 0.3f
+        const val ALREADY_HOME = "지금 집 근처에 있습니다."
+        const val MIC_DENIED = "마이크 권한이 없어 말로 입력할 수 없습니다. 다른 방법을 눌러 목적지를 선택해 주세요."
         const val HOME_MISSING = "집 위치가 아직 등록되어 있지 않습니다"
         const val HOME_MISSING_HINT = "설정에서 집 주차 안내를 등록하면 다음부터 집으로 바로 부를 수 있습니다. 지금은 다른 방법으로 목적지를 정할 수도 있습니다."
     }

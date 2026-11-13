@@ -504,6 +504,29 @@ class DomainTest {
         assertEquals(null, Json.decodeContacts("""{"error":"no_contact"}"""))
     }
 
+    @Test fun phoneNumbersNeedTheRightLength() {
+        val ok = com.lrlr.codaeri.app.ContactEditor.PHONE
+        assertTrue(ok.matches("01000000001"))
+        // 010 번호는 11자리여야 한다
+        assertFalse(ok.matches("0101111000"))
+        assertTrue(ok.matches("0212345678"))
+        assertTrue(ok.matches("0111234567"))
+        assertFalse(ok.matches("1234567890"))
+    }
+
+    @Test fun homeGuidanceOnlyOnTripsThatGoHome() {
+        val card = ParkingCard(placeName = "집", latitude = 37.4020, longitude = 127.1086, floorLabel = "B2", spotLabel = "B-17")
+        fun trip(lat: Double?, lng: Double?) = Trip(id = "t", cardId = "home", startedAt = 0, booking = Booking(id = "b", driver = Driver("d", "김기사"), destination = "x", lat = lat, lng = lng))
+        assertTrue(TripRules.homeBound(trip(37.4021, 127.1087), card))
+        assertFalse(TripRules.homeBound(trip(37.4979, 127.0276), card))
+        // 목적지 좌표를 모르면 막지 않는다
+        assertTrue(TripRules.homeBound(trip(null, null), card))
+        // 이미 안내를 시작했으면 집이다
+        assertTrue(TripRules.homeBound(trip(37.4979, 127.0276).copy(guidanceStartedAt = 1), card))
+        // 주행 중 한 줄에는 층과 자리가 함께 나온다
+        assertTrue(Guidance.segments(card).any { it.headline == "B2 B-17" })
+    }
+
     @Test fun parkingCardNeedsNameAndSpotAndOtherPlacesUseFreeText() {
         // 아파트·오피스텔: 장소 이름, 층, 기둥 번호가 모두 있어야 저장할 수 있다
         val apt = ParkingCard(placeName = "우리 집", floorLabel = "지하 2층", spotLabel = "B-17")
