@@ -113,8 +113,8 @@ class OverlayBanner(private val context: Context) : TripBanner {
             }
         }
         // 지도 위쪽의 빈 자리를 채운다: 왼쪽 회전 안내 카드와 오른쪽 2D 단추 사이의 너비, 회전 안내 카드의 첫 칸(구분선까지) 높이.
-        // 순정 내비게이션 화면(2560x1440) 배치에 맞춘 값이고, 더 좁은 화면에서는 너비를 화면의 36%로 줄인다.
-        val width = minOf(dp(931f), (context.resources.displayMetrics.widthPixels * 0.36f).toInt())
+        // 순정 내비게이션 화면(2560x1440) 배치에 맞춘 값이고, 더 좁은 화면에서는 화면 너비 안으로 줄인다.
+        val width = minOf(dp(931f), context.resources.displayMetrics.widthPixels - dp(184f))
         val params = WindowManager.LayoutParams(
             width, dp(150f),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
