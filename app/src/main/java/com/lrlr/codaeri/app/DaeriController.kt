@@ -61,6 +61,7 @@ class DaeriController(
     private val contactEditor = ContactEditor(store, ports.service, env)
     private val regularEditor = RegularEditor(store, ports.service, env)
     private val router = DestinationRouter(ports.routeGuide)
+    private val homeImport = HomeImport(ports.routeGuide, env)
     private val recorder = TripRecorder(
         store, ports.car, ports.location, ports.restriction, ports.announcer, ports.links,
         handover, guide, outbox, sync, router, env,
@@ -95,6 +96,10 @@ class DaeriController(
     fun resetDictation() = dictation.reset()
     val emergency: StateFlow<EmergencyUi?> = emergencyViewer.ui
     val routed: StateFlow<String?> = router.routed
+    /** 집 위치를 내비게이션 즐겨찾기에서 가져오는 중인지와 그 결과 */
+    val homeImportUi: StateFlow<HomeImportUi> = homeImport.ui
+    fun importHomeFromNavi() = homeImport.fetch()
+    fun clearHomeImport() = homeImport.clear()
     val restricted: StateFlow<Boolean> = ports.restriction.restricted
     val speaking: StateFlow<Boolean> = ports.announcer.speaking
     val position: StateFlow<GeoPoint?> = ports.location.position

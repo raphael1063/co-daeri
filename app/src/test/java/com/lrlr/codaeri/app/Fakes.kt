@@ -197,6 +197,10 @@ class FakeRestriction : DrivingRestriction {
 class FakeRoute : RouteGuide {
     val routes = mutableListOf<String>()
     override fun routeTo(lat: Double, lng: Double, name: String, onResult: (Boolean) -> Unit) { routes += name; onResult(true) }
+    /** 내비게이션 즐겨찾기의 집. answers 가 false 면 내비게이션이 대답하지 않는 차를 흉내 낸다. */
+    var home: com.lrlr.codaeri.domain.HomeBookmark? = null
+    var answers = true
+    override fun homeBookmark(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) { if (answers) onResult(home) }
 }
 
 class FakeNotices : Notices {

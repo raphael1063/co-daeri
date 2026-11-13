@@ -127,6 +127,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             DaeriTheme {
                 val state by c.state.collectAsStateWithLifecycle()
+                val homeImport by c.homeImportUi.collectAsStateWithLifecycle()
                 val consented = state.consentAt != null
                 androidx.compose.runtime.LaunchedEffect(consented) { if (consented) askBasicsOnce() }
                 val guidance by c.guidance.collectAsStateWithLifecycle()
@@ -217,12 +218,14 @@ class MainActivity : ComponentActivity() {
                             Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip, onEditParking = { editParking = true }) }
                             Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode)
                             Screen.EDITOR -> {
-                                BackHandler { editing = false }
+                                BackHandler { c.clearHomeImport(); editing = false }
                                 CardEditorScreen(
                                     initial = state.card,
                                     currentLocation = location?.let { it.lat to it.lng },
-                                    onSave = { c.saveCard(it); editing = false },
-                                    onBack = { editing = false },
+                                    homeImport = homeImport,
+                                    onImportHome = c::importHomeFromNavi,
+                                    onSave = { c.saveCard(it); c.clearHomeImport(); editing = false },
+                                    onBack = { c.clearHomeImport(); editing = false },
                                 )
                             }
                             Screen.HANDOVER -> {

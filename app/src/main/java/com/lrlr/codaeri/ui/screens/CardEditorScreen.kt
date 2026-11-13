@@ -38,6 +38,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lrlr.codaeri.BuildConfig
+import com.lrlr.codaeri.app.HomeImportUi
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.FlowRow
 import com.lrlr.codaeri.domain.AppState
 import com.lrlr.codaeri.domain.PhoneLink
 import com.lrlr.codaeri.domain.Links
@@ -56,10 +59,13 @@ import com.lrlr.codaeri.domain.Trip
 import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CardEditorScreen(
     initial: ParkingCard,
     currentLocation: Pair<Double, Double>?,
+    homeImport: HomeImportUi,
+    onImportHome: () -> Unit,
     onSave: (ParkingCard) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -69,6 +75,14 @@ fun CardEditorScreen(
     var free by remember(initial) { mutableStateOf(if (initial.placeKind == PlaceKind.OTHER) initial.spotLabel else "") }
     val result = if (kind == PlaceKind.OTHER) c.copy(placeKind = PlaceKind.OTHER, floorLabel = "", spotLabel = free.trim())
     else c.copy(placeKind = PlaceKind.APARTMENT, placeName = c.placeName, floorLabel = c.floorLabel.trim(), spotLabel = c.spotLabel.trim())
+    // 내비게이션 즐겨찾기의 집을 가져오면 위치를 채우고, 장소 이름이 비어 있으면 이름도 채운다. 저장은 차주가 누른다.
+    var fromNavi by remember(initial) { mutableStateOf(false) }
+    LaunchedEffect(homeImport.found) {
+        homeImport.found?.let { home ->
+            c = c.copy(latitude = home.lat, longitude = home.lng, placeName = c.placeName.ifBlank { home.name })
+            fromNavi = true
+        }
+    }
     // 저장과 취소는 스크롤하지 않아도 보이도록 아래에 고정한다.
     Column(page, verticalArrangement = Arrangement.spacedBy(16.dp)) {
     // 제목은 위에, 저장과 취소는 아래에 고정한다.
@@ -80,22 +94,27 @@ fun CardEditorScreen(
         )
         T("집 위치", Type.titleSmall)
         Field("장소 이름 (필수)", c.placeName) { c = c.copy(placeName = it) }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // 두 버튼은 늘 같은 자리에 같은 크기로 있고, 결과는 그 아래 한 줄에 적는다.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            IviButton("내비게이션 즐겨찾기의 집 가져오기", onImportHome, size = ButtonSize.SMALL, loading = homeImport.busy)
             IviButton(
                 "현재 위치를 집으로 설정",
-                { currentLocation?.let { (lat, lng) -> c = c.copy(latitude = lat, longitude = lng) } },
+                { currentLocation?.let { (lat, lng) -> c = c.copy(latitude = lat, longitude = lng); fromNavi = false } },
                 enabled = currentLocation != null, size = ButtonSize.SMALL,
             )
-            T(
-                when {
-                    c.hasLocation && (c.latitude != initial.latitude || c.longitude != initial.longitude) -> "집 위치를 선택했습니다. 저장을 눌러 완료해 주세요."
-                    c.hasLocation -> "등록된 집 위치 근처에서 주차 안내를 시작합니다."
-                    currentLocation == null -> "현재 위치를 확인할 수 없습니다. 집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
-                    else -> "집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
-                },
-                Type.labelSmall, Modifier.weight(1f), color = Ivi.colors.textTertiary,
-            )
         }
+        T(
+            when {
+                homeImport.busy -> "내비게이션 즐겨찾기를 확인하고 있습니다."
+                fromNavi && homeImport.message.isNotBlank() -> homeImport.message
+                homeImport.found == null && homeImport.message.isNotBlank() -> homeImport.message
+                c.hasLocation && (c.latitude != initial.latitude || c.longitude != initial.longitude) -> "집 위치를 선택했습니다. 저장을 눌러 완료해 주세요."
+                c.hasLocation -> "등록된 집 위치 근처에서 주차 안내를 시작합니다."
+                currentLocation == null -> "현재 위치를 확인할 수 없습니다. 집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
+                else -> "집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
+            },
+            Type.labelSmall, color = Ivi.colors.textTertiary,
+        )
         Spacer(Modifier.height(12.dp))
         T("주차할 위치", Type.titleSmall)
         T("아래 위치를 기사님께 안내하고, 이용 내역에서도 확인할 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)

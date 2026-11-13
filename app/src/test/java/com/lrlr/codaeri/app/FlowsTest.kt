@@ -359,6 +359,27 @@ class FlowsTest {
         assertNull(r.state.lastCard)
     }
 
+    @Test fun homeLocationComesFromTheNavigationBookmark() = runTest {
+        val r = rig()
+        // 즐겨찾기에 집이 없으면 그렇다고 알려 준다
+        r.c.importHomeFromNavi(); runCurrent()
+        assertNull(r.c.homeImportUi.value.found)
+        assertEquals(HomeImport.NONE, r.c.homeImportUi.value.message)
+
+        r.route.home = com.lrlr.codaeri.domain.HomeBookmark("우리집", "성남시 분당구 삼평동", 37.4020, 127.1086)
+        r.c.importHomeFromNavi(); runCurrent()
+        assertEquals(37.4020, r.c.homeImportUi.value.found!!.lat, 0.0)
+        assertTrue(r.c.homeImportUi.value.message.contains("삼평동"))
+
+        // 내비게이션이 대답하지 않으면 기다리다 멈추고 다른 방법을 안내한다
+        r.route.answers = false
+        r.c.importHomeFromNavi(); runCurrent()
+        assertTrue(r.c.homeImportUi.value.busy)
+        r.pass(HomeImport.TIMEOUT_MS + 100)
+        assertFalse(r.c.homeImportUi.value.busy)
+        assertEquals(HomeImport.UNAVAILABLE, r.c.homeImportUi.value.message)
+    }
+
     @Test fun serviceStaysUpOnlyWhileADriverIsAwaitedOrATripIsRecorded() = runTest {
         val r = rig()
         // 번호만 연결된 차는 서비스를 띄우지 않는다

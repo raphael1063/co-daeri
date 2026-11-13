@@ -80,4 +80,9 @@ interface DrivingRestriction {
 /** 순정 내비게이션에 목적지를 넘긴다. 길 안내는 내비게이션이 한다. */
 interface RouteGuide {
     fun routeTo(lat: Double, lng: Double, name: String, onResult: (Boolean) -> Unit)
+    /** 순정 내비게이션 즐겨찾기에 등록된 집. 없거나 읽지 못하면 null */
+    fun homeBookmark(onResult: (HomeBookmark?) -> Unit) = onResult(null)
 }
+
+/** 내비게이션 즐겨찾기의 집 */
+data class HomeBookmark(val name: String, val address: String, val lat: Double, val lng: Double)

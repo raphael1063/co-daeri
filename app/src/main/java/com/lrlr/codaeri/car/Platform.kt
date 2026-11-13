@@ -411,5 +411,43 @@ class Navigator(private val context: Context) : RouteGuide {
         }
     }
 
+    /** 즐겨찾기 가운데 분류가 "집"인 것 하나. 내비게이션이 목록을 돌려주면 한 번만 답한다. */
+    override fun homeBookmark(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) {
+        val main = Handler(Looper.getMainLooper())
+        fun ask(h: ai.pleos.playground.navi.helper.NaviHelper) = try {
+            var answered = false
+            val listener = object : ai.pleos.playground.navi.helper.listener.NaviHelperEventListener {
+                override fun onBookmarkInfo(bookmarks: List<ai.pleos.playground.navi.data.BookmarkInfo>) {
+                    if (answered) return
+                    answered = true
+                    runCatching { h.removeListener(this) }
+                    val home = bookmarks.firstOrNull { it.category == ai.pleos.playground.navi.constants.BookmarkType.HOME }
+                    main.post {
+                        onResult(home?.let {
+                            com.lrlr.codaeri.domain.HomeBookmark(it.name.orEmpty(), it.address.orEmpty(), it.latitude, it.longitude)
+                        })
+                    }
+                }
+            }
+            h.addListener(listener)
+            h.getBookmarkInfo()
+        } catch (t: Throwable) {
+            Log.w(TAG, "bookmark request failed", t)
+            main.post { onResult(null) }
+        }
+        helper?.takeIf { ready }?.let { ask(it); return }
+        try {
+            val h = ai.pleos.playground.navi.helper.NaviHelper(context.applicationContext)
+            helper = h
+            h.initialize({ ready = true; ask(h) }, { t ->
+                Log.w(TAG, "navi init failed", t)
+                main.post { onResult(null) }
+            })
+        } catch (t: Throwable) {
+            Log.w(TAG, "navi unavailable", t)
+            onResult(null)
+        }
+    }
+
     private companion object { const val TAG = "DaeriNavi" }
 }
