@@ -41,7 +41,7 @@ class DaeriController(
     private val pairingFlow: PairingFlow = PairingFlow(
         store, ports.service, ports.links, server, env,
         onRegistered = { outbox.send() },
-        onUnbound = { if (!needsKeepAlive()) ports.keepAlive.off() },
+        onUnbound = { emergencyViewer.hide(); if (!needsKeepAlive()) ports.keepAlive.off() },
     )
     private val sync = BookingSync(
         store, ports.service, ports.car, ports.location, env, visible,

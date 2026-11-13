@@ -65,7 +65,11 @@ class PairingFlow(
         }
     }
 
-    /** 연결을 해제한다. 서버의 번호, 예약, 연결한 휴대폰을 모두 지우고 차에서도 지운다. 동의도 철회된 것으로 본다. */
+    /**
+     * 연결을 해제한다. 서버는 이 연결의 기록(번호, 연결한 휴대폰, 예약, 알림, 비상연락처, 공유 연락처, 우선 요청 기사님,
+     * 차 위치, 휴대폰에서 보던 이용 내역)을 모두 지운다. 차에서는 연결 열쇠, 서버에서 받아 둔 상태(가린 연락처 포함),
+     * 올릴 카드와 올린 시각, 동의 시각을 지운다. 차의 이용 내역과 집 주차 안내는 차의 것이라 남긴다.
+     */
     fun unbind() {
         val link = store.value.phoneLink ?: return
         if (_unbinding.value) return
@@ -74,7 +78,7 @@ class PairingFlow(
         env.scope.launch {
             val ok = try { withContext(env.io) { service.unlinkAll(link) } } finally { _unbinding.value = false }
             if (ok) {
-                store.update { it.copy(phoneLink = null, server = ServerState(), checkedAt = null, outbox = null, uploadPending = false, consentAt = null) }
+                store.update { it.copy(phoneLink = null, server = ServerState(), checkedAt = null, outbox = null, uploadPending = false, lastUploadAt = null, consentAt = null) }
                 _pairing.value = Pairing(null, "")
                 onUnbound()
             } else {
