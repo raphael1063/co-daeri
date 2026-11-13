@@ -69,6 +69,9 @@ fun DrivingScreen(
     onRepeat: () -> Unit,
     /** 순정 내비게이션 화면으로 돌아간다 */
     onMap: () -> Unit,
+    /** 차주가 등록해 둔 비상연락처(가린 번호). 없으면 버튼을 보이지 않는다. */
+    emergencies: List<Emergency> = emptyList(),
+    onEmergency: () -> Unit = {},
 ) {
     val now = rememberNow()
     val c = Ivi.colors
@@ -101,6 +104,8 @@ fun DrivingScreen(
                 IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
                 // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
                 if (card.isUsable) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
+                // 유사시 연락할 곳이므로 달리는 동안에도 열 수 있다.
+                if (emergencies.isNotEmpty()) IviButton("비상연락처 보기", onEmergency, size = ButtonSize.LARGE)
             }
         }
         if (booking != null && card.isUsable && guidance.started) {
@@ -127,6 +132,7 @@ fun DrivingScreen(
                 IviButton(if (guidance.hasNext) "다음 안내" else "처음부터 다시", onNext, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
                 IviButton("다시 듣기", onRepeat, Modifier.weight(1f), size = ButtonSize.LARGE)
                 IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
+                if (emergencies.isNotEmpty()) IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
             }
         }
     }

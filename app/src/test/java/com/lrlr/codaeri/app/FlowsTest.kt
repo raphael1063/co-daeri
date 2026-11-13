@@ -754,6 +754,10 @@ class FlowsTest {
 
         r.book()
         r.gear(GearState.NOT_PARK)
+        // 유사시 연락할 곳이므로 달리는 동안에도 볼 수 있다.
+        r.c.showEmergency(); runCurrent()
+        assertEquals(3, r.c.emergency.value?.contacts?.size)
+        r.c.hideEmergency()
         r.gear(GearState.PARK)
         r.c.showEmergency(); runCurrent()
         assertEquals(listOf("010-1234-5678", "02-1234-5678", "010-0000-0001"), r.c.emergency.value?.contacts?.map { it.dialText })

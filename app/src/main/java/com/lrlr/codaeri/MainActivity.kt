@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
                     ) { target ->
                         when (target) {
                             Screen.DRIVING -> trip?.let {
-                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap)
+                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap, emergencies = state.server.emergencyList, onEmergency = c::showEmergency)
                             }
                             Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
                             Screen.WRAP -> trip?.let {
@@ -258,9 +258,10 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // 비상연락처는 운행 중 마무리 화면에서만 보인다. 화면이 바뀌면(다시 출발, 운행 종료) 닫는다.
-                    LaunchedEffect(screen) { if (screen != Screen.WRAP) c.hideEmergency() }
-                    Fading(if (screen == Screen.WRAP) emergencyUi else null) { em ->
+                    // 비상연락처는 운행 중(달리는 화면과 정차 중 화면)에만 보인다. 운행이 끝나면 닫는다.
+                    val inTrip = screen == Screen.WRAP || screen == Screen.DRIVING
+                    LaunchedEffect(inTrip) { if (!inTrip) c.hideEmergency() }
+                    Fading(if (inTrip) emergencyUi else null) { em ->
                         IviPopup(
                             onDismiss = c::hideEmergency,
                             buttons = { IviButton("닫기", c::hideEmergency, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
