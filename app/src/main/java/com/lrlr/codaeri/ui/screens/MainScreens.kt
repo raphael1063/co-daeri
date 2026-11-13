@@ -216,7 +216,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(20.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SettingRow(
-            "집 주차 안내", if (state.card.isUsable) "등록됨 · 집 근처에서 기사님께 읽어 드립니다" else "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다",
+            "집 주차 안내", if (state.card.isUsable) "등록됨 · 집 근처에서 기사님께 안내해 드립니다" else "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다",
             if (state.card.isUsable) "수정" else "등록", onEditCard, Modifier.appear(1),
         )
         SettingRow(

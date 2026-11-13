@@ -69,7 +69,7 @@ fun CardEditorScreen(
     T("집 주차 안내", Type.titleMedium)
     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         T(
-            "집 근처에 도착하면 기사님께 읽어 드리는 안내입니다. 이 내용은 차에만 저장됩니다.",
+            "집 근처에 도착하면 기사님께 안내해 드리는 내용입니다. 이 내용은 차에만 저장됩니다.",
             Type.labelLarge, color = Ivi.colors.textTertiary,
         )
         T("집 위치", Type.titleSmall)
