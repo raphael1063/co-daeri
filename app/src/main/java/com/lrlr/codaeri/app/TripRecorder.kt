@@ -64,6 +64,9 @@ class TripRecorder(
     val watchingLocks: Boolean get() = lockWatch?.isActive == true
 
     /** 운전석이 비면 종료된다고 화면에 적어도 되는지(착석 값의 방향을 아는지) */
+    /** 종료 안내를 이미 한 운행 */
+    private var promptedTrip: String? = null
+
     fun seatCloses(): Boolean = store.value.trip?.seatInverted != null
 
     // ---------- 차 신호 ----------
@@ -108,15 +111,21 @@ class TripRecorder(
         if (gear.moving && TripRules.onGear(store.value.trip, gear) == GearEvent.START) onGear(gear, gear)
     }
 
-    /** 운전석 값이 바뀌었다. P로 선 뒤 운전석이 비면 잠깐 기다렸다 종료한다(자세를 고쳐 앉는 정도로는 종료하지 않는다). */
+    /**
+     * 운전석 값이 바뀌었다. 종료는 "운행 종료" 단추로만 한다(잠깐 세우고 내리는 경우와 구분할 수 없어서).
+     * P로 선 뒤 운전석이 비면 잠깐 기다렸다가 단추를 눌러 달라고 한 번만 알린다.
+     */
     fun onSeatChanged() {
         val trip = store.value.trip ?: return
         if (!TripRules.closesOnSeat(trip, car.gear.value, car.driverSeated.value)) { seatJob?.cancel(); return }
-        if (seatJob?.isActive == true) return
+        if (seatJob?.isActive == true || promptedTrip == trip.id) return
         seatJob = env.scope.launch {
             delay(SEAT_SETTLE_MS)
             val t = store.value.trip ?: return@launch
-            if (t.id == trip.id && TripRules.closesOnSeat(t, car.gear.value, car.driverSeated.value)) close(ClosedBy.SEAT_EMPTY)
+            if (t.id == trip.id && t.booking != null && TripRules.closesOnSeat(t, car.gear.value, car.driverSeated.value)) {
+                promptedTrip = t.id
+                announcer.say(END_PROMPT)
+            }
         }
     }
 
@@ -227,7 +236,7 @@ class TripRecorder(
         store.update { s -> s.copy(trip = s.trip?.let { TripRules.parkingChosen(it, result) }) }
     }
 
-    /** "운행 종료" 단추. 착석 값을 믿을 수 없는 차에서도 운행을 끝낼 수 있게 둔다. */
+    /** "운행 종료" 단추. 운행은 이 단추로만 끝낸다(차 전원이 꺼진 경우만 예외). */
     fun closeByButton() {
         if (restriction.restricted.value || car.gear.value.moving) return
         close(ClosedBy.BUTTON)
@@ -331,6 +340,8 @@ class TripRecorder(
         /** 기사님은 화면을 보지 않아도 기록된다는 사실을 한 번 듣는다. */
         const val DRIVER_NOTICE =
             "대리 운행의 시간과 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다."
+        /** 운전석이 비었는데 종료 단추를 누르지 않았을 때 한 번 읽는다 */
+        const val END_PROMPT = "운행을 마치셨다면 화면의 운행 종료를 눌러 주세요."
         const val SEAT_SETTLE_MS = 3_000L
         private const val HEARTBEAT_MS = 60_000L
         /** 운행 중에 앱이 이보다 오래 꺼져 있었으면 시동을 끄고 내린 것으로 본다 */

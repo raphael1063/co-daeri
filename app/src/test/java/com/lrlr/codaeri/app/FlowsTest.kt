@@ -71,7 +71,7 @@ class FlowsTest {
 
     // ---------- 운행 기록 ----------
 
-    @Test fun bookedTripStartsOnGearAndClosesWhenSeatStaysEmpty() = runTest {
+    @Test fun bookedTripStartsOnGearAndClosesOnlyByTheEndButton() = runTest {
         val r = rig()
         r.book()
         r.gear(GearState.NOT_PARK)
@@ -86,13 +86,19 @@ class FlowsTest {
         r.gear(GearState.PARK)
         assertEquals(TripPhase.WRAPPING_UP, r.state.trip?.phase)
 
+        // 운전석이 비어도 스스로 끝내지 않는다. 단추를 눌러 달라고 한 번만 알린다.
         r.seat(false)
         r.pass(TripRecorder.SEAT_SETTLE_MS - 1)
+        assertFalse(TripRecorder.END_PROMPT in r.announcer.said)
+        r.pass(60_000)
         assertEquals(TripPhase.WRAPPING_UP, r.state.trip?.phase)
-        r.pass(2)
+        assertEquals(1, r.announcer.said.count { it == TripRecorder.END_PROMPT })
+        r.seat(true); r.seat(false); r.pass(60_000)
+        assertEquals(1, r.announcer.said.count { it == TripRecorder.END_PROMPT })
+        r.c.closeByButton(); r.pass(1)
         val done = r.state.trip!!
         assertEquals(TripPhase.DONE, done.phase)
-        assertEquals(ClosedBy.SEAT_EMPTY, done.closedBy)
+        assertEquals(ClosedBy.BUTTON, done.closedBy)
         assertEquals(trip.id, done.id)
         val card = r.service.uploads.last()
         assertEquals(CardStage.DONE, card.stage)

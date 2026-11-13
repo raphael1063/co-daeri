@@ -94,6 +94,14 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         return if (d < 0f) null else d
     }
 
+    /** "판교 삼평동으로", "집으로", "서울로": 받침이 없거나 ㄹ 받침이면 "로", 아니면 "으로". 한글로 끝나지 않으면 "(으)로". */
+    fun toward(place: String): String {
+        val last = place.trim().lastOrNull() ?: return place
+        if (last !in '가'..'힣') return "${place.trim()}(으)로"
+        val jong = (last - '가') % 28
+        return place.trim() + if (jong == 0 || jong == 8) "로" else "으로"
+    }
+
     fun distanceText(km: Float?): String = when {
         km == null -> "이동 거리 정보 없음"
         km < 10f -> "${(km * 10).roundToInt() / 10.0}km".replace(".0km", "km")

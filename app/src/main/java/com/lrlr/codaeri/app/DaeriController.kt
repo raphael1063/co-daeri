@@ -142,6 +142,11 @@ class DaeriController(
 
     fun chooseParking(result: ParkingResult?) = recorder.chooseParking(result)
     /** 예약이 있고, 서 있는 차에 기사님과 차주가 탄 것으로 판단되는가. 메인 화면이 단추 셋 대신 "운행 시작"을 보여 준다. */
+    /** 좌석 신호로 탑승을 판정할 수 있는 차인지. 아니면 대리 현황에 출발하기를 둔다. */
+    val judgesBoarding: StateFlow<Boolean> = combine(store.state, ports.car.driverSeated, ports.car.passengerSeats) { s, driver, others ->
+        TripRules.judgesBoarding(s.seatInverted, driver, others)
+    }.stateIn(env.scope, SharingStarted.Eagerly, false)
+
     val startReady: StateFlow<Boolean> = combine(store.state, ports.car.gear, ports.car.driverSeated, ports.car.passengerSeats) { s, gear, driver, others ->
         s.trip == null && gear == GearState.PARK && s.pendingBooking(env.clock()) != null && TripRules.readyToStart(s.seatInverted, driver, others)
     }.stateIn(env.scope, SharingStarted.Eagerly, false)

@@ -42,6 +42,10 @@ object TripRules {
      * 서 있는 차에 기사님과 차주가 탔는가. 이때 메인 화면이 "운행 시작" 단추를 보여 준다.
      * 서 있을 때는 운전석 값만으로 방향을 알 수 없으므로, 앞서 달릴 때 알아 둔 방향(inverted)이 있어야 판단한다.
      */
+    /** 이 차가 좌석 신호로 탑승을 판정할 수 있는가. 판정할 수 있으면 출발하기는 첫 화면에만 둔다. */
+    fun judgesBoarding(inverted: Boolean?, driverSeatRaw: Boolean?, passengerSeatsRaw: List<Boolean?>): Boolean =
+        inverted != null && driverSeatRaw != null && passengerSeatsRaw.any { it != null }
+
     fun readyToStart(inverted: Boolean?, driverSeatRaw: Boolean?, passengerSeatsRaw: List<Boolean?>): Boolean =
         seated(inverted, driverSeatRaw) == true && passengerSeatsRaw.any { seated(inverted, it) == true }
 

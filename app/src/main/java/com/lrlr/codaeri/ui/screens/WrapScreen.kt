@@ -115,8 +115,7 @@ fun WrapScreen(
             }
             Spacer(Modifier.height(16.dp))
             T(
-                if (seatCloses) "잠시 정차한 경우 그대로 출발하시면 됩니다. 운행을 마친 뒤 운전석에서 내리면 자동으로 종료됩니다."
-                else "자동 종료를 확인할 수 없습니다. 주차를 마치셨다면 운행 종료를 눌러 주세요.",
+                "잠시 정차한 경우 그대로 출발하시면 됩니다. 주차를 마쳤으면 운행 종료를 눌러 주세요.",
                 Type.labelLarge, Modifier.appear(3), color = c.textTertiary,
             )
             if (booking != null && emergencies.isNotEmpty()) {
