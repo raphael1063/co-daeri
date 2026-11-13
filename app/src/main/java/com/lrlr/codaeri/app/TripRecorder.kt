@@ -28,7 +28,8 @@ import com.lrlr.codaeri.domain.text
 
 /** 목적지에서 먼 곳에서 운행을 끝내려 할 때 화면에 묻는 내용 */
 /** 출발 전 기사님 PIN 입력창. error가 있으면 방금 넣은 PIN이 틀린 것이다. */
-data class StartPinUi(val error: String = "")
+/** tries는 틀린 횟수다. 같은 문구가 이어져도 화면이 입력칸을 다시 비울 수 있게 센다. */
+data class StartPinUi(val error: String = "", val tries: Int = 0)
 
 data class CloseAsk(val destination: String, val km: Float)
 
@@ -131,8 +132,8 @@ class TripRecorder(
         if (_startPin.value == null) return
         // 그 사이 예약이 사라졌으면 창만 닫는다. 기사님이 다시 배정되면 PIN도 바뀌므로 지금 예약의 값과 견준다.
         val booking = store.value.pendingBooking(env.clock()) ?: run { _startPin.value = null; return }
-        if (booking.pin.isEmpty()) { _startPin.value = StartPinUi(error = PIN_NOT_READY); return }
-        if (!TripRules.startPinOk(pin, booking)) { _startPin.value = StartPinUi(error = PIN_WRONG); return }
+        if (booking.pin.isEmpty()) { _startPin.value = StartPinUi(error = PIN_NOT_READY, tries = (_startPin.value?.tries ?: 0) + 1); return }
+        if (!TripRules.startPinOk(pin, booking)) { _startPin.value = StartPinUi(error = PIN_WRONG, tries = (_startPin.value?.tries ?: 0) + 1); return }
         _startPin.value = null
         if (!armed()) toggleStartByButton()
     }

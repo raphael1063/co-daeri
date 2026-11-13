@@ -1049,8 +1049,10 @@ class FlowsTest {
         r.c.submitStartPin("0000")
         assertEquals(TripRecorder.PIN_WRONG, r.c.startPin.value!!.error)
         assertNull(r.c.startArmed.value)
+        assertEquals(1, r.c.startPin.value!!.tries)
         r.c.submitStartPin("1234") // 예전의 고정 값은 더 통하지 않는다
         assertEquals(TripRecorder.PIN_WRONG, r.c.startPin.value!!.error)
+        assertEquals(2, r.c.startPin.value!!.tries) // 같은 문구라도 횟수가 올라 화면이 입력칸을 다시 비운다
         r.c.submitStartPin("4821") // 서비스가 이 배정에 만들어 보낸 값
         assertNull(r.c.startPin.value)
         assertEquals("b1", r.c.startArmed.value)

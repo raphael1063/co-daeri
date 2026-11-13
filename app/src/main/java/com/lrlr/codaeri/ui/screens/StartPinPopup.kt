@@ -26,10 +26,10 @@ private val KEYS get() = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StartPinPopup(error: String, driverName: String, onSubmit: (String) -> Unit, onDismiss: () -> Unit) {
+fun StartPinPopup(error: String, tries: Int, driverName: String, onSubmit: (String) -> Unit, onDismiss: () -> Unit) {
     var pin by remember { mutableStateOf("") }
-    // 틀렸다는 답이 오면 입력을 비운다. 다시 누르기 시작하면 안내는 그대로 두고 새로 받는다.
-    LaunchedEffect(error) { if (error.isNotEmpty()) pin = "" }
+    // 틀릴 때마다 입력칸을 비운다. 문구가 같아도 횟수가 바뀌므로 매번 돈다.
+    LaunchedEffect(tries) { if (tries > 0) pin = "" }
     val gap = Arrangement.spacedBy(16.dp)
     IviPopup(
         onDismiss = onDismiss,

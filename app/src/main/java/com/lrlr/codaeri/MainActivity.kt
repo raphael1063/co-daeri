@@ -317,7 +317,7 @@ class MainActivity : ComponentActivity() {
                     // 출발하기를 누르면 기사님 PIN을 묻는다. 예약이 사라지거나 운행이 시작되면 창도 닫는다.
                     val startPin by c.startPin.collectAsStateWithLifecycle()
                     LaunchedEffect(pending?.id, trip?.id) { if (pending == null || trip != null) c.dismissStartPin() }
-                    Fading(startPin) { ui -> StartPinPopup(ui.error, pending?.driver?.name.orEmpty(), c::submitStartPin, c::dismissStartPin) }
+                    Fading(startPin) { ui -> StartPinPopup(ui.error, ui.tries, pending?.driver?.name.orEmpty(), c::submitStartPin, c::dismissStartPin) }
 
                     // 목적지에서 먼 곳에서 누른 운행 종료는 한 번 더 묻는다.
                     val closeAsk by c.closeAsk.collectAsStateWithLifecycle()
