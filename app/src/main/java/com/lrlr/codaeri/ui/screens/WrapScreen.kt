@@ -129,7 +129,7 @@ fun WrapScreen(
                 Row(Modifier.appear(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
                     // 잠깐 선 것뿐이면 종료하지 않고 지도로 돌아갈 수 있게 한다.
-                    IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
+                    if (!isNarrow()) IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
                 }
             }
             Spacer(Modifier.height(16.dp))

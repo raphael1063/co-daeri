@@ -106,7 +106,8 @@ fun DrivingScreen(
             Spacer(Modifier.height(40.dp))
             // 좁은 창에서는 버튼이 다음 줄로 넘어간다.
             FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
+                // 내비게이션과 나란히 보는 중이면 지도가 이미 옆에 있으므로 버튼을 두지 않는다.
+                if (!isNarrow()) IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
                 // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
                 if (card.isUsable) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
                 // 유사시 연락할 곳이므로 달리는 동안에도 열 수 있다.
@@ -133,10 +134,10 @@ fun DrivingScreen(
                 if (speaking) { Spacer(Modifier.height(6.dp)); T("읽는 중", Type.labelSmall, color = c.positiveText) }
             }
             Spacer(Modifier.height(20.dp))
-            ButtonGrid(buttons = listOf(
+            ButtonGrid(buttons = listOfNotNull(
                 { m -> IviButton(if (guidance.hasNext) "다음 안내" else "처음부터 다시", onNext, m, filled = true, size = ButtonSize.LARGE) },
                 { m -> IviButton("다시 듣기", onRepeat, m, size = ButtonSize.LARGE) },
-                { m -> IviButton("지도로 돌아가기", onMap, m, size = ButtonSize.LARGE) },
+                if (isNarrow()) null else { m -> IviButton("지도로 돌아가기", onMap, m, size = ButtonSize.LARGE) },
                 { m -> IviButton("비상연락처 보기", onEmergency, m, size = ButtonSize.LARGE) },
             ))
         }

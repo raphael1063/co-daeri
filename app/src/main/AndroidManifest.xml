@@ -26,8 +26,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- 운행 중 내비게이션 위에 "운행 중" 한 줄을 띄운다. 권한이 없으면 띄우지 않는다. -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 내비게이션 위 표시(OverlayBanner)는 지금 쓰지 않아 권한도 요청하지 않는다. 다시 켤 때 아래 줄을 되살린다.
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application

@@ -64,7 +64,8 @@ class OverlayBanner(private val context: Context) : TripBanner {
         }
     }
 
-    override fun available(): Boolean = try { Settings.canDrawOverlays(context) } catch (_: Exception) { false }
+    // 플랫폼이 "다른 앱 위에 표시"를 사용자에게 열어 주지 않아 지금은 쓰지 않는다. 코드는 남겨 두고 ENABLED 로만 막는다.
+    override fun available(): Boolean = ENABLED && try { Settings.canDrawOverlays(context) } catch (_: Exception) { false }
 
     override fun show(line: BannerLine, expanded: Boolean) {
         if (!available()) return
@@ -257,6 +258,7 @@ class OverlayBanner(private val context: Context) : TripBanner {
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, context.resources.displayMetrics).toInt()
 
     private companion object {
+        const val ENABLED = false
         const val FOLDED_H = 100f
         const val OPEN_H = 150f
         val DOTS = arrayOf("   ", ".  ", ".. ", "...")
