@@ -140,6 +140,9 @@ internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modi
 fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBack: () -> Unit) {
     val now = rememberNow()
     var open by rememberSaveable { mutableStateOf(state.history.firstOrNull()?.tripId) }
+    // 전화할 기사님의 이름. 시연에는 실제 기사님이 없어 전화를 걸지 않고 안내만 한다.
+    var calling by remember { mutableStateOf<String?>(null) }
+    Box(Modifier.fillMaxSize()) {
     Column(page) {
         TopBar("이용 내역", onBack, Modifier.appear(0))
         T("최근 30일의 이용 내역을 최대 20건 보관합니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
@@ -168,10 +171,19 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     expanded && latest && card.driverId.isNotBlank() && state.phoneLink != null,
                     enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(Motion.FOLD, delayMillis = 80)) + androidx.compose.animation.expandHorizontally(androidx.compose.animation.core.tween(Motion.FOLD)),
                     exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(Motion.EXIT)) + androidx.compose.animation.shrinkHorizontally(androidx.compose.animation.core.tween(Motion.FOLD)),
-                ) { DriverCard(state, card, Modifier.width(460.dp)) }
+                ) { DriverCard(state, card, Modifier.width(460.dp)) { calling = card.driverName } }
             }
         }
         }
+    }
+    Fading(calling) { name ->
+        IviPopup(
+            onDismiss = { calling = null },
+            buttons = { IviButton("닫기", { calling = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
+        ) {
+            PopupTitle("$name 기사님께 전화하기", "서비스가 기사님께 전화를 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다. 시연용이라 실제 전화는 걸지 않습니다.")
+        }
+    }
     }
 }
 

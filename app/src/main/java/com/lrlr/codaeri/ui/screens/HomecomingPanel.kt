@@ -178,27 +178,17 @@ internal fun CompareTable(card: HomecomingCard, h: Handover) {
     }
 }
 
-/** 모셔다 드린 기사님 카드. 단골 연결은 언제나 손님이 먼저 시작한다(주인의 휴대폰에서). */
+/** 모셔다 드린 기사님 카드. 두고 내린 물건처럼 확인할 일이 있을 때 그 기사님께 전화한다. 우선 요청은 차주의 휴대폰 페이지에서 정한다. */
 @Composable
-internal fun DriverCard(state: AppState, card: HomecomingCard, modifier: Modifier = Modifier) {
+internal fun DriverCard(state: AppState, card: HomecomingCard, modifier: Modifier = Modifier, onCall: () -> Unit) {
     val regular = state.server.regular?.id == card.driverId
-    val link = state.phoneLink ?: return
     Panel(modifier) {
-        T(if (regular) "우선 요청 기사님" else "다음에도 이 기사님께", Type.labelLarge, color = Ivi.colors.textTertiary)
+        T(if (regular) "우선 요청 기사님" else "배정 기사님", Type.labelLarge, color = Ivi.colors.textTertiary)
         Spacer(Modifier.height(10.dp))
         T("${card.driverName} 기사님", Type.titleMedium)
         Spacer(Modifier.height(12.dp))
-        if (regular) {
-            T("다음 예약 때 이 기사님께 먼저 요청합니다. 배정이 어려우면 다른 기사님이 배정됩니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
-        } else {
-            T("연결한 휴대폰으로 QR을 찍어 우선 요청을 설정할 수 있습니다. 기사님께 휴대폰 번호는 전달되지 않습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
-            Spacer(Modifier.height(20.dp))
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                QrImage(Links.ownerUrl(BuildConfig.CARD_SERVER, link), 240.dp)
-            }
-            Spacer(Modifier.height(12.dp))
-            T("연결한 휴대폰에서만 열립니다", Type.labelSmall, Modifier.fillMaxWidth(), color = Ivi.colors.textTertiary, align = TextAlign.Center)
-        }
+        T("두고 내린 물건처럼 확인할 일이 있으면 전화로 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
+        Spacer(Modifier.height(20.dp))
+        IviButton("이 기사님께 전화하기", onCall, Modifier.fillMaxWidth(), size = ButtonSize.LARGE)
     }
 }
-
