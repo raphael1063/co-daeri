@@ -146,7 +146,7 @@ class MainActivity : ComponentActivity() {
                             Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
                             Screen.WRAP -> trip?.let {
                                 WrapScreen(
-                                    trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy, link = state.phoneLink,
+                                    trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy,
                                     emergencies = state.server.emergencyList,
                                     onParking = c::chooseParking, onOtherSpot = { otherSpot = true }, onClose = c::closeByButton, onEmergency = c::showEmergency, onMap = ::backToMap,
                                 )

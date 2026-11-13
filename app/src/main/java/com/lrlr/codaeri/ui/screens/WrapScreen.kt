@@ -64,7 +64,6 @@ fun WrapScreen(
     handover: Handover,
     seatCloses: Boolean,
     busy: Boolean,
-    link: PhoneLink?,
     /** 차주가 등록해 둔 비상연락처(가린 번호). 없으면 단추를 보이지 않는다. */
     emergencies: List<Emergency>,
     onParking: (ParkingResult?) -> Unit,
@@ -90,6 +89,10 @@ fun WrapScreen(
                 Tile("이동 거리", handover.distanceText(handover.distanceKm(trip.startOdometerKm, trip.endOdometerKm)), Modifier.weight(1f))
                 Tile("이용 시간", handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
                 if (booking != null) Tile("이용 요금", handover.fareText(booking.fare), Modifier.weight(1f))
+            }
+            if (booking != null) {
+                Spacer(Modifier.height(10.dp))
+                T("운행이 종료되면 차주님이 등록한 결제수단으로 ${handover.fareText(booking.fare)}이 자동 결제됩니다. (시연용)", Type.labelLarge, Modifier.appear(1), color = c.textTertiary)
             }
             if (card.isUsable) {
                 Spacer(Modifier.height(28.dp))
@@ -131,19 +134,6 @@ fun WrapScreen(
             if (booking != null && emergencies.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
                 T("차주님과 의사소통이 어려울 때 연락할 분(${emergencies.joinToString(", ") { it.label }})입니다.", Type.labelLarge, Modifier.appear(4), color = c.textTertiary)
-            }
-        }
-        if (link != null) {
-            Column(Modifier.width(480.dp).fillMaxHeight().appear(2, scaleFrom = 0.97f), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
-                QrPanel(
-                    "기사님 운행 내역 보기", Links.tripUrl(BuildConfig.CARD_SERVER, link, trip.shareId),
-                    "휴대폰으로 QR을 찍으면 이 운행의 내역을 볼 수 있습니다.",
-                )
-                if (booking != null) Panel(Modifier.fillMaxWidth(), pad = 24.dp) {
-                    T("결제 (시연용)", Type.labelLarge)
-                    Spacer(Modifier.height(6.dp))
-                    T("운행이 종료되면 차주님이 등록한 결제수단으로 ${handover.fareText(booking.fare)}이 자동 결제됩니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
-                }
             }
         }
     }
