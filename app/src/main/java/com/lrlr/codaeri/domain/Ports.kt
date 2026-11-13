@@ -54,5 +54,4 @@ object Links {
     fun pairUrl(server: String, link: PhoneLink, code: String): String = "$server/daeri/c/#${link.readId}.$code"
     /** 연결한 휴대폰에서 여는 차주 페이지 */
     fun ownerUrl(server: String, link: PhoneLink): String = "$server/daeri/c/#${link.readId}"
-    /** 기사님이 여는 그 운행의 기록 페이지 */
 }
