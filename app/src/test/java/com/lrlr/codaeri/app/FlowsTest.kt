@@ -1049,7 +1049,9 @@ class FlowsTest {
         r.c.submitStartPin("0000")
         assertEquals(TripRecorder.PIN_WRONG, r.c.startPin.value!!.error)
         assertNull(r.c.startArmed.value)
-        r.c.submitStartPin(TripRules.DEMO_START_PIN)
+        r.c.submitStartPin("1234") // 예전의 고정 값은 더 통하지 않는다
+        assertEquals(TripRecorder.PIN_WRONG, r.c.startPin.value!!.error)
+        r.c.submitStartPin("4821") // 서비스가 이 배정에 만들어 보낸 값
         assertNull(r.c.startPin.value)
         assertEquals("b1", r.c.startArmed.value)
         r.c.pressStart() // 다시 누르면 PIN 없이 취소한다

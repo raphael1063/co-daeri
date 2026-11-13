@@ -116,11 +116,11 @@ object TripRules {
     }
 
     /** P로 선 뒤 운전석이 비면 닫는다. */
-    /** 출발 전에 기사님이 넣는 PIN. 시연용으로 항상 같은 값이다(실제 서비스에서는 배정 때마다 서비스가 기사님께 전달한다). */
-    const val DEMO_START_PIN = "1234"
+    /** 출발 전에 기사님이 넣는 PIN. 서비스가 배정할 때마다 새로 만들어 기사님과 차에만 보낸다. */
     const val PIN_LENGTH = 4
 
-    fun startPinOk(pin: String): Boolean = pin == DEMO_START_PIN
+    /** 차가 아직 PIN을 받지 못한 예약은 어떤 값으로도 통과하지 못한다. */
+    fun startPinOk(pin: String, booking: Booking): Boolean = booking.pin.length == PIN_LENGTH && pin == booking.pin
 
     /** 이 거리보다 멀면 목적지에서 먼 곳으로 본다(직선거리) */
     const val FAR_KM = 1.0f

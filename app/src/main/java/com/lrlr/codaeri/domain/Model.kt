@@ -112,6 +112,8 @@ data class Booking(
     val paidAt: Long? = null,
     /** 서비스가 기사님을 다시 배정한 시각(운전석 착석이 확인되지 않았거나 차주가 바꿨을 때) */
     val reassignedAt: Long? = null,
+    /** 출발 전 기사님 PIN. 배정마다(다시 배정해도) 서비스가 새로 만든 네 자리. 화면에는 보이지 않는다. */
+    val pin: String = "",
     val demo: Boolean = true,
 ) {
     /**

@@ -129,7 +129,10 @@ class TripRecorder(
 
     fun submitStartPin(pin: String) {
         if (_startPin.value == null) return
-        if (!TripRules.startPinOk(pin)) { _startPin.value = StartPinUi(error = PIN_WRONG); return }
+        // 그 사이 예약이 사라졌으면 창만 닫는다. 기사님이 다시 배정되면 PIN도 바뀌므로 지금 예약의 값과 견준다.
+        val booking = store.value.pendingBooking(env.clock()) ?: run { _startPin.value = null; return }
+        if (booking.pin.isEmpty()) { _startPin.value = StartPinUi(error = PIN_NOT_READY); return }
+        if (!TripRules.startPinOk(pin, booking)) { _startPin.value = StartPinUi(error = PIN_WRONG); return }
         _startPin.value = null
         if (!armed()) toggleStartByButton()
     }
@@ -400,6 +403,7 @@ class TripRecorder(
 
     companion object {
         val PIN_WRONG get() = text(R.string.trip_pin_wrong)
+        val PIN_NOT_READY get() = text(R.string.trip_pin_not_ready)
         /** 기사님은 화면을 보지 않아도 기록된다는 사실을 한 번 듣는다. */
         val DRIVER_NOTICE get() = text(R.string.trip_driver_notice)
         /** 운전석이 비었는데 종료 단추를 누르지 않았을 때 한 번 읽는다 */

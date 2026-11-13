@@ -127,7 +127,7 @@ class FakeService(private val clock: () -> Long) : DaeriService {
     private var held: Booking? = null
 
     fun booking(id: String, destination: String = "판교 삼평동") =
-        Booking(id = id, createdAt = clock() + aheadMs, driver = Driver("d1", "박○○"), destination = destination, fare = 25_000)
+        Booking(id = id, createdAt = clock() + aheadMs, driver = Driver("d1", "박○○"), destination = destination, fare = 25_000, pin = "4821")
 }
 
 class FakeLinks : LinkFactory {
