@@ -263,7 +263,8 @@ class Speaker(private val context: Context) : Announcer {
  * 둘 중 하나라도 들어왔다고 하면 진입으로 본다. 위치가 끊겨도 마지막 판단을 유지한다.
  */
 class GeofenceWatcher(context: Context) : LocationSource {
-    private val fused = FusedLocation(context.applicationContext)
+    private val appContext = context.applicationContext
+    private var fused = FusedLocation(appContext)
     private var initialized = false
     private var alertId: String? = null
     private var target: Triple<Double, Double, Float>? = null
@@ -319,6 +320,8 @@ class GeofenceWatcher(context: Context) : LocationSource {
             fused.initialize()
             initialized = true
             fused.registerFusedLocationCallback(locationListener)
+            // 갱신은 위치가 바뀔 때만 온다. 서 있는 차에서도 지금 위치를 알 수 있게 마지막 위치를 한 번 묻는다.
+            fused.getLastKnownLocation(locationListener)
         } catch (t: Throwable) {
             Log.w(TAG, "fused location unavailable", t)
         }
@@ -350,6 +353,8 @@ class GeofenceWatcher(context: Context) : LocationSource {
     /** 권한 없이 시작해 구독에 실패했을 수 있으므로, 권한을 받은 뒤에는 처음부터 다시 구독한다. */
     override fun restart() {
         stop()
+        // 한 번 놓아 준 객체는 다시 쓰지 않고 새로 만든다.
+        fused = FusedLocation(appContext)
         start()
         target?.let { watch(it.first, it.second, it.third) }
     }
