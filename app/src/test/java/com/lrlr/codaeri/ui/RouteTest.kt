@@ -5,6 +5,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RouteTest {
+    init { com.lrlr.codaeri.TestTexts.install() }
+
     private fun screen(
         tripPhase: TripPhase? = null, hasCard: Boolean = false, bound: Boolean = true, restricted: Boolean = false,
         editing: Boolean = false, otherSpot: Boolean = false, section: Section = Section.MAIN, hasBooking: Boolean = false,

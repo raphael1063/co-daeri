@@ -10,6 +10,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 class DomainTest {
+    init { com.lrlr.codaeri.TestTexts.install() }
+
     private val seoul = ZoneId.of("Asia/Seoul")
     private val h = Handover(seoul)
     private fun at(hh: Int, mm: Int) =

@@ -9,6 +9,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class TripPresentationTest {
+    init { com.lrlr.codaeri.TestTexts.install() }
+
     private val card = HomecomingCard(
         tripId = "legacy", placeName = "집", startedAt = 0, endedAt = 60_000,
         elapsedMinutes = 1, distanceKm = 1f, parkingLine = "", parkingSource = ResultSource.UNCONFIRMED,

@@ -33,6 +33,8 @@ import org.junit.Test
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FlowsTest {
+    init { com.lrlr.codaeri.TestTexts.install() }
+
 
     /** 시험 한 번에 쓰는 가짜 차 한 대 */
     private class Rig(private val scope: TestScope, saved: AppState) {
