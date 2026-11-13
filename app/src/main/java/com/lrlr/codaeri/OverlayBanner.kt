@@ -22,7 +22,7 @@ import com.lrlr.codaeri.app.TripBanner
 /**
  * 내비게이션 위에 띄우는 작은 표시(다른 앱 위에 표시). 누르면 코-대리 화면이 열린다.
  * 앱 화면과 같은 바탕·글자색에 앱 아이콘을 붙여 코-대리의 표시임을 알 수 있게 한다.
- * 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위(2D 단추 왼쪽)에, 그 단추와 같은 높이·모양으로 둔다.
+ * 내비게이션의 회전 안내(왼쪽 위)와 겹치지 않게 오른쪽 위(2D 단추 왼쪽)에, 그 단추와 같은 모양으로 둔다.
  * "다른 앱 위에 표시" 권한이 없으면 아무것도 띄우지 않는다.
  */
 class OverlayBanner(private val context: Context) : TripBanner {
@@ -77,18 +77,18 @@ class OverlayBanner(private val context: Context) : TripBanner {
 
         val icon = ImageView(context).apply {
             setImageResource(R.drawable.ic_app_clear)
-            layoutParams = LinearLayout.LayoutParams(dp(56f), dp(56f)).apply { marginEnd = dp(14f) }
+            layoutParams = LinearLayout.LayoutParams(dp(96f), dp(96f)).apply { marginEnd = dp(24f) }
         }
         val titleView = TextView(context).apply {
-            setTextColor(ink); setTextSize(TypedValue.COMPLEX_UNIT_SP, 30f); typeface = Typeface.DEFAULT_BOLD; maxLines = 1
+            setTextColor(ink); setTextSize(TypedValue.COMPLEX_UNIT_SP, 42f); typeface = Typeface.DEFAULT_BOLD; maxLines = 1
         }
         val dotsView = TextView(context).apply {
-            setTextColor(ink); setTextSize(TypedValue.COMPLEX_UNIT_SP, 30f); typeface = Typeface.MONOSPACE; maxLines = 1
+            setTextColor(ink); setTextSize(TypedValue.COMPLEX_UNIT_SP, 42f); typeface = Typeface.MONOSPACE; maxLines = 1
             setPadding(dp(4f), 0, 0, 0)
         }
         val detailView = TextView(context).apply {
-            setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f); maxLines = 1
-            maxWidth = dp(520f); ellipsize = android.text.TextUtils.TruncateAt.END
+            setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f); maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
         }
         val head = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -101,10 +101,9 @@ class OverlayBanner(private val context: Context) : TripBanner {
         val v = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(16f), dp(12f), dp(24f), dp(12f))
+            setPadding(dp(28f), dp(12f), dp(28f), dp(12f))
             // 내비게이션의 단추와 카드처럼 모서리가 각지고 그림자 없이 가는 테두리만 둔다.
             background = GradientDrawable().apply { setColor(surface); setStroke(dp(1f), line) }
-            minimumHeight = dp(100f)
             addView(icon); addView(texts)
             setOnClickListener {
                 context.startActivity(
@@ -113,8 +112,11 @@ class OverlayBanner(private val context: Context) : TripBanner {
                 )
             }
         }
+        // 지도 위쪽의 빈 자리를 채운다: 왼쪽 회전 안내 카드와 오른쪽 2D 단추 사이의 너비, 회전 안내 카드의 첫 칸(구분선까지) 높이.
+        // 순정 내비게이션 화면(2560x1440) 배치에 맞춘 값이고, 더 좁은 화면에서는 너비를 화면의 36%로 줄인다.
+        val width = minOf(dp(931f), (context.resources.displayMetrics.widthPixels * 0.36f).toInt())
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+            width, dp(150f),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
