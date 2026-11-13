@@ -10,7 +10,7 @@ import com.lrlr.codaeri.domain.LocationSource
 import com.lrlr.codaeri.domain.Place
 import com.lrlr.codaeri.domain.SpeechListener
 import com.lrlr.codaeri.domain.VoiceCall
-import com.lrlr.codaeri.domain.moving
+import com.lrlr.codaeri.domain.callable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,10 +51,35 @@ class CallFlow(
 
     val active: Boolean get() = _ui.value.stage != CallStage.OFF
 
-    /** 번호가 연결돼 있고, 운행 중이 아니고, 잡힌 예약이 없고, 서 있을 때만 부를 수 있다. */
+    /** 차가 P단에 서 있을 때만 대리를 부른다(D, R, N에서는 부르지 않는다). */
+    private fun parked(): Boolean = !restriction.restricted.value && car.gear.value.callable
+
+    /** 번호가 연결돼 있고, 운행 중이 아니고, 잡힌 예약이 없고, P단에 서 있을 때만 부를 수 있다. */
     private fun canStart(): Boolean {
         val s = store.value
-        return s.bound && s.trip == null && s.pendingBooking(env.clock()) == null && !restriction.restricted.value && !car.gear.value.moving
+        return s.bound && s.trip == null && s.pendingBooking(env.clock()) == null && parked()
+    }
+
+    /** 부르는 도중에 P단을 벗어나면 그만둔다. */
+    fun onGearChanged() { if (active && !parked()) cancel() }
+
+    private val _cancelling = MutableStateFlow(false)
+    /** 호출 취소를 서비스에 요청하는 중 */
+    val cancelling: StateFlow<Boolean> = _cancelling
+    private val _cancelMessage = MutableStateFlow("")
+    val cancelMessage: StateFlow<String> = _cancelMessage
+
+    /** 대리 현황의 "호출 취소": 출발하기 전의 예약을 취소한다. 운행이 시작된 뒤에는 취소하지 않는다. */
+    fun cancelBooking() {
+        val link = store.value.phoneLink ?: return
+        if (_cancelling.value || store.value.trip != null || store.value.pendingBooking(env.clock()) == null) return
+        _cancelling.value = true
+        _cancelMessage.value = ""
+        env.scope.launch {
+            val ok = withContext(env.io) { service.cancelBooking(link) }
+            if (ok) { refresh(); announcer.say(CANCELLED) } else _cancelMessage.value = CANCEL_FAILED
+            _cancelling.value = false
+        }
     }
 
     /** "대리 부르기" 단추. 부르는 방법을 고르게 한다. */
@@ -150,6 +175,7 @@ class CallFlow(
         val place = v.place ?: return
         val link = store.value.phoneLink ?: return
         if (v.stage != CallStage.CONFIRM) return
+        if (!canStart()) return cancel()
         listener.cancel()
         announcer.stopNow()
         _ui.value = v.copy(stage = CallStage.CALLING, message = "${place.name}까지 대리를 부르는 중입니다")
@@ -172,6 +198,8 @@ class CallFlow(
     }
 
     companion object {
+        const val CANCELLED = "호출을 취소했습니다."
+        const val CANCEL_FAILED = "호출을 취소하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
         const val HOME_MISSING = "집 위치가 등록되어 있지 않습니다. 집 주차 안내를 먼저 등록해 주세요."
     }
 }

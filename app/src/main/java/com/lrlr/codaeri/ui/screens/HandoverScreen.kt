@@ -57,7 +57,14 @@ import com.lrlr.codaeri.ui.*
 
 /** 예약이 확인되면 뜬다. 왼쪽은 차주와 기사님이 함께 보는 예약 정보, 오른쪽은 기사님에게 하는 안내다. */
 @Composable
-fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed: Boolean, armed: Boolean, restricted: Boolean, manualStart: Boolean, onStart: () -> Unit, onBack: () -> Unit) {
+fun HandoverScreen(
+    booking: Booking, handover: Handover, phone: String?, routed: Boolean, armed: Boolean, restricted: Boolean, manualStart: Boolean, onStart: () -> Unit,
+    /** 호출 취소를 요청하는 중인지와, 안 됐을 때의 한 줄 */
+    cancelling: Boolean = false, cancelMessage: String = "",
+    /** "호출 취소"를 눌렀다(확인 창을 띄운다) */
+    onCancel: () -> Unit = {},
+    onBack: () -> Unit,
+) {
     Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
         Column(Modifier.weight(1.15f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
             Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -84,6 +91,13 @@ fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed:
             }
             Spacer(Modifier.height(16.dp))
             T("탑승 전에 배정된 기사님이 맞는지 확인해 주세요.", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
+            Spacer(Modifier.height(24.dp))
+            // 출발하기 전에는 호출을 취소할 수 있다.
+            IviButton("호출 취소", onCancel, Modifier.appear(3), enabled = !restricted, loading = cancelling)
+            Reveal(cancelMessage.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
+            }
         }
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
             Panel(Modifier.fillMaxWidth().appear(3)) {

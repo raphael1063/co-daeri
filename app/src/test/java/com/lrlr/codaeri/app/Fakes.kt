@@ -81,6 +81,14 @@ class FakeService(private val clock: () -> Long) : DaeriService {
         return server
     }
 
+    var cancelled = 0
+    override fun cancelBooking(link: PhoneLink): Boolean {
+        if (!online) return false
+        cancelled++
+        server = server.copy(booking = null)
+        return true
+    }
+
     /** 서비스에만 있는 원래 번호(차로는 가린 번호만 간다) */
     val savedPhones = mutableListOf<String>()
 
