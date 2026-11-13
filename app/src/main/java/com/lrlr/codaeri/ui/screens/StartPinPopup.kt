@@ -1,5 +1,7 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.lrlr.codaeri.domain.TripRules
 import com.lrlr.codaeri.ui.*
 
-private val KEYS = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "지우기")
+private val KEYS get() = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", text(R.string.shared_erase))
 
 /**
  * 출발 전 기사님 PIN 입력창. 배정된 기사님이 맞는지 확인하는 단계다.
@@ -32,13 +34,13 @@ fun StartPinPopup(error: String, driverName: String, onSubmit: (String) -> Unit,
     IviPopup(
         onDismiss = onDismiss,
         buttons = {
-            IviButton("취소", onDismiss, Modifier.weight(1f), size = ButtonSize.LARGE)
-            IviButton("확인", { onSubmit(pin) }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, enabled = pin.length == TripRules.PIN_LENGTH)
+            IviButton(text(R.string.main_cancel), onDismiss, Modifier.weight(1f), size = ButtonSize.LARGE)
+            IviButton(text(R.string.pin_confirm), { onSubmit(pin) }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, enabled = pin.length == TripRules.PIN_LENGTH)
         },
     ) {
         PopupTitle(
-            "기사님 PIN을 입력해 주세요",
-            (if (driverName.isEmpty()) "" else "$driverName 기사님이 ") + "배정받을 때 전달받은 네 자리 PIN을 입력하면 출발 대기로 넘어갑니다.",
+            text(R.string.pin_title),
+            (if (driverName.isEmpty()) "" else text(R.string.pin_driver_prefix, driverName)) + text(R.string.pin_body),
         )
         Spacer(Modifier.height(24.dp))
         T((0 until TripRules.PIN_LENGTH).joinToString("  ") { if (it < pin.length) "●" else "○" }, Type.headlineSmall, maxLines = 1)
@@ -47,7 +49,7 @@ fun StartPinPopup(error: String, driverName: String, onSubmit: (String) -> Unit,
         T(error.ifEmpty { " " }, Type.labelLarge, color = Ivi.colors.negative, maxLines = 1)
         Spacer(Modifier.height(16.dp))
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-            KEYS.forEach { k -> Choice(k, false, { pin = if (k == "지우기") pin.dropLast(1) else (pin + k).take(TripRules.PIN_LENGTH) }) }
+            KEYS.forEach { k -> Choice(k, false, { pin = if (k == text(R.string.shared_erase)) pin.dropLast(1) else (pin + k).take(TripRules.PIN_LENGTH) }) }
         }
     }
 }

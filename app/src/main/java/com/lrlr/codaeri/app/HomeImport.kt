@@ -7,6 +7,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /** 집 위치 가져오기의 화면 상태 */
 data class HomeImportUi(val busy: Boolean = false, val found: HomeBookmark? = null, val message: String = "")
@@ -74,12 +76,12 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
     companion object {
         const val TIMEOUT_MS = 5_000L
         const val SAME_PLACE_KM = 0.3f
-        const val NONE = "내비게이션 즐겨찾기에 집이 없습니다. 내비게이션에서 집을 등록한 뒤 다시 눌러 주세요."
-        const val UNAVAILABLE = "내비게이션 즐겨찾기를 확인하지 못했습니다. 현재 위치로 설정할 수 있습니다."
+        val NONE get() = text(R.string.home_import_none)
+        val UNAVAILABLE get() = text(R.string.home_import_unavailable)
         fun found(home: HomeBookmark): String {
             val where = home.address.ifBlank { home.name }
-            return if (where.isBlank()) "내비게이션 즐겨찾기의 집을 가져왔습니다."
-            else "내비게이션 즐겨찾기의 집($where)을 가져왔습니다."
+            return if (where.isBlank()) text(R.string.home_import_found)
+            else text(R.string.home_import_found_at, where)
         }
         /** 실제 위치가 들어 있는 즐겨찾기인지. (0, 0)이나 범위를 벗어난 좌표는 등록되지 않은 칸이다. */
         fun usable(home: HomeBookmark): Boolean =

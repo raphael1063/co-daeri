@@ -1,8 +1,579 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 화면, 안내 음성, 알림, 음성 인식 어휘의 문구. 코드에서는 text(R.string.키)로 꺼낸다(domain/Text.kt). -->
 <resources>
+    <!-- ===== 앱 이름과 알림 채널 ===== -->
     <string name="app_name">코-대리</string>
     <string name="channel_trip">코-대리 운행</string>
     <string name="channel_handover">대리 이용 알림</string>
     <string name="notification_recording">대리 예약과 운행 상태를 확인하고 있습니다</string>
-</resources>
 
+    <!-- ===== 도메인: 이용 내역 문장, 주차 안내, 음성 호출 어휘 ===== -->
+
+    <!-- ===== Handover.kt: 귀가 인계서 ===== -->
+    <!-- 날짜 -->
+    <string name="handover_day_today">오늘</string>
+    <string name="handover_day_yesterday">어제</string>
+    <string name="handover_day_month_date">%1$s월 %2$s일</string>
+
+    <!-- 주차 위치 줄 -->
+    <string name="handover_driver_confirmed_guided">기사님 확인: 안내한 위치 근처</string>
+    <string name="handover_driver_confirmed_near">기사님 확인: %1$s 근처</string>
+    <string name="handover_outdoor">지상</string>
+    <string name="handover_driver_input_floor_other_spot">기사님 입력: %1$s 다른 자리</string>
+    <string name="handover_driver_input">기사님 입력: %1$s</string>
+    <string name="handover_driver_input_same_floor_other">기사님 입력: 같은 층 다른 자리</string>
+    <string name="handover_driver_input_other_floor">기사님 입력: 다른 층</string>
+    <string name="handover_driver_input_other_spot">기사님 입력: 안내와 다른 자리</string>
+    <string name="handover_parking_unconfirmed">주차 위치를 확인하지 못함</string>
+    <string name="handover_parking_guided_unconfirmed">안내한 주차 위치: %1$s (기사님이 확인하지 않음)</string>
+    <string name="handover_parking_pending">주차 결과 전송 전</string>
+    <string name="handover_near">%1$s 근처</string>
+
+    <!-- 조사 붙이기: toward() -->
+    <string name="handover_toward_unknown">%1$s(으)로</string>
+    <string name="handover_toward_ro">%1$s로</string>
+    <string name="handover_toward_euro">%1$s으로</string>
+
+    <!-- 거리, 시간, 요금 -->
+    <string name="handover_distance_unknown">이동 거리 정보 없음</string>
+    <string name="handover_elapsed_hm">%1$s시간 %2$s분</string>
+    <string name="handover_elapsed_m">%1$s분</string>
+    <string name="handover_fare_won">%1$s원</string>
+
+    <!-- 창문, 문, 조명 (마무리 당시) -->
+    <string name="handover_window_unconfirmed">창문 상태를 확인하지 못함</string>
+    <string name="handover_at_wrap_all_closed">%1$s 마무리 당시 모두 닫힘</string>
+    <string name="handover_at_wrap_open">%1$s 마무리 당시 열림: %2$s</string>
+    <string name="handover_at_wrap_state">%1$s 마무리 당시 %2$s</string>
+    <string name="handover_at_wrap_all_off">%1$s 마무리 당시 모두 꺼짐</string>
+    <string name="handover_at_wrap_on">%1$s 마무리 당시 켜짐: %2$s</string>
+    <string name="handover_lock_at_wrap_unconfirmed">마무리 당시 잠금 상태를 확인하지 못함</string>
+    <string name="handover_lock_after">%1$s에 받은 신호: %2$s</string>
+    <string name="handover_lock_unknown_after">그 뒤는 확인하지 못함</string>
+    <string name="handover_locked">잠김</string>
+    <string name="handover_unlocked">열림</string>
+    <string name="handover_all_closed">모두 닫힘</string>
+    <string name="handover_open_list">열림: %1$s</string>
+    <string name="handover_unknown">확인하지 못함</string>
+
+    <!-- 수집 중단 -->
+    <string name="handover_gap_open">%1$s부터 수집 중단(%2$s)</string>
+    <string name="handover_gap_range">%1$s~%2$s 수집 중단(%3$s)</string>
+
+    <!-- 운행이 닫힌 까닭 -->
+    <string name="handover_closed_seat_empty">운전석 하차</string>
+    <string name="handover_closed_button">종료 버튼</string>
+    <string name="handover_closed_power_off">차 전원 꺼짐</string>
+
+    <!-- 맡길 때와 돌려받을 때 비교, 마무리 점검 -->
+    <string name="handover_compare_distance">주행거리</string>
+    <string name="handover_compare_battery">배터리 사용</string>
+    <string name="handover_compare_fuel">연료 사용</string>
+    <string name="handover_label_doors">문·트렁크</string>
+    <string name="handover_compare_lock">문 잠금</string>
+    <string name="handover_compare_windows">창문</string>
+    <string name="handover_used_charged">충전됨 (+%1$s%%)</string>
+    <string name="handover_check_lights">조명</string>
+    <string name="handover_check_warnings">경고등</string>
+    <string name="handover_warnings_none_new">시작 때와 비교해 새로 켜진 경고등 없음</string>
+    <string name="handover_warnings_new">시작 때 없던 경고등: %1$s</string>
+
+    <!-- 귀가 카드 첫 줄 -->
+    <string name="handover_arrived">%1$s 도착</string>
+    <string name="handover_arrived_driver">%1$s 도착 · 배정된 기사님 %2$s</string>
+
+    <!-- 기사 QR 요약 -->
+    <string name="handover_qr_title">[코-대리 운행 요약]</string>
+    <string name="handover_qr_driver">배정된 기사님 %1$s · %2$s</string>
+    <string name="handover_qr_fare">확정 요금 %1$s</string>
+    <string name="handover_qr_times">시작 %1$s / 마무리 %2$s</string>
+    <string name="handover_qr_elapsed">이용 시간 %1$s</string>
+    <string name="handover_qr_parking">주차: %1$s</string>
+    <string name="handover_qr_footer">이 기록은 차의 신호로 남긴 것입니다.</string>
+
+    <!-- ===== Guidance.kt: 주차 안내 ===== -->
+    <string name="guide_more_hint">주차 위치는 다음 안내를 누르면 알려 드립니다.</string>
+    <string name="guide_end_line">주차 안내는 여기까지입니다.</string>
+    <string name="guide_label_entrance">주차장 입구</string>
+    <string name="guide_label_entry_method">차단기 통과 방법</string>
+    <string name="guide_label_zone">주차 위치</string>
+    <string name="guide_label_preferred_spot">주차 시 유의사항</string>
+    <string name="guide_label_fallback">자리가 없을 때</string>
+    <string name="guide_spot_other">주차할 위치는 %1$s입니다</string>
+    <string name="guide_spot_near">%1$s 근처에 주차해 주세요</string>
+    <string name="guide_intro">"코대리 주차 안내입니다. "</string>
+    <string name="guide_intro_place">"%1$s에 거의 도착했습니다. "</string>
+    <!-- 이미 문장으로 끝났다고 보는 끝 글자. | 로 나눈다 -->
+    <string name="guide_sentence_endings">요|다</string>
+
+    <!-- ===== VoiceCall.kt: 말로 대리 부르기 ===== -->
+    <string name="voice_ask">어디로 갈까요?</string>
+    <string name="voice_example">예: \"집까지 대리 불러 줘\", \"강남역\"</string>
+    <string name="voice_tap_hint">\"부르기\"를 누르면 기사님을 부릅니다. 운행이 끝나면 등록된 결제수단으로 자동 결제됩니다.</string>
+    <string name="voice_answer_hint">\"불러 줘\" 또는 \"취소\"라고 말하거나 버튼을 눌러 주세요. 운행이 끝나면 등록된 결제수단으로 자동 결제됩니다.</string>
+    <string name="voice_retry_empty">대답을 듣지 못했습니다. \"불러 줘\" 또는 \"취소\"라고 말씀해 주세요.</string>
+    <string name="voice_retry_heard">\"%1$s\"(으)로 들었습니다. \"불러 줘\" 또는 \"취소\"라고 말씀해 주세요.</string>
+    <string name="voice_here">현재 위치</string>
+    <string name="voice_here_near">%1$s (%2$s 부근)</string>
+    <string name="voice_confirm_line">%1$s에서 %2$s까지%3$s 확정 요금 %4$s입니다. 부를까요?</string>
+    <string name="voice_confirm_distance">" 약 %1$s,"</string>
+    <string name="voice_confirm_title">이 내용으로 대리를 부를까요?</string>
+    <string name="voice_done_line">%1$s 기사님이 배정됐습니다.</string>
+    <!-- 집 위치에 이름이 없을 때 쓰는 이름 -->
+    <string name="voice_home">집</string>
+
+    <!-- 시연용 장소와 알아듣는 별칭(별칭은 | 로 나눈다) -->
+    <string name="voice_place_pangyo">판교 삼평동</string>
+    <string name="voice_alias_pangyo">판교|삼평동</string>
+    <string name="voice_place_gangnam">강남역</string>
+    <string name="voice_alias_gangnam">강남</string>
+    <string name="voice_place_jamsil">잠실 롯데타워</string>
+    <string name="voice_alias_jamsil">잠실|롯데타워|롯데월드타워</string>
+
+    <!-- 음성 인식 어휘. 모두 | 로 나눈다 -->
+    <string name="voice_home_words">집|우리집|자택</string>
+    <!-- 집 낱말 뒤에 오면 집으로 보는 말 -->
+    <string name="voice_home_suffixes">까지|으로|에</string>
+    <!-- 들은 말에 들어 있으면 집으로 보는 말 -->
+    <string name="voice_home_contains">우리집</string>
+    <!-- 들은 말이 이것으로 시작하면 집으로 보는 말 -->
+    <string name="voice_home_call_prefix">집대리</string>
+    <string name="voice_no_words">아니|취소|됐어|안해|하지마|그만</string>
+    <string name="voice_yes_words">네|예|응|어|넵|불러|맞아|좋아|그래|부탁|해줘|오케이|콜|그렇게</string>
+    <!-- 들은 말에 들어 있으면 부르라는 대답으로 보는 말 -->
+    <string name="voice_yes_contains">불러</string>
+
+    <!-- ===== 흐름·차량·앱 진입점: 호출, 운행 기록, 연결, 알림 ===== -->
+    <!-- 메인 화면(MainActivity): 공통 단추 -->
+    <string name="main_back">돌아가기</string>
+    <string name="main_cancel">취소</string>
+    <string name="main_close">닫기</string>
+    <string name="main_other_way">다른 방법</string>
+
+    <!-- 메인 화면: 먼저 할 일 -->
+    <string name="main_stop_first_trip">운행을 마무리해 주세요</string>
+    <string name="main_stop_first_pair">번호를 연결해 주세요</string>
+
+    <!-- 메인 화면: 배차 현황 출발 줄 (기사님 이름, 목적지, 요금) -->
+    <string name="main_start_line">%1$s 기사님 · %2$s · %3$s</string>
+
+    <!-- 메인 화면: 목적지에서 먼 곳에서 운행 종료 -->
+    <string name="main_end_trip">운행 종료</string>
+    <string name="main_close_far_title">목적지에서 먼 곳입니다. 정말 운행을 종료할까요?</string>
+    <string name="main_close_far_body">목적지 %1$s까지 직선거리로 약 %2$s 남았습니다. 잠깐 선 것이라면 돌아가기를 눌러 주세요. 종료하면 이 운행은 여기서 끝납니다.</string>
+
+    <!-- 메인 화면: 호출 취소 확인 -->
+    <string name="main_cancel_call">호출 취소</string>
+    <string name="main_cancel_call_title">호출을 취소할까요?</string>
+    <string name="main_cancel_call_body">%1$s 기사님 배정이 취소됩니다. %2$s까지의 예약이 없어집니다.</string>
+
+    <!-- 메인 화면: 대리 부르기 창 -->
+    <string name="main_set_up">설정하기</string>
+    <string name="main_call">부르기</string>
+    <string name="main_say_again">다시 말하기</string>
+    <string name="main_listening">듣는 중</string>
+    <string name="main_checking">확인 중</string>
+    <string name="main_choose_hint">편한 방법으로 목적지를 입력해 주세요.</string>
+    <string name="main_places_hint">시연에서는 아래 장소만 고를 수 있습니다.</string>
+    <string name="main_fact_from">출발지</string>
+    <string name="main_fact_destination">목적지</string>
+    <string name="main_fact_distance">예상 거리</string>
+    <string name="main_distance_value">약 %1$s (직선 거리 기준)</string>
+    <string name="main_distance_unknown">현재 위치를 확인하지 못했습니다</string>
+    <string name="main_fact_fare">확정 요금</string>
+    <string name="main_fare_value">%1$s (시연용)</string>
+    <string name="main_choice_place">목적지 선택</string>
+    <string name="main_choice_voice">말로 입력</string>
+
+    <!-- 메인 화면: 비상연락처 창 -->
+    <string name="main_emergency_title">비상연락처</string>
+    <string name="main_emergency_body">차주님이 등록한 연락처입니다. 번호를 확인하면 차주님께 알림이 남습니다.</string>
+
+    <!-- 메인 화면: 번호 연결 해제 확인 -->
+    <string name="main_unbind">연결 해제</string>
+    <string name="main_unbind_title">번호 연결을 해제할까요?</string>
+    <string name="main_unbind_body">서버의 번호, 예약, 비상연락처, 차 위치가 삭제됩니다. 차에 저장된 이용 내역은 남습니다.</string>
+
+    <!-- 지도 위 표시(OverlayBanner) -->
+    <string name="overlay_close">표시 닫기</string>
+
+    <!-- 알림(Notifier) -->
+    <string name="notify_booking_title">대리 운행 예약이 확인됐습니다</string>
+    <string name="notify_booking_text">%1$s 기사님 · %2$s</string>
+    <string name="notify_closed_title">대리 운행이 종료됐습니다</string>
+
+    <!-- Gleo AI 응답(GleoActions) -->
+    <string name="gleo_no_trip">대리 운행 기록이 없습니다.</string>
+
+    <!-- 대리 부르기(CallFlow) -->
+    <string name="call_pick_place">목적지를 골라 주세요</string>
+    <string name="call_not_heard">말씀을 듣지 못했습니다. 다시 말하기를 눌러 주세요.</string>
+    <string name="call_place_not_found">\"%1$s\" 목적지를 찾지 못했습니다. 다시 말하기를 눌러 주세요.</string>
+    <string name="call_say_again_hint">다시 말하기를 눌러 주세요.</string>
+    <string name="call_pick_other_place_hint">다른 방법을 눌러 목적지를 선택해 주세요.</string>
+    <string name="call_pick_other_again_hint">다른 방법을 눌러 다시 선택해 주세요.</string>
+    <string name="call_quoting">%1$s까지 요금을 확인하는 중입니다</string>
+    <string name="call_quote_failed">"통신 문제로 요금을 확인하지 못했습니다. "</string>
+    <string name="call_answer_unclear">대답을 확인하지 못했습니다. 화면에서 부르기 또는 취소를 눌러 주세요.</string>
+    <string name="call_calling">%1$s까지 대리를 부르는 중입니다</string>
+    <string name="call_failed">통신 문제로 부르지 못했습니다. 다시 눌러 주세요.</string>
+    <string name="call_assigning">호출을 접수했습니다. 기사님 배정을 확인하는 중입니다</string>
+    <string name="call_cancelled">호출을 취소했습니다.</string>
+    <string name="call_cancel_failed">호출을 취소하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요.</string>
+    <string name="call_already_home">지금 집 근처에 있습니다.</string>
+    <string name="call_mic_denied">마이크 권한이 없어 말로 입력할 수 없습니다. 다른 방법을 눌러 목적지를 선택해 주세요.</string>
+    <string name="call_home_missing">집 위치가 아직 등록되어 있지 않습니다</string>
+    <string name="call_home_missing_hint">설정에서 집 주차 안내를 등록하면 다음부터 집으로 바로 부를 수 있습니다. 지금은 다른 방법으로 목적지를 정할 수도 있습니다.</string>
+
+    <!-- 운행 중 지도 위 한 줄(DrivingBanner) -->
+    <string name="banner_parking_hint">주차를 마치면 P단에 놓아 주세요</string>
+    <string name="banner_stopped">정차 중</string>
+    <string name="banner_driver_stopped">%1$s 기사님 정차 중</string>
+    <string name="banner_stopped_detail">운행을 마쳤다면 눌러서 종료해 주세요</string>
+    <string name="banner_parking">주차 중</string>
+    <string name="banner_driver_parking">%1$s 기사님 주차 중</string>
+    <string name="banner_parking_guide">주차 안내</string>
+    <string name="banner_driving">대리 운행 중</string>
+    <string name="banner_driver_driving">%1$s 기사님 운행 중</string>
+
+    <!-- 설정 저장 실패(ContactEditor, RegularEditor) -->
+    <string name="settings_save_failed">저장하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요.</string>
+
+    <!-- 연락처 편집(ContactEditor) -->
+    <string name="contact_need_label">관계를 골라 주세요.</string>
+    <string name="contact_bad_phone">전화번호를 다시 확인해 주세요.</string>
+    <string name="contact_full">3명까지 등록할 수 있습니다. 하나를 지운 뒤 추가해 주세요.</string>
+
+    <!-- 운행 상태 공유(ShareSwitch) -->
+    <string name="share_failed">설정을 바꾸지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요.</string>
+
+    <!-- 휴대폰 연결(PairingFlow) -->
+    <string name="pairing_preparing">QR을 준비하는 중입니다</string>
+    <string name="pairing_ready">10분 안에 연결해 주세요. 연결 코드는 한 번만 사용할 수 있습니다.</string>
+    <string name="pairing_create_failed">연결 코드를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="pairing_unbinding">연결을 해제하는 중입니다</string>
+    <string name="pairing_unbind_failed">통신 문제로 해제하지 못했습니다. 다시 시도해 주세요.</string>
+
+    <!-- 비상연락처 확인(EmergencyViewer) -->
+    <string name="emergency_loading">비상연락처를 불러오는 중입니다</string>
+    <string name="emergency_load_failed">연락처를 불러오지 못했습니다. 닫은 뒤 다시 시도해 주세요.</string>
+    <string name="emergency_none">등록된 비상연락처가 없습니다.</string>
+
+    <!-- 집 위치 가져오기(HomeImport) -->
+    <string name="home_import_none">내비게이션 즐겨찾기에 집이 없습니다. 내비게이션에서 집을 등록한 뒤 다시 눌러 주세요.</string>
+    <string name="home_import_unavailable">내비게이션 즐겨찾기를 확인하지 못했습니다. 현재 위치로 설정할 수 있습니다.</string>
+    <string name="home_import_found">내비게이션 즐겨찾기의 집을 가져왔습니다.</string>
+    <string name="home_import_found_at">내비게이션 즐겨찾기의 집(%1$s)을 가져왔습니다.</string>
+
+    <!-- 운행 기록(TripRecorder) -->
+    <string name="trip_pin_wrong">PIN이 맞지 않습니다. 다시 입력해 주세요.</string>
+    <string name="trip_driver_notice">대리 운행의 시간과 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다.</string>
+    <string name="trip_end_prompt">운행을 마치셨다면 화면의 운행 종료를 눌러 주세요.</string>
+    <!-- 운행 기록: 수집 중단 까닭(운행에 저장되고 같은 까닭끼리 비교한다) -->
+    <string name="trip_gap_subscribe_failed">%1$s 구독 실패</string>
+    <string name="trip_gap_joined_midway">운행 도중에 기록 시작</string>
+    <string name="trip_gap_app_restart">앱 재시작</string>
+
+    <!-- 차량 신호(CarSignals): 창문 이름 -->
+    <string name="car_window_driver">운전석</string>
+    <string name="car_window_passenger">조수석</string>
+    <string name="car_window_rear_left">뒷좌석 왼쪽</string>
+    <string name="car_window_rear_right">뒷좌석 오른쪽</string>
+    <string name="car_window_sunroof">선루프</string>
+
+    <!-- 차량 신호: 구독 실패한 신호 이름(trip_gap_subscribe_failed 에 들어간다) -->
+    <string name="car_signal_gear">기어 신호</string>
+    <string name="car_signal_vehicle">차량 연결</string>
+
+    <!-- 차량 신호: 등 이름 -->
+    <string name="car_light_low_beam">전조등</string>
+    <string name="car_light_high_beam">상향등</string>
+    <string name="car_light_tail">미등</string>
+    <string name="car_light_cabin">실내등</string>
+
+    <!-- 차량 신호: 문 이름 -->
+    <string name="car_door_driver">운전석 문</string>
+    <string name="car_door_passenger">조수석 문</string>
+    <string name="car_door_rear_left">뒷문 왼쪽</string>
+    <string name="car_door_rear_right">뒷문 오른쪽</string>
+    <string name="car_door_trunk">트렁크</string>
+    <string name="car_door_hood">후드</string>
+
+    <!-- 차 플랫폼(Platform): 음성 엔진 표시와 주소 정리 -->
+    <string name="car_tts_engine_preparing">준비 중</string>
+    <string name="car_tts_engine_android">안드로이드 TTS</string>
+    <!-- 주소 앞에서 떼어 내는 나라 이름(끝 공백 포함) -->
+    <string name="car_geocoder_country_prefix">"대한민국 "</string>
+
+    <!-- ===== 화면: 메인, 이용 내역, 설정, 집 주차 안내 편집, 마무리 패널, 배차 현황 ===== -->
+    <!-- ===== 여러 화면이 함께 쓰는 문구 (메인, 이용 내역, 설정, 배차 현황, 집 주차 안내) ===== -->
+    <string name="screens_depart">출발하기</string>
+    <string name="screens_depart_waiting">출발 대기 중</string>
+    <string name="screens_armed_hint">D단으로 출발하면 운행 기록과 길 안내를 시작합니다.</string>
+    <string name="screens_manual_hint">목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.</string>
+    <string name="screens_cancel_depart">출발 확인 취소</string>
+    <string name="screens_dispatch_status">배차 현황</string>
+    <string name="screens_records">이용 내역</string>
+    <string name="screens_settings">설정</string>
+    <string name="screens_edit">수정</string>
+    <string name="screens_register">등록</string>
+    <string name="screens_none">없음</string>
+    <string name="screens_home_parking">집 주차 안내</string>
+    <string name="screens_driver_name">%1$s 기사님</string>
+
+    <!-- ===== 메인 화면 (HomeScreen) ===== -->
+    <string name="homescreen_armed_sub">D단으로 출발하면 운행을 시작해요</string>
+    <string name="homescreen_depart_sub">목적지와 요금을 확인하고 출발해요</string>
+    <string name="homescreen_status_sub">배정된 기사님과 목적지를 확인해요</string>
+    <string name="homescreen_call">대리 부르기</string>
+    <string name="homescreen_call_sub">목적지와 요금을 확인하고 불러요</string>
+    <string name="homescreen_parked_only">정차 중에만 이용할 수 있습니다.</string>
+    <string name="homescreen_version">버전 %1$s</string>
+
+    <!-- ===== 이용 내역 (RecordsScreen) ===== -->
+    <string name="records_retention">최근 30일의 이용 내역을 최대 20건 보관합니다.</string>
+    <string name="records_empty_title">아직 이용 내역이 없습니다</string>
+    <string name="records_empty_body">대리 이용을 마치면 시간, 요금, 주차 위치를 확인할 수 있습니다.</string>
+    <string name="records_unset">해제</string>
+    <string name="records_unset_title">%1$s 기사님의 우선 요청을 해제할까요?</string>
+    <string name="records_unset_body">해제하면 대리를 부를 때 기사님을 따로 정하지 않고 요청합니다.</string>
+    <string name="records_set_title">%1$s 기사님을 우선 요청 기사님으로 설정할까요?</string>
+    <string name="records_set_body">대리를 부를 때 이 기사님께 먼저 요청합니다. 배정을 보장하지는 않습니다.</string>
+    <string name="records_call_title">%1$s 기사님께 전화하기</string>
+    <string name="records_call_body">서비스가 기사님께 전화를 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다. 시연용이라 실제 전화는 걸지 않습니다.</string>
+
+    <!-- ===== 설정 (SettingsScreen) ===== -->
+    <string name="settings_location_title">차 위치 권한</string>
+    <string name="settings_location_value">허용되지 않음 · 출발지 확인과 집 근처 주차 안내에 사용합니다</string>
+    <string name="settings_allow">허용</string>
+    <string name="settings_card_usable">등록됨 · 집 근처에서 기사님께 안내해 드립니다</string>
+    <string name="settings_card_location_only">집 위치만 등록됨 · 주차할 위치를 적으면 기사님께 안내해 드립니다</string>
+    <string name="settings_card_none">없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다</string>
+    <string name="settings_emergency_note">3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 수정할 수 있습니다.</string>
+    <string name="settings_share_title">운행 상태 자동 공유</string>
+    <string name="settings_share_no_contacts">공유할 연락처가 없습니다</string>
+    <string name="settings_share_on">출발과 도착을 아래 연락처에 알립니다</string>
+    <string name="settings_share_off">공유하지 않습니다</string>
+    <string name="settings_share_note">공유할 연락처는 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다.</string>
+    <string name="settings_edit_contacts">연락처 수정</string>
+    <string name="settings_regular_title">우선 요청 기사님</string>
+    <string name="settings_regular_note_empty">대리를 부를 때 이 기사님께 먼저 요청합니다. 대리를 이용한 뒤에 그 기사님을 등록할 수 있습니다.</string>
+    <string name="settings_regular_note">대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.</string>
+    <string name="settings_notice_title">이용 알림</string>
+    <string name="settings_notice_on">기사님 배정과 운행 종료를 알립니다</string>
+    <string name="settings_notice_off">알리지 않습니다</string>
+    <string name="settings_notice_note">다른 화면을 보고 있을 때 기사님이 배정되거나 운행이 종료되면 차의 알림으로 알려 드립니다.</string>
+    <string name="settings_phone">연결된 번호</string>
+    <string name="settings_app_version">코-대리 %1$s</string>
+
+    <!-- ===== 집 주차 안내 편집 (CardEditorScreen) ===== -->
+    <string name="editor_intro">집 근처에 도착하면 기사님께 안내해 드리는 내용입니다. 이 내용은 차에만 저장됩니다.</string>
+    <string name="editor_home_location">집 위치</string>
+    <string name="editor_place_name">장소 이름 (필수)</string>
+    <string name="editor_address">주소</string>
+    <string name="editor_import_navi">내비게이션 즐겨찾기의 집 가져오기</string>
+    <string name="editor_set_here">현재 위치를 집으로 설정</string>
+    <string name="editor_navi_checking">내비게이션 즐겨찾기를 확인하고 있습니다.</string>
+    <string name="editor_here_with_address">현재 위치를 집으로 선택하고 주소를 채웠습니다. 저장을 누르면 등록됩니다.</string>
+    <string name="editor_here_far">현재 위치를 집으로 선택했습니다. 내비게이션의 현재 위치가 이곳과 달라 주소는 채우지 않았습니다.</string>
+    <string name="editor_here">현재 위치를 집으로 선택했습니다. 저장을 누르면 등록됩니다.</string>
+    <string name="editor_here_missing">현재 위치를 아직 받지 못했습니다. 위치 권한을 허용했는지 확인하고 잠시 뒤 다시 눌러 주세요.</string>
+    <string name="editor_here_received">현재 위치를 받았습니다. 다시 눌러 주세요.</string>
+    <string name="editor_has_location">등록된 집 위치 근처에서 주차 안내를 시작합니다.</string>
+    <string name="editor_no_location">집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다.</string>
+    <string name="editor_spot_title">주차할 위치</string>
+    <string name="editor_spot_intro">아래 위치를 기사님께 안내하고, 이용 내역에서도 확인할 수 있습니다. 집 위치만 저장할 때는 비워 둘 수 있습니다.</string>
+    <string name="editor_apartment">아파트·오피스텔</string>
+    <string name="editor_other">기타</string>
+    <string name="editor_floor">주차 층</string>
+    <string name="editor_spot">구역·자리 또는 기둥 번호</string>
+    <string name="editor_free_spot">주차할 위치. 예: 건물 뒤 주차장 왼쪽 끝</string>
+    <string name="editor_notes_title">기사님께 전달할 안내 (선택)</string>
+    <string name="editor_zone">주차장 안에서 찾아가는 방법</string>
+    <string name="editor_save">저장</string>
+
+    <!-- ===== 귀가 카드 (HomecomingPanel) ===== -->
+    <string name="homecoming_delivery_car_only">이 내역은 차에만 저장돼 있습니다.</string>
+    <string name="homecoming_delivery_uploading">휴대폰에서 볼 수 있도록 이용 내역을 저장하고 있습니다.</string>
+    <string name="homecoming_delivery_pending">차에 저장했습니다. 연결되면 휴대폰에서도 확인할 수 있습니다.</string>
+    <string name="homecoming_collapse">접기</string>
+    <string name="homecoming_expand">펼치기</string>
+    <string name="homecoming_paid">결제 완료</string>
+    <string name="homecoming_unpaid">결제 대기</string>
+    <string name="homecoming_fare_label">요금</string>
+    <string name="homecoming_fare_value">%1$s · %2$s (시연용)</string>
+    <string name="homecoming_memo">기사님 메모</string>
+    <string name="homecoming_driver_label">배정 기사님</string>
+    <string name="homecoming_regular_suffix">" · 우선 요청"</string>
+    <string name="homecoming_call">전화하기</string>
+    <string name="homecoming_regular">우선 요청</string>
+    <string name="homecoming_gap_note">운행 중 일부 정보를 기록하지 못했습니다. 차량 정보가 빠져 있을 수 있습니다.</string>
+    <string name="homecoming_details_hide">차량 상태 접기</string>
+    <string name="homecoming_details_show">차량 상태 자세히</string>
+    <string name="homecoming_at_start">출발 시 %1$s</string>
+    <string name="homecoming_at_end">종료 시 %1$s</string>
+
+    <!-- ===== 배차 현황 (HandoverScreen) ===== -->
+    <string name="dispatch_demo_tag">%1$s · 가상의 기사님</string>
+    <string name="dispatch_assigned">배정된 기사님</string>
+    <string name="dispatch_reassigned">배정된 기사님 · %1$s 다시 배정됨</string>
+    <string name="dispatch_by_regular">차주님이 먼저 요청한 기사님</string>
+    <string name="dispatch_fare_label">이용 요금</string>
+    <string name="dispatch_fare_value">%1$s · 도착 후 자동 결제</string>
+    <string name="dispatch_phone">예약한 번호</string>
+    <string name="dispatch_check_driver">탑승 전에 배정된 기사님이 맞는지 확인해 주세요.</string>
+    <string name="dispatch_to_driver">기사님께</string>
+    <string name="dispatch_record_title">운행 기록 안내</string>
+    <string name="dispatch_record_body">출발·종료 시각과 이동 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다. 운행 요약은 운행을 마친 뒤 따로 전달해 드립니다.</string>
+    <string name="dispatch_auto_hint">기사님과 차주님이 타시면 첫 화면에 출발하기가 나타납니다.</string>
+
+    <!-- ===== 화면: 연결, 운행 중, 정차 중, 주차 자리, 연락처, 우선 요청, PIN, 공용 ===== -->
+    <!-- 여러 화면에서 함께 쓰는 문구 (Shared.kt 외) -->
+    <string name="shared_demo_tag">시연용</string>
+    <string name="shared_stop_first">정차한 뒤 %1$s</string>
+    <string name="shared_no_input_while_driving">주행 중에는 조작할 수 없습니다.</string>
+    <string name="shared_erase">지우기</string>
+    <string name="shared_delete">삭제</string>
+    <string name="shared_pillar_number">기둥 번호</string>
+    <string name="shared_optional">(선택)</string>
+    <string name="shared_spot_same_floor">같은 층 다른 자리</string>
+    <string name="shared_spot_other_floor">다른 층</string>
+    <string name="shared_show_emergency">비상연락처 보기</string>
+    <string name="shared_back_to_map">지도로 돌아가기</string>
+    <string name="shared_memo_no_space">요청하신 곳에 자리가 없어 근처에 주차했습니다.</string>
+
+    <!-- OtherSpotScreen.kt -->
+    <string name="spot_ui_floor_basement1">지하 1층</string>
+    <string name="spot_ui_floor_basement2">지하 2층</string>
+    <string name="spot_ui_floor_basement3">지하 3층</string>
+    <string name="spot_ui_floor_basement4">지하 4층</string>
+    <string name="spot_ui_floor_basement5">지하 5층</string>
+    <string name="spot_ui_title">주차한 자리</string>
+    <string name="spot_ui_memo_label">메모 (선택)</string>
+    <string name="spot_ui_stop_listening">듣기 그만</string>
+    <string name="spot_ui_listening">듣고 있습니다. 주차한 자리를 말씀해 주세요.</string>
+    <string name="spot_ui_dictate">말로 남기기</string>
+    <string name="spot_ui_dictation_failed">듣지 못했습니다. 다시 눌러 말씀해 주세요.</string>
+    <string name="spot_ui_dictation_hint">누르고 말하면 글로 적어 둡니다. 소리는 저장하지 않습니다.</string>
+
+    <!-- BindScreen.kt -->
+    <string name="bind_title">휴대폰 번호를 연결해 주세요</string>
+    <string name="bind_intro">연결한 번호로 대리를 부르면 이 차가 예약을 확인하고 운행을 기록합니다.</string>
+    <string name="bind_step_scan_qr">휴대폰 카메라로 QR을 찍습니다</string>
+    <string name="bind_step_enter_number">열린 페이지에 휴대폰 번호를 입력합니다</string>
+    <string name="bind_step_auto_next">연결되면 이 화면이 자동으로 넘어갑니다</string>
+    <string name="bind_last_four_note">차 화면에는 번호 뒷자리 네 개만 표시됩니다.</string>
+    <string name="bind_qr_preparing">QR 준비 중</string>
+    <string name="bind_pair_code">"연결 코드  %1$s %2$s"</string>
+    <string name="bind_pair_code_hint">휴대폰 없이 시연할 때 심사용 콘솔에 입력합니다</string>
+    <string name="bind_new_code">코드 새로 받기</string>
+    <string name="bind_consent_title">연결 전에 확인해 주세요</string>
+    <string name="bind_consent_collected_label">수집하는 정보</string>
+    <string name="bind_consent_collected">휴대폰 번호, 차의 위치, 기어·운전석 착석·문·창문·배터리 상태, 주행거리</string>
+    <string name="bind_consent_purpose_label">사용 목적</string>
+    <string name="bind_consent_purpose">대리 예약 확인, 이용 내역 저장, 기사님께 차 위치 안내, 운행 중 알림</string>
+    <string name="bind_consent_retention_label">보관 기간</string>
+    <string name="bind_consent_retention">차와 서버에 30일. 영상과 음성은 기록하지 않습니다.</string>
+    <string name="bind_consent_permission_label">권한</string>
+    <string name="bind_consent_permission">동의하면 알림과 차 위치 권한을 차례로 묻습니다. 차 위치는 출발지 확인과 집 근처 주차 안내에 사용합니다.</string>
+    <string name="bind_consent_withdraw_label">동의 철회</string>
+    <string name="bind_consent_withdraw">설정의 \"연결 해제\"를 누르면 철회되고 서버의 번호, 예약, 비상연락처, 차 위치가 바로 지워집니다. 이용 내역은 휴대폰에서 더 열 수 없게 되고 30일 뒤 지워집니다.</string>
+    <string name="bind_agree">동의하고 연결</string>
+
+    <!-- DrivingScreen.kt -->
+    <string name="driving_status_checking">예약 확인 중</string>
+    <string name="driving_status_driving">운행 중</string>
+    <string name="driving_headline_checking">예약을 확인하는 중입니다</string>
+    <string name="driving_headline_parking">주차 중입니다</string>
+    <string name="driving_headline_toward">%1$s 운행 중</string>
+    <string name="driving_desc_checking">예약이 확인되면 이용 내역에 남깁니다.</string>
+    <string name="driving_desc_parking">주차를 마치고 P단에 놓으면 운행 종료 버튼이 나옵니다.</string>
+    <string name="driving_desc_guide">등록한 집 근처에 도착하면 주차 안내를 들려드립니다.</string>
+    <string name="driving_listen_guidance">주차 안내 듣기</string>
+    <string name="driving_reading">읽는 중</string>
+    <string name="driving_next_guidance">다음 안내</string>
+    <string name="driving_restart_guidance">처음부터 다시</string>
+    <string name="driving_listen_again">다시 듣기</string>
+
+    <!-- WrapScreen.kt -->
+    <string name="wrap_distance">이동 거리</string>
+    <string name="wrap_elapsed">이용 시간</string>
+    <string name="wrap_autopay_note">운행이 종료되면 차주님이 등록한 결제수단으로 %1$s이 자동 결제됩니다. (시연용)</string>
+    <string name="wrap_leave_location">주차를 마치셨다면 위치를 남겨 주세요 (선택)</string>
+    <string name="wrap_guided_spot">안내한 자리</string>
+    <string name="wrap_other_spot">다른 자리</string>
+    <string name="wrap_memo">메모: %1$s</string>
+    <string name="wrap_short_stop_hint">잠시 정차한 경우 그대로 출발하시면 됩니다. 주차를 마쳤으면 운행 종료를 눌러 주세요.</string>
+    <string name="wrap_emergency_note">차주님과 의사소통이 어려울 때 연락할 분(%1$s)입니다.</string>
+
+    <!-- ParkingEditPopup.kt -->
+    <string name="parking_edit_title">주차 위치 수정</string>
+    <string name="parking_edit_subtitle">실제로 주차한 자리를 골라 주세요. 저장하면 이용 내역에 반영됩니다.</string>
+    <string name="parking_edit_near_guided">안내한 위치 근처</string>
+    <string name="parking_edit_pick_floor">층을 골라 주세요.</string>
+
+    <!-- ContactsScreen.kt -->
+    <string name="contacts_relation_spouse">배우자</string>
+    <string name="contacts_relation_parents">부모님</string>
+    <string name="contacts_relation_child">자녀</string>
+    <string name="contacts_relation_siblings">형제자매</string>
+    <string name="contacts_relation_friend">친구</string>
+    <string name="contacts_relation_coworker">직장 동료</string>
+    <string name="contacts_title_share">운행 상태를 공유할 연락처</string>
+    <string name="contacts_desc_emergency">운행 중 유사시에 기사님이 연락할 분입니다. 3명까지 등록합니다.</string>
+    <string name="contacts_desc_share">출발과 도착을 알릴 분입니다. 3명까지 등록합니다. 시연용이라 실제 문자는 보내지 않습니다.</string>
+    <string name="contacts_empty">등록된 연락처가 없습니다</string>
+    <string name="contacts_add_title">연락처 추가</string>
+    <string name="contacts_custom_relation">직접 입력</string>
+    <string name="contacts_relation_field">관계 (예: 이모, 이웃)</string>
+    <string name="contacts_phone_placeholder">전화번호</string>
+    <string name="contacts_add">추가</string>
+    <string name="contacts_masked_note">번호는 서비스에만 저장하고, 차 화면에는 가려서 보여 줍니다.</string>
+
+    <!-- RegularScreen.kt -->
+    <string name="regular_current_label">지금 설정</string>
+    <string name="regular_used_drivers">이용한 기사님</string>
+    <string name="regular_empty">이용 내역이 없습니다. 대리를 이용한 뒤 그 기사님을 등록할 수 있습니다.</string>
+    <string name="regular_set">설정됨</string>
+    <string name="regular_pick">선택</string>
+
+    <!-- StartPinPopup.kt -->
+    <string name="pin_confirm">확인</string>
+    <string name="pin_title">기사님 PIN을 입력해 주세요</string>
+    <string name="pin_driver_prefix">"%1$s 기사님이 "</string>
+    <string name="pin_body">배정받을 때 전달받은 네 자리 PIN을 입력하면 출발 대기로 넘어갑니다.</string>
+
+    <!-- ClosedScreen.kt -->
+    <string name="closed_done">운행을 마쳤습니다</string>
+    <string name="closed_checking">운행 종료를 확인하고 있습니다</string>
+    <string name="closed_done_at">%1$s에 운행을 마쳤습니다. 이용 내역을 확인해 주세요.</string>
+    <string name="closed_upload_pending">종료 내역은 차에 저장했습니다. 연결되면 종료 확인과 결제를 진행합니다. (시연용)</string>
+    <string name="closed_checking_desc">종료 내역을 확인한 뒤 결제를 진행합니다. (시연용)</string>
+    <string name="closed_to_main">메인으로</string>
+
+    <!-- SplitTip.kt -->
+    <string name="split_title">내비게이션과 나란히 보기</string>
+    <string name="split_hint">오른쪽 가장자리의 손잡이(⋮)를 왼쪽으로 끌어 보세요.</string>
+
+    <!-- Components.kt -->
+    <string name="components_back">뒤로</string>
+    <string name="components_qr_description">휴대폰으로 찍는 QR 코드</string>
+
+    <!-- TripPresentation.kt: 표시 문구. 아래 label/prefix/memo/잠김·열림/충전됨은 저장된 예전 기록과 맞춰 보는 문구이므로 글자를 바꾸면 안 된다 -->
+    <string name="present_parking_unconfirmed">실제 주차 위치 미확인</string>
+    <string name="present_requested_location">요청한 위치: %1$s</string>
+    <string name="present_parking_unknown">주차 위치 미확인</string>
+    <string name="present_driver_left_note">기사님이 남긴 위치입니다.</string>
+    <string name="present_prefix_driver_confirmed">"기사님 확인: "</string>
+    <string name="present_prefix_driver_input">"기사님 입력: "</string>
+    <string name="present_prefix_legacy_confirmed">"기사 확인: "</string>
+    <string name="present_prefix_legacy_input">"기사 입력: "</string>
+    <string name="present_as_of">"%1$s 기준 "</string>
+    <string name="present_unlocked">잠금 해제</string>
+    <string name="present_lock_unknown">잠금 상태를 확인하지 못했습니다</string>
+    <string name="present_label_battery_change">배터리 잔량 변화</string>
+    <string name="present_label_fuel_change">연료 잔량 변화</string>
+    <string name="present_memo_legacy_full">선호 구역 만차로 인근에 주차</string>
+    <string name="present_memo_legacy_alternate">자리가 없어 대체 구역에 주차</string>
+    <string name="present_charged">충전됨</string>
+</resources>

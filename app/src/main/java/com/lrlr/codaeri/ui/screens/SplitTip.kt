@@ -1,5 +1,7 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -64,9 +66,9 @@ fun SplitTip(key: String, still: Boolean) {
             ) {
                 T("←", Type.headlineSmall, Modifier.offset(x = (-14 * nudge).dp), color = c.onButtonFilled, maxLines = 1)
                 Column(Modifier.weight(1f, fill = false)) {
-                    T("내비게이션과 나란히 보기", Type.titleSmall, color = c.onButtonFilled, maxLines = 1)
+                    T(text(R.string.split_title), Type.titleSmall, color = c.onButtonFilled, maxLines = 1)
                     Spacer(Modifier.height(4.dp))
-                    T("오른쪽 가장자리의 손잡이(⋮)를 왼쪽으로 끌어 보세요.", Type.labelLarge, color = c.onButtonFilled)
+                    T(text(R.string.split_hint), Type.labelLarge, color = c.onButtonFilled)
                 }
                 Box(Modifier.size(72.dp).clip(CircleShape).pressable(onClick = { open = false }), contentAlignment = Alignment.Center) {
                     T("✕", Type.titleSmall, color = c.onButtonFilled, maxLines = 1)

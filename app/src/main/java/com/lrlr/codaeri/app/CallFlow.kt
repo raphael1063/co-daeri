@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /** CHOOSE = 부르는 방법 고르기(집, 장소 선택, 음성 인식), PLACES = 장소 목록에서 고르기, LISTENING = 목적지를 듣는 중 */
 enum class CallStage { OFF, CHOOSE, PLACES, LISTENING, QUOTING, CONFIRM, CALLING }
@@ -107,7 +109,7 @@ class CallFlow(
     /** 장소 선택: 고를 수 있는 장소 목록을 보여 준다. */
     fun places() {
         if (!canStart()) return
-        _ui.value = CallUi(CallStage.PLACES, message = "목적지를 골라 주세요")
+        _ui.value = CallUi(CallStage.PLACES, message = text(R.string.call_pick_place))
     }
 
     /** 장소 목록에서 하나를 눌렀다. */
@@ -130,13 +132,13 @@ class CallFlow(
         _ui.value = CallUi(CallStage.CONFIRM, null, message = MIC_DENIED)
     }
 
-    private fun onDestinationHeard(text: String?) {
+    private fun onDestinationHeard(said: String?) {
         if (_ui.value.stage != CallStage.LISTENING) return
         val link = store.value.phoneLink ?: return cancel()
-        when (val heard = text?.let { VoiceCall.destination(it, VoiceCall.home(store.value.card)) } ?: Heard.Unknown) {
+        when (val heard = said?.let { VoiceCall.destination(it, VoiceCall.home(store.value.card)) } ?: Heard.Unknown) {
             is Heard.Destination -> quote(heard.place, byVoice = true)
             Heard.HomeMissing -> _ui.value = CallUi(CallStage.CONFIRM, null, message = HOME_MISSING, byVoice = true, homeMissing = true)
-            else -> _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = true, message = if (text.isNullOrBlank()) "말씀을 듣지 못했습니다. 다시 말하기를 눌러 주세요." else "\"$text\" 목적지를 찾지 못했습니다. 다시 말하기를 눌러 주세요.")
+            else -> _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = true, message = if (said.isNullOrBlank()) text(R.string.call_not_heard) else text(R.string.call_place_not_found, said))
         }
     }
 
@@ -146,17 +148,17 @@ class CallFlow(
         // 이미 집에 있으면 집으로 부를 일이 없다. 요금을 묻지 않고 다른 목적지를 고르게 한다.
         val here = location.position.value
         if (here != null && place == VoiceCall.home(store.value.card) && VoiceCall.straightKm(here.lat, here.lng, place.lat, place.lng) <= AT_HOME_KM) {
-            _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = ALREADY_HOME + if (byVoice) " 다시 말하기를 눌러 주세요." else " 다른 방법을 눌러 목적지를 선택해 주세요.")
+            _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = ALREADY_HOME + " " + if (byVoice) text(R.string.call_say_again_hint) else text(R.string.call_pick_other_place_hint))
             return
         }
-        _ui.value = CallUi(CallStage.QUOTING, place, message = "${place.name}까지 요금을 확인하는 중입니다", byVoice = byVoice)
+        _ui.value = CallUi(CallStage.QUOTING, place, message = text(R.string.call_quoting, place.name), byVoice = byVoice)
         job?.cancel()
         job = env.scope.launch {
             val from = location.position.value
             val fare = withContext(env.io) { service.call(link, place, from?.lat, from?.lng, confirm = false) }
             if (_ui.value.stage != CallStage.QUOTING) return@launch
             if (fare == null) {
-                _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = "통신 문제로 요금을 확인하지 못했습니다. " + if (byVoice) "다시 말하기를 눌러 주세요." else "다른 방법을 눌러 다시 선택해 주세요.")
+                _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = text(R.string.call_quote_failed) + if (byVoice) text(R.string.call_say_again_hint) else text(R.string.call_pick_other_again_hint))
                 return@launch
             }
             val origin = VoiceCall.originName(from?.lat, from?.lng, VoiceCall.home(store.value.card))
@@ -175,15 +177,15 @@ class CallFlow(
         }
     }
 
-    private fun onAnswerHeard(text: String?) {
+    private fun onAnswerHeard(said: String?) {
         if (_ui.value.stage != CallStage.CONFIRM) return
-        when (text?.let(VoiceCall::answer)) {
+        when (said?.let(VoiceCall::answer)) {
             Heard.Yes -> confirm()
             Heard.No -> cancel()
             else -> {
                 // 들은 말을 보여 주고 두 번까지 다시 듣는다. 그 뒤에는 단추로 고른다.
                 val v = _ui.value
-                _ui.value = v.copy(message = if (v.retries < 2) VoiceCall.retryLine(text) else "대답을 확인하지 못했습니다. 화면에서 부르기 또는 취소를 눌러 주세요.", retries = v.retries + 1)
+                _ui.value = v.copy(message = if (v.retries < 2) VoiceCall.retryLine(said) else text(R.string.call_answer_unclear), retries = v.retries + 1)
                 if (v.retries < 2) listener.listen { answer -> onAnswerHeard(answer) }
             }
         }
@@ -198,11 +200,11 @@ class CallFlow(
         if (!canStart()) return cancel()
         listener.cancel()
         announcer.stopNow()
-        _ui.value = v.copy(stage = CallStage.CALLING, message = "${place.name}까지 대리를 부르는 중입니다")
+        _ui.value = v.copy(stage = CallStage.CALLING, message = text(R.string.call_calling, place.name))
         job = env.scope.launch {
             val from = location.position.value
             val ok = withContext(env.io) { service.call(link, place, from?.lat, from?.lng, confirm = true) } != null
-            if (!ok) { _ui.value = v.copy(stage = CallStage.CONFIRM, message = "통신 문제로 부르지 못했습니다. 다시 눌러 주세요."); return@launch }
+            if (!ok) { _ui.value = v.copy(stage = CallStage.CONFIRM, message = text(R.string.call_failed)); return@launch }
             refresh()
             // 배정 결과가 아직 안 보이면 확인하는 동안 로딩을 유지한다. 아무 표시 없이 기다리게 하지 않는다.
             var tries = 0
@@ -226,16 +228,16 @@ class CallFlow(
     }
 
     companion object {
-        const val ASSIGNING = "호출을 접수했습니다. 기사님 배정을 확인하는 중입니다"
+        val ASSIGNING get() = text(R.string.call_assigning)
         const val ASSIGN_WAIT_MS = 1_000L
         const val ASSIGN_TRIES = 10
-        const val CANCELLED = "호출을 취소했습니다."
-        const val CANCEL_FAILED = "호출을 취소하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
+        val CANCELLED get() = text(R.string.call_cancelled)
+        val CANCEL_FAILED get() = text(R.string.call_cancel_failed)
         const val AT_HOME_KM = 0.3f
-        const val ALREADY_HOME = "지금 집 근처에 있습니다."
-        const val MIC_DENIED = "마이크 권한이 없어 말로 입력할 수 없습니다. 다른 방법을 눌러 목적지를 선택해 주세요."
-        const val HOME_MISSING = "집 위치가 아직 등록되어 있지 않습니다"
-        const val HOME_MISSING_HINT = "설정에서 집 주차 안내를 등록하면 다음부터 집으로 바로 부를 수 있습니다. 지금은 다른 방법으로 목적지를 정할 수도 있습니다."
+        val ALREADY_HOME get() = text(R.string.call_already_home)
+        val MIC_DENIED get() = text(R.string.call_mic_denied)
+        val HOME_MISSING get() = text(R.string.call_home_missing)
+        val HOME_MISSING_HINT get() = text(R.string.call_home_missing_hint)
     }
 }
 

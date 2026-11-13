@@ -1,5 +1,6 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
@@ -62,15 +63,15 @@ fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uplo
     Column(page, verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                T(if (card.confirmedAt != null) "운행을 마쳤습니다" else "운행 종료를 확인하고 있습니다", Type.titleLarge)
+                T(if (card.confirmedAt != null) text(R.string.closed_done) else text(R.string.closed_checking), Type.titleLarge)
                 T(
-                    if (card.confirmedAt != null) "${handover.time(card.endedAt)}에 운행을 마쳤습니다. 이용 내역을 확인해 주세요."
-                    else if (state.uploadPending) "종료 내역은 차에 저장했습니다. 연결되면 종료 확인과 결제를 진행합니다. (시연용)"
-                    else "종료 내역을 확인한 뒤 결제를 진행합니다. (시연용)",
+                    if (card.confirmedAt != null) text(R.string.closed_done_at, handover.time(card.endedAt))
+                    else if (state.uploadPending) text(R.string.closed_upload_pending)
+                    else text(R.string.closed_checking_desc),
                     Type.bodySmall, color = Ivi.colors.textSecondary,
                 )
             }
-            IviButton("메인으로", onDone, filled = true)
+            IviButton(text(R.string.closed_to_main), onDone, filled = true)
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
             HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt, onEditParking = onEditParking)

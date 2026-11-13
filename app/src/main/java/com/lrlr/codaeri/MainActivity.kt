@@ -65,6 +65,7 @@ import com.lrlr.codaeri.ui.screens.StopFirst
 import com.lrlr.codaeri.ui.T
 import com.lrlr.codaeri.ui.Type
 import com.lrlr.codaeri.ui.screens.WrapScreen
+import com.lrlr.codaeri.domain.text
 
 private const val PERMISSION_LOCATION = "pleos.car.permission.FUSED_LOCATION"
 
@@ -206,7 +207,7 @@ class MainActivity : ComponentActivity() {
                             Screen.DRIVING -> trip?.let {
                                 DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap, emergencies = state.server.emergencyList, onEmergency = c::showEmergency, parking = parking)
                             }
-                            Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
+                            Screen.STOP_FIRST -> StopFirst(if (trip != null) text(R.string.main_stop_first_trip) else text(R.string.main_stop_first_pair))
                             Screen.WRAP -> trip?.let {
                                 WrapScreen(
                                     trip = it, card = state.card, handover = c.handover, seatCloses = c.seatCloses(), busy = busy,
@@ -299,7 +300,7 @@ class MainActivity : ComponentActivity() {
                                 onStatus = { section = Section.STATUS },
                                 onRecords = { section = Section.RECORDS },
                                 onSettings = { section = Section.SETTINGS },
-                                startLine = pending?.takeIf { startReady }?.let { "${it.driver.name} 기사님 · ${it.destination} · ${c.handover.fareText(it.fare)}" },
+                                startLine = pending?.takeIf { startReady }?.let { text(R.string.main_start_line, it.driver.name, it.destination, c.handover.fareText(it.fare)) },
                                 armed = pending != null && startArmed == pending.id,
                                 onStart = c::pressStart,
                                 canCall = canCall,
@@ -325,13 +326,13 @@ class MainActivity : ComponentActivity() {
                         IviPopup(
                             onDismiss = c::dismissCloseAsk,
                             buttons = {
-                                IviButton("돌아가기", c::dismissCloseAsk, Modifier.weight(1f), size = ButtonSize.LARGE)
-                                IviButton("운행 종료", c::confirmClose, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE)
+                                IviButton(text(R.string.main_back), c::dismissCloseAsk, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                IviButton(text(R.string.main_end_trip), c::confirmClose, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE)
                             },
                         ) {
                             PopupTitle(
-                                "목적지에서 먼 곳입니다. 정말 운행을 종료할까요?",
-                                "목적지 ${ask.destination}까지 직선거리로 약 ${c.handover.distanceText(ask.km)} 남았습니다. 잠깐 선 것이라면 돌아가기를 눌러 주세요. 종료하면 이 운행은 여기서 끝납니다.",
+                                text(R.string.main_close_far_title),
+                                text(R.string.main_close_far_body, ask.destination, c.handover.distanceText(ask.km)),
                             )
                         }
                     }
@@ -342,11 +343,11 @@ class MainActivity : ComponentActivity() {
                         IviPopup(
                             onDismiss = { confirmCancel = false },
                             buttons = {
-                                IviButton("돌아가기", { confirmCancel = false }, Modifier.weight(1f), size = ButtonSize.LARGE)
-                                IviButton("호출 취소", { confirmCancel = false; c.cancelBooking() }, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE)
+                                IviButton(text(R.string.main_back), { confirmCancel = false }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                IviButton(text(R.string.main_cancel_call), { confirmCancel = false; c.cancelBooking() }, Modifier.weight(1f), danger = true, size = ButtonSize.LARGE)
                             },
                         ) {
-                            PopupTitle("호출을 취소할까요?", "${b.driver.name} 기사님 배정이 취소됩니다. ${b.destination}까지의 예약이 없어집니다.")
+                            PopupTitle(text(R.string.main_cancel_call_title), text(R.string.main_cancel_call_body, b.driver.name, b.destination))
                         }
                     }
 
@@ -364,16 +365,16 @@ class MainActivity : ComponentActivity() {
                             width = if (choosing) 1000.dp else if (confirm && v.place != null) 960.dp else 760.dp,
                             buttons = {
                                 // 집 위치가 없을 때는 막다른 "취소" 대신 갈 수 있는 두 길을 준다: 다른 방법, 집 설정하기
-                                if (v.homeMissing) IviButton("다른 방법", c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
-                                else IviButton("취소", c::cancelCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                if (v.homeMissing) IviButton(text(R.string.main_other_way), c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                else IviButton(text(R.string.main_cancel), c::cancelCall, Modifier.weight(1f), size = ButtonSize.LARGE)
                                 when {
-                                    v.homeMissing -> IviButton("설정하기", { c.cancelCall(); section = Section.SETTINGS; editing = true }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    v.homeMissing -> IviButton(text(R.string.main_set_up), { c.cancelCall(); section = Section.SETTINGS; editing = true }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
                                     v.stage == CallStage.CHOOSE -> {}
-                                    v.stage == CallStage.PLACES -> IviButton("다른 방법", c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
-                                    confirm && v.place != null -> IviButton("부르기", c::confirmCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
-                                    confirm && v.byVoice -> IviButton("다시 말하기", byVoice, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
-                                    confirm -> IviButton("다른 방법", c::startCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
-                                    else -> IviButton(if (listening) "듣는 중" else "확인 중", {}, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, loading = !listening, enabled = false)
+                                    v.stage == CallStage.PLACES -> IviButton(text(R.string.main_other_way), c::startCall, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                    confirm && v.place != null -> IviButton(text(R.string.main_call), c::confirmCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    confirm && v.byVoice -> IviButton(text(R.string.main_say_again), byVoice, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    confirm -> IviButton(text(R.string.main_other_way), c::startCall, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                                    else -> IviButton(if (listening) text(R.string.main_listening) else text(R.string.main_checking), {}, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, loading = !listening, enabled = false)
                                 }
                             },
                         ) {
@@ -381,8 +382,8 @@ class MainActivity : ComponentActivity() {
                             PopupTitle(
                                 if (asking) VoiceCall.CONFIRM_TITLE else v.message,
                                 when {
-                                    v.stage == CallStage.CHOOSE -> "편한 방법으로 목적지를 입력해 주세요."
-                                    v.stage == CallStage.PLACES -> "시연에서는 아래 장소만 고를 수 있습니다."
+                                    v.stage == CallStage.CHOOSE -> text(R.string.main_choose_hint)
+                                    v.stage == CallStage.PLACES -> text(R.string.main_places_hint)
                                     listening -> voicePartial.ifBlank { VoiceCall.EXAMPLE }
                                     // 다시 묻는 말이나 통신 오류가 있으면 그것을 먼저 보여 준다
                                     asking && v.message != v.asked -> v.message
@@ -395,18 +396,18 @@ class MainActivity : ComponentActivity() {
                                 Spacer(Modifier.height(20.dp))
                                 Divider()
                                 Spacer(Modifier.height(10.dp))
-                                Fact("출발지", v.from, valueStyle = Type.bodyLarge)
-                                Fact("목적지", v.place.name, valueStyle = Type.bodyLarge)
-                                Fact("예상 거리", v.km?.let { "약 ${c.handover.distanceText(it)} (직선 거리 기준)" } ?: "현재 위치를 확인하지 못했습니다", valueStyle = Type.bodyLarge)
-                                Fact("확정 요금", "${c.handover.fareText(v.fare ?: 0)} (시연용)", valueStyle = Type.bodyLarge)
+                                Fact(text(R.string.main_fact_from), v.from, valueStyle = Type.bodyLarge)
+                                Fact(text(R.string.main_fact_destination), v.place.name, valueStyle = Type.bodyLarge)
+                                Fact(text(R.string.main_fact_distance), v.km?.let { text(R.string.main_distance_value, c.handover.distanceText(it)) } ?: text(R.string.main_distance_unknown), valueStyle = Type.bodyLarge)
+                                Fact(text(R.string.main_fact_fare), text(R.string.main_fare_value, c.handover.fareText(v.fare ?: 0)), valueStyle = Type.bodyLarge)
                             }
                             if (choosing) {
                                 Spacer(Modifier.height(28.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                     if (v.stage == CallStage.CHOOSE) {
-                                        CallChoice("집", R.drawable.ic_call_home, c::callHome, Modifier.weight(1f))
-                                        CallChoice("목적지 선택", R.drawable.ic_call_place, c::showPlaces, Modifier.weight(1f))
-                                        CallChoice("말로 입력", R.drawable.ic_call_voice, byVoice, Modifier.weight(1f))
+                                        CallChoice(text(R.string.voice_home), R.drawable.ic_call_home, c::callHome, Modifier.weight(1f))
+                                        CallChoice(text(R.string.main_choice_place), R.drawable.ic_call_place, c::showPlaces, Modifier.weight(1f))
+                                        CallChoice(text(R.string.main_choice_voice), R.drawable.ic_call_voice, byVoice, Modifier.weight(1f))
                                     } else {
                                         VoiceCall.places.forEach { place -> CallChoice(place.name, R.drawable.ic_call_place, { c.callTo(place) }, Modifier.weight(1f)) }
                                     }
@@ -421,14 +422,14 @@ class MainActivity : ComponentActivity() {
                     Fading(if (inTrip) emergencyUi else null) { em ->
                         IviPopup(
                             onDismiss = c::hideEmergency,
-                            buttons = { IviButton("닫기", c::hideEmergency, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
+                            buttons = { IviButton(text(R.string.main_close), c::hideEmergency, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
                         ) {
                             if (em.contacts.isNotEmpty()) {
-                                PopupTitle("비상연락처", "차주님이 등록한 연락처입니다. 번호를 확인하면 차주님께 알림이 남습니다.")
+                                PopupTitle(text(R.string.main_emergency_title), text(R.string.main_emergency_body))
                                 Spacer(Modifier.height(24.dp))
                                 PairColumns(em.contacts.map { it.label to it.dialText }, Type.titleSmall, Type.headlineLarge, gap = 16.dp)
                             } else {
-                                PopupTitle("비상연락처", em.message)
+                                PopupTitle(text(R.string.main_emergency_title), em.message)
                             }
                         }
                     }
@@ -447,13 +448,13 @@ class MainActivity : ComponentActivity() {
                         IviPopup(
                             onDismiss = { confirmUnbind = false; c.clearPairing() },
                             buttons = {
-                                IviButton("취소", { confirmUnbind = false; c.clearPairing() }, Modifier.weight(1f), size = ButtonSize.LARGE)
-                                IviButton("연결 해제", c::unbind, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, loading = busy)
+                                IviButton(text(R.string.main_cancel), { confirmUnbind = false; c.clearPairing() }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                                IviButton(text(R.string.main_unbind), c::unbind, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE, loading = busy)
                             },
                         ) {
                             PopupTitle(
-                                "번호 연결을 해제할까요?",
-                                status.ifBlank { "서버의 번호, 예약, 비상연락처, 차 위치가 삭제됩니다. 차에 저장된 이용 내역은 남습니다." },
+                                text(R.string.main_unbind_title),
+                                status.ifBlank { text(R.string.main_unbind_body) },
                             )
                         }
                     }

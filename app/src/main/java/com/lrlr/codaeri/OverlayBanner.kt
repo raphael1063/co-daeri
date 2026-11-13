@@ -25,6 +25,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.lrlr.codaeri.app.BannerLine
 import com.lrlr.codaeri.app.TripBanner
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * 내비게이션 위에 띄우는 작은 표시(다른 앱 위에 표시). 누르면 코-대리 화면이 열리고, ✕ 를 누르면 내려간다.
@@ -202,9 +204,10 @@ class OverlayBanner(private val context: Context) : TripBanner {
             setBackgroundColor(line)
             layoutParams = LinearLayout.LayoutParams(dp(1f), LinearLayout.LayoutParams.MATCH_PARENT).apply { marginStart = dp(20f) }
         }
+        val closeLabel = text(R.string.overlay_close)
         val close = TextView(context).apply {
             text = "✕"
-            contentDescription = "표시 닫기"
+            contentDescription = closeLabel
             setTextColor(sub); setTextSize(TypedValue.COMPLEX_UNIT_SP, 34f); gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(dp(96f), LinearLayout.LayoutParams.MATCH_PARENT)
             setOnClickListener { onDismiss?.invoke() }

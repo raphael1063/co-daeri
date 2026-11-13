@@ -6,6 +6,8 @@ import android.content.Intent
 import android.util.Log
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * Gleo AI 연동(assets/schema.json): "어젯밤 대리 기록 알려 줘" 한 가지 질문에 답한다.
@@ -31,7 +33,7 @@ class GleoReceiver : BroadcastReceiver() {
         fun response(answer: String?): String = buildJsonObject {
             put("functionName", ACTION)
             put("status", if (answer != null) "success" else "fail")
-            put("message", answer ?: "대리 운행 기록이 없습니다.")
+            put("message", answer ?: text(R.string.gleo_no_trip))
         }.toString()
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -95,71 +96,71 @@ fun CardEditorScreen(
     // 저장과 취소는 스크롤하지 않아도 보이도록 아래에 고정한다.
     Column(page, verticalArrangement = Arrangement.spacedBy(16.dp)) {
     // 제목은 위에, 저장과 취소는 아래에 고정한다.
-    T("집 주차 안내", Type.titleMedium)
+    T(text(R.string.screens_home_parking), Type.titleMedium)
     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         T(
-            "집 근처에 도착하면 기사님께 안내해 드리는 내용입니다. 이 내용은 차에만 저장됩니다.",
+            text(R.string.editor_intro),
             Type.labelLarge, color = Ivi.colors.textTertiary,
         )
-        T("집 위치", Type.titleSmall)
-        Field("장소 이름 (필수)", c.placeName) { c = c.copy(placeName = it) }
-        Field("주소", c.address) { c = c.copy(address = it) }
+        T(text(R.string.editor_home_location), Type.titleSmall)
+        Field(text(R.string.editor_place_name), c.placeName) { c = c.copy(placeName = it) }
+        Field(text(R.string.editor_address), c.address) { c = c.copy(address = it) }
         // 두 버튼은 늘 같은 자리에 같은 크기로 있고, 결과는 그 아래 한 줄에 적는다.
         FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            IviButton("내비게이션 즐겨찾기의 집 가져오기", { focus.clearFocus(); lastTap = "navi"; onImportHome() }, size = ButtonSize.SMALL, loading = homeImport.busy)
+            IviButton(text(R.string.editor_import_navi), { focus.clearFocus(); lastTap = "navi"; onImportHome() }, size = ButtonSize.SMALL, loading = homeImport.busy)
             // 위치를 아직 못 받았어도 버튼은 눌린다. 그때는 이유를 알려 주고 위치를 다시 묻는다.
             IviButton(
-                "현재 위치를 집으로 설정",
+                text(R.string.editor_set_here),
                 {
                     focus.clearFocus()
                     val here = currentLocation
                     if (here == null) { lastTap = "here-missing"; onNeedLocation() }
-                    else { c = c.copy(latitude = here.first, longitude = here.second, placeName = c.placeName.ifBlank { "집" }); lastTap = "here"; onLookUpHere(here.first, here.second) }
+                    else { c = c.copy(latitude = here.first, longitude = here.second, placeName = c.placeName.ifBlank { text(R.string.voice_home) }); lastTap = "here"; onLookUpHere(here.first, here.second) }
                 },
                 size = ButtonSize.SMALL,
             )
         }
         T(
             when {
-                lastTap == "navi" && homeImport.busy -> "내비게이션 즐겨찾기를 확인하고 있습니다."
+                lastTap == "navi" && homeImport.busy -> text(R.string.editor_navi_checking)
                 lastTap == "navi" && homeImport.message.isNotBlank() -> homeImport.message
-                lastTap == "here" && hereAddress.isNotBlank() -> "현재 위치를 집으로 선택하고 주소를 채웠습니다. 저장을 누르면 등록됩니다."
-                lastTap == "here" && hereFar -> "현재 위치를 집으로 선택했습니다. 내비게이션의 현재 위치가 이곳과 달라 주소는 채우지 않았습니다."
-                lastTap == "here" -> "현재 위치를 집으로 선택했습니다. 저장을 누르면 등록됩니다."
-                lastTap == "here-missing" && currentLocation == null -> "현재 위치를 아직 받지 못했습니다. 위치 권한을 허용했는지 확인하고 잠시 뒤 다시 눌러 주세요."
-                lastTap == "here-missing" -> "현재 위치를 받았습니다. 다시 눌러 주세요."
-                c.hasLocation -> "등록된 집 위치 근처에서 주차 안내를 시작합니다."
-                else -> "집 위치가 없으면 기사님이 버튼을 눌러 안내를 시작합니다."
+                lastTap == "here" && hereAddress.isNotBlank() -> text(R.string.editor_here_with_address)
+                lastTap == "here" && hereFar -> text(R.string.editor_here_far)
+                lastTap == "here" -> text(R.string.editor_here)
+                lastTap == "here-missing" && currentLocation == null -> text(R.string.editor_here_missing)
+                lastTap == "here-missing" -> text(R.string.editor_here_received)
+                c.hasLocation -> text(R.string.editor_has_location)
+                else -> text(R.string.editor_no_location)
             },
             Type.labelSmall, color = Ivi.colors.textTertiary,
         )
         Spacer(Modifier.height(12.dp))
-        T("주차할 위치", Type.titleSmall)
-        T("아래 위치를 기사님께 안내하고, 이용 내역에서도 확인할 수 있습니다. 집 위치만 저장할 때는 비워 둘 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
+        T(text(R.string.editor_spot_title), Type.titleSmall)
+        T(text(R.string.editor_spot_intro), Type.labelSmall, color = Ivi.colors.textTertiary)
         Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-            IviRadio("아파트·오피스텔", kind == PlaceKind.APARTMENT, { kind = PlaceKind.APARTMENT })
-            IviRadio("기타", kind == PlaceKind.OTHER, { kind = PlaceKind.OTHER })
+            IviRadio(text(R.string.editor_apartment), kind == PlaceKind.APARTMENT, { kind = PlaceKind.APARTMENT })
+            IviRadio(text(R.string.editor_other), kind == PlaceKind.OTHER, { kind = PlaceKind.OTHER })
         }
         if (kind == PlaceKind.APARTMENT) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Field("주차 층", c.floorLabel, Modifier.weight(1f)) { c = c.copy(floorLabel = it) }
-                Field("구역·자리 또는 기둥 번호", c.spotLabel, Modifier.weight(1f)) { c = c.copy(spotLabel = it) }
+                Field(text(R.string.editor_floor), c.floorLabel, Modifier.weight(1f)) { c = c.copy(floorLabel = it) }
+                Field(text(R.string.editor_spot), c.spotLabel, Modifier.weight(1f)) { c = c.copy(spotLabel = it) }
             }
         } else {
-            Field("주차할 위치. 예: 건물 뒤 주차장 왼쪽 끝", free) { free = it.take(60) }
+            Field(text(R.string.editor_free_spot), free) { free = it.take(60) }
         }
         Spacer(Modifier.height(12.dp))
-        T("기사님께 전달할 안내 (선택)", Type.titleSmall)
-        Field("주차장 입구", c.entrance) { c = c.copy(entrance = it) }
-        Field("차단기 통과 방법", c.entryMethod) { c = c.copy(entryMethod = it) }
-        Field("주차장 안에서 찾아가는 방법", c.zone) { c = c.copy(zone = it) }
-        Field("주차 시 유의사항", c.preferredSpot) { c = c.copy(preferredSpot = it) }
-        Field("자리가 없을 때", c.fallback) { c = c.copy(fallback = it) }
+        T(text(R.string.editor_notes_title), Type.titleSmall)
+        Field(text(R.string.guide_label_entrance), c.entrance) { c = c.copy(entrance = it) }
+        Field(text(R.string.guide_label_entry_method), c.entryMethod) { c = c.copy(entryMethod = it) }
+        Field(text(R.string.editor_zone), c.zone) { c = c.copy(zone = it) }
+        Field(text(R.string.guide_label_preferred_spot), c.preferredSpot) { c = c.copy(preferredSpot = it) }
+        Field(text(R.string.guide_label_fallback), c.fallback) { c = c.copy(fallback = it) }
     }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            IviButton("취소", onBack, Modifier.weight(1f))
+            IviButton(text(R.string.main_cancel), onBack, Modifier.weight(1f))
             // 장소 이름과 주차할 위치를 다 적었거나, 주차할 위치 없이 집 위치만 정했을 때 저장할 수 있다.
-            IviButton("저장", { onSave(result) }, Modifier.weight(1f), filled = true, enabled = result.canSave)
+            IviButton(text(R.string.editor_save), { onSave(result) }, Modifier.weight(1f), filled = true, enabled = result.canSave)
         }
     }
 }

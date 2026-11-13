@@ -1,5 +1,6 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
@@ -79,7 +80,7 @@ fun WrapScreen(
     Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
         // 제목은 위에, 운행 종료를 비롯한 버튼은 아래에 고정하고 가운데만 스크롤한다.
         Column(Modifier.weight(1f).fillMaxHeight()) {
-            T("정차 중", Type.headlineLarge, Modifier.appear(0))
+            T(text(R.string.banner_stopped), Type.headlineLarge, Modifier.appear(0))
             Spacer(Modifier.height(8.dp))
             T(
                 booking?.destination.orEmpty(),
@@ -88,26 +89,26 @@ fun WrapScreen(
             Spacer(Modifier.height(20.dp))
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
             Row(Modifier.appear(1), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Tile("이동 거리", handover.distanceText(handover.distanceKm(trip.startOdometerKm, trip.endOdometerKm)), Modifier.weight(1f))
-                Tile("이용 시간", handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
-                if (booking != null) Tile("이용 요금", handover.fareText(booking.fare), Modifier.weight(1f))
+                Tile(text(R.string.wrap_distance), handover.distanceText(handover.distanceKm(trip.startOdometerKm, trip.endOdometerKm)), Modifier.weight(1f))
+                Tile(text(R.string.wrap_elapsed), handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
+                if (booking != null) Tile(text(R.string.dispatch_fare_label), handover.fareText(booking.fare), Modifier.weight(1f))
             }
             if (booking != null) {
                 Spacer(Modifier.height(10.dp))
-                T("운행이 종료되면 차주님이 등록한 결제수단으로 ${handover.fareText(booking.fare)}이 자동 결제됩니다. (시연용)", Type.labelLarge, Modifier.appear(1), color = c.textTertiary)
+                T(text(R.string.wrap_autopay_note, handover.fareText(booking.fare)), Type.labelLarge, Modifier.appear(1), color = c.textTertiary)
             }
             if (card.isUsable && com.lrlr.codaeri.domain.TripRules.homeBound(trip, card)) {
                 Spacer(Modifier.height(28.dp))
-                T("주차를 마치셨다면 위치를 남겨 주세요 (선택)", Type.labelLarge, Modifier.appear(2), color = c.textTertiary)
+                T(text(R.string.wrap_leave_location), Type.labelLarge, Modifier.appear(2), color = c.textTertiary)
                 Spacer(Modifier.height(12.dp))
                 val chosen = trip.parking
                 FlowRow(Modifier.appear(2), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val guided = handover.guidedLine(card).ifBlank { "안내한 자리" }
+                    val guided = handover.guidedLine(card).ifBlank { text(R.string.wrap_guided_spot) }
                     Choice(guided, chosen?.source == ResultSource.DRIVER_CONFIRMED, {
                         onParking(if (chosen?.source == ResultSource.DRIVER_CONFIRMED) null else handover.confirmedAsGuided(System.currentTimeMillis()))
                     })
                     Choice(
-                        if (chosen?.source == ResultSource.DRIVER_INPUT) TripPresentation.parkingLocation(handover.parkingLine(card, chosen)) else "다른 자리",
+                        if (chosen?.source == ResultSource.DRIVER_INPUT) TripPresentation.parkingLocation(handover.parkingLine(card, chosen)) else text(R.string.wrap_other_spot),
                         chosen?.source == ResultSource.DRIVER_INPUT, onOtherSpot,
                     )
                 }
@@ -117,29 +118,29 @@ fun WrapScreen(
                 if (memo != null) lastMemo = memo
                 Reveal(memo != null) {
                     Spacer(Modifier.height(10.dp))
-                    T("메모: ${TripPresentation.parkingMemo(lastMemo)}", Type.bodyMedium, color = c.textSecondary, maxLines = 2)
+                    T(text(R.string.wrap_memo, TripPresentation.parkingMemo(lastMemo)), Type.bodyMedium, color = c.textSecondary, maxLines = 2)
                 }
             }
             }
             Spacer(Modifier.height(20.dp))
             // 운행 종료는 되돌릴 수 없으니 붉은색으로 한 줄을 차지하게 하고, 나머지 단추는 그 아래 한 줄에 같은 높이로 놓는다.
-            IviButton("운행 종료", onClose, Modifier.appear(3).fillMaxWidth(), danger = true, size = ButtonSize.LARGE, loading = busy)
+            IviButton(text(R.string.main_end_trip), onClose, Modifier.appear(3).fillMaxWidth(), danger = true, size = ButtonSize.LARGE, loading = busy)
             if (booking != null) {
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.appear(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    IviButton("비상연락처 보기", onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
+                    IviButton(text(R.string.shared_show_emergency), onEmergency, Modifier.weight(1f), size = ButtonSize.LARGE)
                     // 잠깐 선 것뿐이면 종료하지 않고 지도로 돌아갈 수 있게 한다.
-                    if (!isNarrow()) IviButton("지도로 돌아가기", onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
+                    if (!isNarrow()) IviButton(text(R.string.shared_back_to_map), onMap, Modifier.weight(1f), size = ButtonSize.LARGE)
                 }
             }
             Spacer(Modifier.height(16.dp))
             T(
-                "잠시 정차한 경우 그대로 출발하시면 됩니다. 주차를 마쳤으면 운행 종료를 눌러 주세요.",
+                text(R.string.wrap_short_stop_hint),
                 Type.labelLarge, Modifier.appear(3), color = c.textTertiary,
             )
             if (booking != null && emergencies.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
-                T("차주님과 의사소통이 어려울 때 연락할 분(${emergencies.joinToString(", ") { it.label }})입니다.", Type.labelLarge, Modifier.appear(4), color = c.textTertiary)
+                T(text(R.string.wrap_emergency_note, emergencies.joinToString(", ") { it.label }), Type.labelLarge, Modifier.appear(4), color = c.textTertiary)
             }
         }
     }

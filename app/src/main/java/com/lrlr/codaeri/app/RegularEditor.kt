@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * 차 설정에서 우선 요청 기사님을 정하고, 바꾸고, 지운다.
@@ -37,7 +39,7 @@ class RegularEditor(private val store: AppStateStore, private val service: Daeri
     fun clearMessage() { _message.value = "" }
 
     companion object {
-        const val FAILED = "저장하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
+        val FAILED get() = text(R.string.settings_save_failed)
 
         /** 이용 내역에 남은 기사님(최근 순, 한 사람은 한 번만) */
         fun candidates(state: AppState): List<Driver> =

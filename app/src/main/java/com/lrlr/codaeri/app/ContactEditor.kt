@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * 차 설정에서 비상연락처와 운행 상태를 공유받을 연락처를 더하고 지운다.
@@ -61,9 +63,9 @@ class ContactEditor(private val store: AppStateStore, private val service: Daeri
         const val LABEL_MAX = 12
         /** 010은 11자리, 그 밖의 휴대폰과 지역 번호는 9~11자리 */
         val PHONE = Regex("^(010[0-9]{8}|01[1-9][0-9]{7,8}|0[2-9][0-9]{7,9})$")
-        const val NEED_LABEL = "관계를 골라 주세요."
-        const val BAD_PHONE = "전화번호를 다시 확인해 주세요."
-        const val FULL = "3명까지 등록할 수 있습니다. 하나를 지운 뒤 추가해 주세요."
-        const val FAILED = "저장하지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
+        val NEED_LABEL get() = text(R.string.contact_need_label)
+        val BAD_PHONE get() = text(R.string.contact_bad_phone)
+        val FULL get() = text(R.string.contact_full)
+        val FAILED get() = text(R.string.settings_save_failed)
     }
 }

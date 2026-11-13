@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 class PleosCarSignals(context: Context) : CarSignals {
 
@@ -50,12 +52,12 @@ class PleosCarSignals(context: Context) : CarSignals {
 
     private val doors = listOf(DoorValue.ROW_1_LEFT, DoorValue.ROW_1_RIGHT, DoorValue.ROW_2_LEFT, DoorValue.ROW_2_RIGHT)
 
-    private val windowNames = linkedMapOf(
-        WindowValue.ROW_1_LEFT to "운전석",
-        WindowValue.ROW_1_RIGHT to "조수석",
-        WindowValue.ROW_2_LEFT to "뒷좌석 왼쪽",
-        WindowValue.ROW_2_RIGHT to "뒷좌석 오른쪽",
-        WindowValue.ROOF_TOP_1 to "선루프",
+    private val windowNames get() = linkedMapOf(
+        WindowValue.ROW_1_LEFT to text(R.string.car_window_driver),
+        WindowValue.ROW_1_RIGHT to text(R.string.car_window_passenger),
+        WindowValue.ROW_2_LEFT to text(R.string.car_window_rear_left),
+        WindowValue.ROW_2_RIGHT to text(R.string.car_window_rear_right),
+        WindowValue.ROOF_TOP_1 to text(R.string.car_window_sunroof),
     )
 
     private val gearListener = object : GearSelectionListener {
@@ -65,7 +67,7 @@ class PleosCarSignals(context: Context) : CarSignals {
         override fun onFailed(e: Exception) {
             Log.w(TAG, "gear subscription failed", e)
             gear.value = GearState.UNAVAILABLE
-            failures.tryEmit("기어 신호")
+            failures.tryEmit(text(R.string.car_signal_gear))
         }
     }
 
@@ -99,14 +101,14 @@ class PleosCarSignals(context: Context) : CarSignals {
         } catch (e: Exception) {
             Log.w(TAG, "vehicle init failed", e)
             gear.value = GearState.UNAVAILABLE
-            failures.tryEmit("차량 연결")
+            failures.tryEmit(text(R.string.car_signal_vehicle))
             return
         }
         // 기어 값이 끝내 오지 않으면 "기어 신호 없음"으로 보고 마무리 버튼을 막지 않는다
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             if (gear.value == GearState.UNKNOWN) {
                 gear.value = GearState.UNAVAILABLE
-                failures.tryEmit("기어 신호")
+                failures.tryEmit(text(R.string.car_signal_gear))
             }
         }, 5_000)
         safe("gear") {
@@ -196,10 +198,10 @@ class PleosCarSignals(context: Context) : CarSignals {
     private suspend fun lights(): List<String>? {
         val light = vehicle.getLight()
         val reads = listOf(
-            "전조등" to readLight { ok, fail -> light.getCurrentLowBeamLightState(ok, fail) },
-            "상향등" to readLight { ok, fail -> light.getCurrentHighBeamLightState(ok, fail) },
-            "미등" to readLight { ok, fail -> light.getCurrentTailLampLightState(ok, fail) },
-            "실내등" to readLight { ok, fail -> light.getCurrentCabinLightState(ok, fail) },
+            text(R.string.car_light_low_beam) to readLight { ok, fail -> light.getCurrentLowBeamLightState(ok, fail) },
+            text(R.string.car_light_high_beam) to readLight { ok, fail -> light.getCurrentHighBeamLightState(ok, fail) },
+            text(R.string.car_light_tail) to readLight { ok, fail -> light.getCurrentTailLampLightState(ok, fail) },
+            text(R.string.car_light_cabin) to readLight { ok, fail -> light.getCurrentCabinLightState(ok, fail) },
         )
         if (reads.all { it.second == null }) return null
         // 주간주행등은 시동 중 자동으로 켜지므로 "켜짐"으로 적지 않는다
@@ -220,12 +222,12 @@ class PleosCarSignals(context: Context) : CarSignals {
 
     private suspend fun openDoors(): List<String>? {
         val names = linkedMapOf(
-            DoorValue.ROW_1_LEFT to "운전석 문",
-            DoorValue.ROW_1_RIGHT to "조수석 문",
-            DoorValue.ROW_2_LEFT to "뒷문 왼쪽",
-            DoorValue.ROW_2_RIGHT to "뒷문 오른쪽",
-            DoorValue.REAR to "트렁크",
-            DoorValue.HOOD to "후드",
+            DoorValue.ROW_1_LEFT to text(R.string.car_door_driver),
+            DoorValue.ROW_1_RIGHT to text(R.string.car_door_passenger),
+            DoorValue.ROW_2_LEFT to text(R.string.car_door_rear_left),
+            DoorValue.ROW_2_RIGHT to text(R.string.car_door_rear_right),
+            DoorValue.REAR to text(R.string.car_door_trunk),
+            DoorValue.HOOD to text(R.string.car_door_hood),
         )
         val bounds = CompletableDeferred<Map<DoorValue, Int>>()
         safe("door capability") {

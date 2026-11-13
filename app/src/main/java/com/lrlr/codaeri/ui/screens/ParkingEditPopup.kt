@@ -1,5 +1,7 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -44,17 +46,17 @@ fun ParkingEditPopup(card: ParkingCard, current: ParkingResult?, handover: Hando
         onDismiss = onDismiss,
         width = 1280.dp,
         buttons = {
-            IviButton("취소", onDismiss, Modifier.weight(1f), size = ButtonSize.LARGE)
-            IviButton("저장", { if (choice != SpotChoice.OTHER_FLOOR || floor.isNotEmpty()) onSave(result) }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+            IviButton(text(R.string.main_cancel), onDismiss, Modifier.weight(1f), size = ButtonSize.LARGE)
+            IviButton(text(R.string.editor_save), { if (choice != SpotChoice.OTHER_FLOOR || floor.isNotEmpty()) onSave(result) }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
         },
     ) {
-        PopupTitle("주차 위치 수정", "실제로 주차한 자리를 골라 주세요. 저장하면 이용 내역에 반영됩니다.")
+        PopupTitle(text(R.string.parking_edit_title), text(R.string.parking_edit_subtitle))
         Spacer(Modifier.height(24.dp))
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-            if (guided) Choice("안내한 위치 근처", choice == SpotChoice.AS_GUIDED, { choice = SpotChoice.AS_GUIDED })
-            Choice("같은 층 다른 자리", choice == SpotChoice.SAME_FLOOR_OTHER, { choice = SpotChoice.SAME_FLOOR_OTHER })
-            Choice("다른 층", choice == SpotChoice.OTHER_FLOOR, { choice = SpotChoice.OTHER_FLOOR })
-            Choice("지상", choice == SpotChoice.OUTDOOR, { choice = SpotChoice.OUTDOOR })
+            if (guided) Choice(text(R.string.parking_edit_near_guided), choice == SpotChoice.AS_GUIDED, { choice = SpotChoice.AS_GUIDED })
+            Choice(text(R.string.shared_spot_same_floor), choice == SpotChoice.SAME_FLOOR_OTHER, { choice = SpotChoice.SAME_FLOOR_OTHER })
+            Choice(text(R.string.shared_spot_other_floor), choice == SpotChoice.OTHER_FLOOR, { choice = SpotChoice.OTHER_FLOOR })
+            Choice(text(R.string.handover_outdoor), choice == SpotChoice.OUTDOOR, { choice = SpotChoice.OUTDOOR })
         }
         Column {
             Reveal(choice == SpotChoice.OTHER_FLOOR) {
@@ -66,13 +68,13 @@ fun ParkingEditPopup(card: ParkingCard, current: ParkingResult?, handover: Hando
             Reveal(choice == SpotChoice.SAME_FLOOR_OTHER || choice == SpotChoice.OTHER_FLOOR) {
                 Spacer(Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    T("기둥 번호", Type.labelLarge, color = Ivi.colors.textTertiary)
-                    T(pillar.ifEmpty { "(선택)" }, Type.titleSmall)
+                    T(text(R.string.shared_pillar_number), Type.labelLarge, color = Ivi.colors.textTertiary)
+                    T(pillar.ifEmpty { text(R.string.shared_optional) }, Type.titleSmall)
                 }
                 Spacer(Modifier.height(20.dp))
                 FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-                    listOf("A", "B", "C", "D", "E", "F", "-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "지우기").forEach { k ->
-                        Choice(k, false, { pillar = if (k == "지우기") pillar.dropLast(1) else (pillar + k).take(8) })
+                    listOf("A", "B", "C", "D", "E", "F", "-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", text(R.string.shared_erase)).forEach { k ->
+                        Choice(k, false, { pillar = if (k == text(R.string.shared_erase)) pillar.dropLast(1) else (pillar + k).take(8) })
                     }
                 }
             }
@@ -80,7 +82,7 @@ fun ParkingEditPopup(card: ParkingCard, current: ParkingResult?, handover: Hando
         Spacer(Modifier.height(24.dp))
         // 저장하면 적힐 내용을 미리 보여 준다. 다른 층을 아직 고르지 않았으면 무엇을 해야 하는지 알린다.
         T(
-            if (choice == SpotChoice.OTHER_FLOOR && floor.isEmpty()) "층을 골라 주세요."
+            if (choice == SpotChoice.OTHER_FLOOR && floor.isEmpty()) text(R.string.parking_edit_pick_floor)
             else TripPresentation.parkingLocation(handover.parkingLine(card, result)),
             Type.bodyMedium, color = if (choice == SpotChoice.OTHER_FLOOR && floor.isEmpty()) Ivi.colors.textTertiary else Ivi.colors.positiveText, maxLines = 2,
         )

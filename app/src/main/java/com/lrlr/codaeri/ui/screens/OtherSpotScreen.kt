@@ -1,5 +1,6 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
@@ -55,8 +56,8 @@ import com.lrlr.codaeri.domain.Trip
 import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
-internal val FLOORS = listOf("지하 1층", "지하 2층", "지하 3층", "지하 4층", "지하 5층")
-internal val MEMOS = listOf("요청하신 곳에 자리가 없어 근처에 주차했습니다.")
+internal val FLOORS get() = listOf(text(R.string.spot_ui_floor_basement1), text(R.string.spot_ui_floor_basement2), text(R.string.spot_ui_floor_basement3), text(R.string.spot_ui_floor_basement4), text(R.string.spot_ui_floor_basement5))
+internal val MEMOS get() = listOf(text(R.string.shared_memo_no_space))
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -79,14 +80,14 @@ fun OtherSpotScreen(
     val gap = Arrangement.spacedBy(12.dp)
     // 제목은 위에, 고른 결과와 취소·저장은 아래에 고정한다.
     Column(page, verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        T("주차한 자리", Type.titleMedium)
+        T(text(R.string.spot_ui_title), Type.titleMedium)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         // 고른 것에 따라 나타나는 칸은 아래 내용을 밀며 펼쳐진다. 접힌 칸이 빈 간격을 남기지 않게 한 묶음으로 둔다.
         Column {
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-            Choice("같은 층 다른 자리", choice == SpotChoice.SAME_FLOOR_OTHER, { choice = SpotChoice.SAME_FLOOR_OTHER; floor = "" })
-            Choice("다른 층", choice == SpotChoice.OTHER_FLOOR, { choice = SpotChoice.OTHER_FLOOR })
-            Choice("지상", choice == SpotChoice.OUTDOOR, { choice = SpotChoice.OUTDOOR; floor = ""; pillar = "" })
+            Choice(text(R.string.shared_spot_same_floor), choice == SpotChoice.SAME_FLOOR_OTHER, { choice = SpotChoice.SAME_FLOOR_OTHER; floor = "" })
+            Choice(text(R.string.shared_spot_other_floor), choice == SpotChoice.OTHER_FLOOR, { choice = SpotChoice.OTHER_FLOOR })
+            Choice(text(R.string.handover_outdoor), choice == SpotChoice.OUTDOOR, { choice = SpotChoice.OUTDOOR; floor = ""; pillar = "" })
         }
         Reveal(choice == SpotChoice.OTHER_FLOOR) {
             Spacer(Modifier.height(20.dp))
@@ -97,18 +98,18 @@ fun OtherSpotScreen(
         Reveal(choice != SpotChoice.OUTDOOR) {
             Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                T("기둥 번호", Type.labelLarge, color = Ivi.colors.textTertiary)
-                T(pillar.ifEmpty { "(선택)" }, Type.titleSmall)
+                T(text(R.string.shared_pillar_number), Type.labelLarge, color = Ivi.colors.textTertiary)
+                T(pillar.ifEmpty { text(R.string.shared_optional) }, Type.titleSmall)
             }
             Spacer(Modifier.height(20.dp))
             FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-                listOf("A", "B", "C", "D", "E", "F", "-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "지우기").forEach { k ->
-                    Choice(k, false, { pillar = if (k == "지우기") pillar.dropLast(1) else (pillar + k).take(8) })
+                listOf("A", "B", "C", "D", "E", "F", "-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", text(R.string.shared_erase)).forEach { k ->
+                    Choice(k, false, { pillar = if (k == text(R.string.shared_erase)) pillar.dropLast(1) else (pillar + k).take(8) })
                 }
             }
         }
         }
-        T("메모 (선택)", Type.labelLarge, color = Ivi.colors.textTertiary)
+        T(text(R.string.spot_ui_memo_label), Type.labelLarge, color = Ivi.colors.textTertiary)
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
             MEMOS.forEach { m -> Choice(m, memo == m, { memo = if (memo == m) "" else m }) }
         }
@@ -116,18 +117,18 @@ fun OtherSpotScreen(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             when {
                 dictation.listening -> {
-                    IviButton("듣기 그만", onStopDictation, size = ButtonSize.SMALL)
-                    T(partial.ifBlank { "듣고 있습니다. 주차한 자리를 말씀해 주세요." }, Type.bodyMedium, Modifier.weight(1f), color = Ivi.colors.textSecondary, maxLines = 2)
+                    IviButton(text(R.string.spot_ui_stop_listening), onStopDictation, size = ButtonSize.SMALL)
+                    T(partial.ifBlank { text(R.string.spot_ui_listening) }, Type.bodyMedium, Modifier.weight(1f), color = Ivi.colors.textSecondary, maxLines = 2)
                 }
                 dictation.text.isNotEmpty() -> {
-                    IviButton("다시 말하기", onDictate, size = ButtonSize.SMALL)
-                    IviButton("지우기", onClearDictation, size = ButtonSize.SMALL)
+                    IviButton(text(R.string.main_say_again), onDictate, size = ButtonSize.SMALL)
+                    IviButton(text(R.string.shared_erase), onClearDictation, size = ButtonSize.SMALL)
                     T("\"${dictation.text}\"", Type.bodyMedium, Modifier.weight(1f), maxLines = 2)
                 }
                 else -> {
-                    IviButton("말로 남기기", onDictate, size = ButtonSize.SMALL)
+                    IviButton(text(R.string.spot_ui_dictate), onDictate, size = ButtonSize.SMALL)
                     T(
-                        if (dictation.failed) "듣지 못했습니다. 다시 눌러 말씀해 주세요." else "누르고 말하면 글로 적어 둡니다. 소리는 저장하지 않습니다.",
+                        if (dictation.failed) text(R.string.spot_ui_dictation_failed) else text(R.string.spot_ui_dictation_hint),
                         Type.bodyMedium, Modifier.weight(1f), color = Ivi.colors.textTertiary, maxLines = 2,
                     )
                 }
@@ -141,8 +142,8 @@ fun OtherSpotScreen(
             Type.bodyMedium, color = Ivi.colors.positiveText, maxLines = 2,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            IviButton("취소", onBack, Modifier.weight(1f))
-            IviButton("저장", { onResult(result) }, Modifier.weight(1f), filled = true, enabled = choice != SpotChoice.OTHER_FLOOR || floor.isNotEmpty())
+            IviButton(text(R.string.main_cancel), onBack, Modifier.weight(1f))
+            IviButton(text(R.string.editor_save), { onResult(result) }, Modifier.weight(1f), filled = true, enabled = choice != SpotChoice.OTHER_FLOOR || floor.isNotEmpty())
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,17 +29,17 @@ fun RegularScreen(
 ) {
     val c = Ivi.colors
     Column(page) {
-        TopBar("우선 요청 기사님", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
+        TopBar(text(R.string.settings_regular_title), onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
         Spacer(Modifier.height(16.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-            T("대리를 부를 때 이 기사님께 먼저 요청합니다. 배정을 보장하지는 않습니다.", Type.labelLarge, color = c.textTertiary)
+            T(text(R.string.records_set_body), Type.labelLarge, color = c.textTertiary)
             Spacer(Modifier.height(24.dp))
             Panel(Modifier.fillMaxWidth().appear(1)) {
-                T("지금 설정", Type.labelLarge, color = c.textTertiary)
+                T(text(R.string.regular_current_label), Type.labelLarge, color = c.textTertiary)
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    T(current?.let { "${it.name} 기사님" } ?: "없음", Type.titleSmall, Modifier.weight(1f))
-                    if (current != null) IviButton("삭제", onClear, size = ButtonSize.SMALL)
+                    T(current?.let { text(R.string.screens_driver_name, it.name) } ?: text(R.string.screens_none), Type.titleSmall, Modifier.weight(1f))
+                    if (current != null) IviButton(text(R.string.shared_delete), onClear, size = ButtonSize.SMALL)
                 }
             }
             Reveal(message.isNotEmpty()) {
@@ -46,15 +48,15 @@ fun RegularScreen(
             }
             Spacer(Modifier.height(20.dp))
             Panel(Modifier.fillMaxWidth().appear(2)) {
-                T("이용한 기사님", Type.labelLarge, color = c.textTertiary)
+                T(text(R.string.regular_used_drivers), Type.labelLarge, color = c.textTertiary)
                 Spacer(Modifier.height(8.dp))
-                if (candidates.isEmpty()) T("이용 내역이 없습니다. 대리를 이용한 뒤 그 기사님을 등록할 수 있습니다.", Type.titleSmall, color = c.textSecondary)
+                if (candidates.isEmpty()) T(text(R.string.regular_empty), Type.titleSmall, color = c.textSecondary)
                 candidates.forEachIndexed { i, driver ->
                     if (i > 0) { Spacer(Modifier.height(12.dp)); Divider(); Spacer(Modifier.height(12.dp)) }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        T("${driver.name} 기사님", Type.titleSmall, Modifier.weight(1f))
+                        T(text(R.string.screens_driver_name, driver.name), Type.titleSmall, Modifier.weight(1f))
                         val chosen = current?.id == driver.id
-                        IviButton(if (chosen) "설정됨" else "선택", { onPick(driver.id) }, size = ButtonSize.SMALL, filled = !chosen, enabled = !chosen)
+                        IviButton(if (chosen) text(R.string.regular_set) else text(R.string.regular_pick), { onPick(driver.id) }, size = ButtonSize.SMALL, filled = !chosen, enabled = !chosen)
                     }
                 }
             }

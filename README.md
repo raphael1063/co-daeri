@@ -64,6 +64,7 @@
 | 데이터 | `data/` | `local/FileStateRepository`(차 안 저장: JSON 파일 하나), `remote/HttpDaeriService`(서버 통신), `JsonCodec`, `SecureLinks`. 포트의 구현입니다. |
 | 차량 | `car/` | Pleos Vehicle SDK 신호(기어, 운전석, 문, 창문, 배터리), 위치, 음성 인식과 안내 음성, 내비게이션. 기기 포트의 구현입니다. |
 | 화면 | `ui/` | `Route`(상태로 화면을 정하는 규칙), `screens/`(화면마다 파일 하나), `Components`, `Theme`. 화면은 상태를 받아 그리기만 합니다. |
+| 문구 | `res/values/strings.xml` | 화면, 안내 음성, 알림, 음성 인식 어휘의 문구를 모두 키로 관리합니다. 코드는 `text(R.string.키)`(`domain/Text.kt`)로 꺼내고, 단위 테스트도 같은 파일을 읽습니다. |
 
 흐름 계층의 클래스:
 

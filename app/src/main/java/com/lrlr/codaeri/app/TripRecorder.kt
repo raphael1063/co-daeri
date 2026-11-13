@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /** 목적지에서 먼 곳에서 운행을 끝내려 할 때 화면에 묻는 내용 */
 /** 출발 전 기사님 PIN 입력창. error가 있으면 방금 넣은 PIN이 틀린 것이다. */
@@ -177,7 +179,7 @@ class TripRecorder(
 
     /** 차량 신호 구독이 실패했다. 확인된 수집 중단으로 운행에 적는다. */
     fun onSignalFailure(what: String) {
-        val reason = "$what 구독 실패"
+        val reason = text(R.string.trip_gap_subscribe_failed, what)
         val trip = store.value.trip ?: return
         if (trip.phase == TripPhase.DONE) return
         if (trip.gaps.any { it.reason == reason && it.to == null }) return
@@ -216,7 +218,7 @@ class TripRecorder(
                 _busy.value = false
             }
             // 앱이 달리는 도중에 켜졌으면 시작 시각과 거리가 실제보다 늦다. 그 사실을 적는다.
-            if (joinedMidway) trip = TripRules.gap(trip, startedAt, startedAt, "운행 도중에 기록 시작")
+            if (joinedMidway) trip = TripRules.gap(trip, startedAt, startedAt, text(R.string.trip_gap_joined_midway))
             store.update { it.copy(trip = trip, aliveAt = env.clock(), seatInverted = trip.seatInverted ?: it.seatInverted) }
             guide.reset()
             onRecording()
@@ -364,7 +366,7 @@ class TripRecorder(
             val now = env.clock()
             if (alive != null && now - alive > POWER_OFF_MS) { closeAfterPowerOff(trip, alive); return }
             if (alive != null && now - alive > HEARTBEAT_MS * 2) {
-                store.update { it.copy(trip = TripRules.gap(trip, alive, now, "앱 재시작")) }
+                store.update { it.copy(trip = TripRules.gap(trip, alive, now, text(R.string.trip_gap_app_restart))) }
             }
             startHeartbeat()
         }
@@ -397,12 +399,11 @@ class TripRecorder(
     }
 
     companion object {
-        const val PIN_WRONG = "PIN이 맞지 않습니다. 다시 입력해 주세요."
+        val PIN_WRONG get() = text(R.string.trip_pin_wrong)
         /** 기사님은 화면을 보지 않아도 기록된다는 사실을 한 번 듣는다. */
-        const val DRIVER_NOTICE =
-            "대리 운행의 시간과 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다."
+        val DRIVER_NOTICE get() = text(R.string.trip_driver_notice)
         /** 운전석이 비었는데 종료 단추를 누르지 않았을 때 한 번 읽는다 */
-        const val END_PROMPT = "운행을 마치셨다면 화면의 운행 종료를 눌러 주세요."
+        val END_PROMPT get() = text(R.string.trip_end_prompt)
         const val SEAT_SETTLE_MS = 3_000L
         private const val HEARTBEAT_MS = 60_000L
         /** 운행 중에 앱이 이보다 오래 꺼져 있었으면 시동을 끄고 내린 것으로 본다 */

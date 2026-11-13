@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * 운행 상태 자동 공유 켜고 끄기. 설정의 원본은 서비스에 있고, 차는 바꿔 달라고 요청한 뒤 돌려받은 상태를 적는다.
@@ -32,6 +34,6 @@ class ShareSwitch(private val store: AppStateStore, private val service: DaeriSe
     }
 
     companion object {
-        const val FAILED = "설정을 바꾸지 못했습니다. 통신 상태를 확인하고 다시 눌러 주세요."
+        val FAILED get() = text(R.string.share_failed)
     }
 }

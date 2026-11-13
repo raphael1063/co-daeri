@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /** 휴대폰 연결 화면의 일회용 QR 상태. status는 지금 상태나 다음에 할 일 한 줄. */
 data class Pairing(val url: String?, val status: String, val short: String? = null)
@@ -51,13 +53,13 @@ class PairingFlow(
         val link = store.value.phoneLink ?: return
         val code = links.pairCode()
         val short = links.shortCode()
-        _pairing.value = Pairing(null, "QR을 준비하는 중입니다")
+        _pairing.value = Pairing(null, text(R.string.pairing_preparing))
         env.scope.launch {
             val ok = withContext(env.io) { service.registerPair(link, code, short) }
             _pairing.value = if (ok) {
-                Pairing(Links.pairUrl(server, link, code), "10분 안에 연결해 주세요. 연결 코드는 한 번만 사용할 수 있습니다.", short)
+                Pairing(Links.pairUrl(server, link, code), text(R.string.pairing_ready), short)
             } else {
-                Pairing(null, "연결 코드를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.")
+                Pairing(null, text(R.string.pairing_create_failed))
             }
             if (ok) onRegistered()
         }
@@ -68,7 +70,7 @@ class PairingFlow(
         val link = store.value.phoneLink ?: return
         if (_unbinding.value) return
         _unbinding.value = true
-        _pairing.value = Pairing(null, "연결을 해제하는 중입니다")
+        _pairing.value = Pairing(null, text(R.string.pairing_unbinding))
         env.scope.launch {
             val ok = try { withContext(env.io) { service.unlinkAll(link) } } finally { _unbinding.value = false }
             if (ok) {
@@ -76,7 +78,7 @@ class PairingFlow(
                 _pairing.value = Pairing(null, "")
                 onUnbound()
             } else {
-                _pairing.value = Pairing(null, "통신 문제로 해제하지 못했습니다. 다시 시도해 주세요.")
+                _pairing.value = Pairing(null, text(R.string.pairing_unbind_failed))
             }
         }
     }

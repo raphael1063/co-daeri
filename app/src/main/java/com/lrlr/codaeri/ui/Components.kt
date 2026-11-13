@@ -1,5 +1,6 @@
 package com.lrlr.codaeri.ui
 
+import com.lrlr.codaeri.domain.text
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -186,7 +187,7 @@ fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         modifier.size(112.dp).clip(RoundedCornerShape(28.dp)).background(c.buttonBasicEnabled).pressable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Image(painterResource(R.drawable.ic_back), contentDescription = "뒤로", modifier = Modifier.size(56.dp), colorFilter = ColorFilter.tint(c.textPrimary))
+        Image(painterResource(R.drawable.ic_back), contentDescription = text(R.string.components_back), modifier = Modifier.size(56.dp), colorFilter = ColorFilter.tint(c.textPrimary))
     }
 }
 
@@ -372,7 +373,7 @@ fun QrImage(text: String, size: Dp, modifier: Modifier = Modifier) {
         if (bitmap != null) {
             Image(
                 BitmapPainter(bitmap.asImageBitmap(), filterQuality = androidx.compose.ui.graphics.FilterQuality.None),
-                contentDescription = "휴대폰으로 찍는 QR 코드",
+                contentDescription = com.lrlr.codaeri.domain.text(R.string.components_qr_description),
                 modifier = Modifier.fillMaxSize(),
             )
         }

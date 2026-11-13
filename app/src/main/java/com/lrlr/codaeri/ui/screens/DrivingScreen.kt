@@ -1,5 +1,6 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
@@ -82,21 +83,21 @@ fun DrivingScreen(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             Box(Modifier.size(16.dp).clip(CircleShape).background(c.positive))
             // 예약이 아직 확인되지 않은 주행은 P에서 버려지므로 "기록 중"이라고 하지 않는다
-            T(if (trip.booking == null) "예약 확인 중" else if (parking) "주차 중" else "운행 중", Type.bodyLarge, color = c.textSecondary)
+            T(if (trip.booking == null) text(R.string.driving_status_checking) else if (parking) text(R.string.banner_parking) else text(R.string.driving_status_driving), Type.bodyLarge, color = c.textSecondary)
             if (trip.booking != null) T(handover.elapsedText(handover.elapsedMinutes(trip.startedAt, now)), Type.bodyLarge, color = c.textTertiary)
         }
         Spacer(Modifier.height(20.dp))
         val booking = trip.booking
         T(
-            if (booking == null) "예약을 확인하는 중입니다" else if (parking) "주차 중입니다" else "${handover.toward(booking.destination)} 운행 중",
+            if (booking == null) text(R.string.driving_headline_checking) else if (parking) text(R.string.driving_headline_parking) else text(R.string.driving_headline_toward, handover.toward(booking.destination)),
             Type.headlineLarge, maxLines = 2,
         )
         // 집으로 가는 운행에서만 집 주차 안내를 말한다.
         val guide = card.isUsable && com.lrlr.codaeri.domain.TripRules.homeBound(trip, card)
         val description = when {
-            booking == null -> "예약이 확인되면 이용 내역에 남깁니다."
-            parking -> "주차를 마치고 P단에 놓으면 운행 종료 버튼이 나옵니다."
-            guide && !guidance.started -> "등록한 집 근처에 도착하면 주차 안내를 들려드립니다."
+            booking == null -> text(R.string.driving_desc_checking)
+            parking -> text(R.string.driving_desc_parking)
+            guide && !guidance.started -> text(R.string.driving_desc_guide)
             else -> null
         }
         description?.let {
@@ -109,17 +110,17 @@ fun DrivingScreen(
             // 좁은 창에서는 버튼이 다음 줄로 넘어간다.
             FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // 내비게이션과 나란히 보는 중이면 지도가 이미 옆에 있으므로 버튼을 두지 않는다.
-                if (!isNarrow()) IviButton("지도로 돌아가기", onMap, filled = true, size = ButtonSize.LARGE)
+                if (!isNarrow()) IviButton(text(R.string.shared_back_to_map), onMap, filled = true, size = ButtonSize.LARGE)
                 // 집 주차 안내를 적어 둔 차에서만. 집 근처에 오면 스스로 시작하고, 그 전에는 기사님이 눌러 들을 수 있다.
-                if (guide) IviButton("주차 안내 듣기", onNext, size = ButtonSize.LARGE)
+                if (guide) IviButton(text(R.string.driving_listen_guidance), onNext, size = ButtonSize.LARGE)
                 // 유사시 연락할 곳이므로 달리는 동안에도 열 수 있다.
-                IviButton("비상연락처 보기", onEmergency, size = ButtonSize.LARGE)
+                IviButton(text(R.string.shared_show_emergency), onEmergency, size = ButtonSize.LARGE)
             }
         }
         if (booking != null && guide && guidance.started) {
             Spacer(Modifier.height(40.dp))
             Panel(Modifier.fillMaxWidth()) {
-                T("주차 안내", Type.labelLarge, color = c.textTertiary)
+                T(text(R.string.banner_parking_guide), Type.labelLarge, color = c.textTertiary)
                 // 달리는 동안에는 한 줄만 보여 주고 나머지는 소리로 듣는다
                 if (restricted) guidance.current?.let { seg ->
                     Spacer(Modifier.height(10.dp))
@@ -133,14 +134,14 @@ fun DrivingScreen(
                         T(Guidance.text(card, step), Type.titleLarge, Modifier.weight(1f), maxLines = 2)
                     }
                 }
-                if (speaking) { Spacer(Modifier.height(6.dp)); T("읽는 중", Type.labelSmall, color = c.positiveText) }
+                if (speaking) { Spacer(Modifier.height(6.dp)); T(text(R.string.driving_reading), Type.labelSmall, color = c.positiveText) }
             }
             Spacer(Modifier.height(20.dp))
             ButtonGrid(buttons = listOfNotNull(
-                { m -> IviButton(if (guidance.hasNext) "다음 안내" else "처음부터 다시", onNext, m, filled = true, size = ButtonSize.LARGE) },
-                { m -> IviButton("다시 듣기", onRepeat, m, size = ButtonSize.LARGE) },
-                if (isNarrow()) null else { m -> IviButton("지도로 돌아가기", onMap, m, size = ButtonSize.LARGE) },
-                { m -> IviButton("비상연락처 보기", onEmergency, m, size = ButtonSize.LARGE) },
+                { m -> IviButton(if (guidance.hasNext) text(R.string.driving_next_guidance) else text(R.string.driving_restart_guidance), onNext, m, filled = true, size = ButtonSize.LARGE) },
+                { m -> IviButton(text(R.string.driving_listen_again), onRepeat, m, size = ButtonSize.LARGE) },
+                if (isNarrow()) null else { m -> IviButton(text(R.string.shared_back_to_map), onMap, m, size = ButtonSize.LARGE) },
+                { m -> IviButton(text(R.string.shared_show_emergency), onEmergency, m, size = ButtonSize.LARGE) },
             ))
         }
     }

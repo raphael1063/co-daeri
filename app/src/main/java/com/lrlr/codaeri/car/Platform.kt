@@ -37,6 +37,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import android.speech.tts.TextToSpeech as AndroidTts
 import ai.pleos.playground.tts.TextToSpeech as PleosTts
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * 주행 중 화면 제한(CarUxRestrictions). 제한이 걸리면 화면은 큰 글자 한 줄과 큰 버튼 두 개만 남긴다.
@@ -103,8 +105,8 @@ class Speaker(private val context: Context) : Announcer {
     override val speaking: StateFlow<Boolean> = _speaking
 
     /** 어느 엔진으로 읽는지. 시연과 디버깅용. */
-    var engine: String = "준비 중"
-        private set
+    val engine: String get() = engineLabel ?: text(R.string.car_tts_engine_preparing)
+    private var engineLabel: String? = null
 
     private val attributes = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
@@ -141,7 +143,7 @@ class Speaker(private val context: Context) : Announcer {
                             override fun onUpdatedRms(rms: Double) {}
                         })
                         pleosReady = true
-                        engine = "Pleos TTS"
+                        engineLabel = "Pleos TTS"
                     }
                 }
                 override fun onFailure(errorType: ErrorType) {
@@ -164,7 +166,7 @@ class Speaker(private val context: Context) : Announcer {
             if (fallbackReady) {
                 fallback?.language = Locale.KOREAN
                 fallback?.setAudioAttributes(attributes)
-                engine = "안드로이드 TTS"
+                engineLabel = text(R.string.car_tts_engine_android)
             }
         }.also {
             it.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
@@ -432,7 +434,7 @@ class Navigator(private val context: Context) : RouteGuide {
                 val found = android.location.Geocoder(context.applicationContext, java.util.Locale.KOREA).getFromLocation(lat, lng, 1)
                 // 결과가 있었는지만 남긴다(주소와 좌표는 적지 않는다).
                 Log.i(TAG, "geocoder present=true results=${found?.size ?: 0}")
-                found?.firstOrNull()?.getAddressLine(0).orEmpty().removePrefix("대한민국 ").trim()
+                found?.firstOrNull()?.getAddressLine(0).orEmpty().removePrefix(text(R.string.car_geocoder_country_prefix)).trim()
             } catch (t: Throwable) {
                 Log.w(TAG, "geocoder failed: ${t.javaClass.simpleName}")
                 ""

@@ -1,5 +1,9 @@
 package com.lrlr.codaeri.domain
 
+import com.lrlr.codaeri.R
+// Guidance에는 같은 이름의 text(card, step)가 있어 문구 창구를 별칭으로 부른다
+import com.lrlr.codaeri.domain.text as res
+
 /** 한 번에 읽는 안내 한 덩어리. */
 data class GuideSegment(
     val steps: List<GuideStep>,
@@ -14,15 +18,15 @@ data class GuideSegment(
  * 위치로 단계를 바꾸지 않는다(지하에서 위치가 끊기므로). 기사가 "다음 안내"를 눌러야 넘어간다.
  */
 object Guidance {
-    const val MORE_HINT = "주차 위치는 다음 안내를 누르면 알려 드립니다."
-    const val END_LINE = "주차 안내는 여기까지입니다."
+    val MORE_HINT: String get() = res(R.string.guide_more_hint)
+    val END_LINE: String get() = res(R.string.guide_end_line)
 
     fun label(step: GuideStep): String = when (step) {
-        GuideStep.ENTRANCE -> "주차장 입구"
-        GuideStep.ENTRY_METHOD -> "차단기 통과 방법"
-        GuideStep.ZONE -> "주차 위치"
-        GuideStep.PREFERRED_SPOT -> "주차 시 유의사항"
-        GuideStep.FALLBACK -> "자리가 없을 때"
+        GuideStep.ENTRANCE -> res(R.string.guide_label_entrance)
+        GuideStep.ENTRY_METHOD -> res(R.string.guide_label_entry_method)
+        GuideStep.ZONE -> res(R.string.guide_label_zone)
+        GuideStep.PREFERRED_SPOT -> res(R.string.guide_label_preferred_spot)
+        GuideStep.FALLBACK -> res(R.string.guide_label_fallback)
     }
 
     fun text(card: ParkingCard, step: GuideStep): String = when (step) {
@@ -31,7 +35,7 @@ object Guidance {
         GuideStep.ZONE -> locationWithNote(card.floorLabel, card.zone)
         GuideStep.PREFERRED_SPOT -> locationWithNote(
             // 기타 장소는 차주가 적은 문장을 그대로 전한다("근처"를 붙이면 어색해진다)
-            card.spotLabel.takeIf { it.isNotBlank() }?.let { if (card.placeKind == PlaceKind.OTHER) "주차할 위치는 ${it}입니다" else "$it 근처에 주차해 주세요" }.orEmpty(),
+            card.spotLabel.takeIf { it.isNotBlank() }?.let { if (card.placeKind == PlaceKind.OTHER) res(R.string.guide_spot_other, it) else res(R.string.guide_spot_near, it) }.orEmpty(),
             card.preferredSpot, card.spotLabel,
         )
         GuideStep.FALLBACK -> card.fallback
@@ -57,8 +61,8 @@ object Guidance {
 
         val result = mutableListOf<GuideSegment>()
         val intro = buildString {
-            append("코대리 주차 안내입니다. ")
-            if (card.placeName.isNotBlank()) append("${card.placeName}에 거의 도착했습니다. ")
+            append(res(R.string.guide_intro))
+            if (card.placeName.isNotBlank()) append(res(R.string.guide_intro_place, card.placeName))
         }
         if (basicSteps.isNotEmpty()) {
             val body = basicSteps.joinToString(" ") { sentence(text(card, it)) }
@@ -86,7 +90,9 @@ object Guidance {
 
     private fun sentence(s: String): String {
         val t = s.trim()
-        return if (t.endsWith(".") || t.endsWith("요") || t.endsWith("다")) t.trimEnd('.') + "." else "$t."
+        // guide_sentence_endings: 문장 끝으로 보는 글자들을 | 로 이은 값
+        val endings = res(R.string.guide_sentence_endings).split('|')
+        return if (t.endsWith(".") || endings.any { t.endsWith(it) }) t.trimEnd('.') + "." else "$t."
     }
 }
 

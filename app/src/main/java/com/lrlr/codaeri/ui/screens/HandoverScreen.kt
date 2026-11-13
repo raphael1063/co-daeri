@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,58 +70,58 @@ fun HandoverScreen(
     Sides(page, firstWeight = 1.15f, first = {
             Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(36.dp)) {
                 BackButton(onBack)
-                T("배차 현황", Type.headlineSmall, Modifier.weight(1f, fill = false), maxLines = 1)
-                Tag("$DEMO_TAG · 가상의 기사님")
+                T(text(R.string.screens_dispatch_status), Type.headlineSmall, Modifier.weight(1f, fill = false), maxLines = 1)
+                Tag(text(R.string.dispatch_demo_tag, DEMO_TAG))
             }
             Spacer(Modifier.height(36.dp))
             T(
-                booking.reassignedAt?.let { "배정된 기사님 · ${handover.time(it)} 다시 배정됨" } ?: "배정된 기사님",
+                booking.reassignedAt?.let { text(R.string.dispatch_reassigned, handover.time(it)) } ?: text(R.string.dispatch_assigned),
                 Type.bodyMedium, Modifier.appear(1), color = Ivi.colors.textSecondary,
             )
-            T("${booking.driver.name} 기사님", Type.heroCompact, Modifier.appear(1))
+            T(text(R.string.screens_driver_name, booking.driver.name), Type.heroCompact, Modifier.appear(1))
             if (booking.byRegular) {
                 Spacer(Modifier.height(4.dp))
-                T("차주님이 먼저 요청한 기사님", Type.bodySmall, Modifier.appear(1), color = Ivi.colors.positiveText)
+                T(text(R.string.dispatch_by_regular), Type.bodySmall, Modifier.appear(1), color = Ivi.colors.positiveText)
             }
             Spacer(Modifier.height(28.dp))
             Column(Modifier.appear(2)) {
-                Fact("목적지", booking.destination, valueStyle = Type.titleSmall)
+                Fact(text(R.string.main_fact_destination), booking.destination, valueStyle = Type.titleSmall)
                 Divider()
-                Fact("이용 요금", "${handover.fareText(booking.fare)} · 도착 후 자동 결제", valueStyle = Type.titleSmall)
-                if (phone != null) { Divider(); Fact("예약한 번호", phone, valueStyle = Type.titleSmall) }
+                Fact(text(R.string.dispatch_fare_label), text(R.string.dispatch_fare_value, handover.fareText(booking.fare)), valueStyle = Type.titleSmall)
+                if (phone != null) { Divider(); Fact(text(R.string.dispatch_phone), phone, valueStyle = Type.titleSmall) }
             }
             Spacer(Modifier.height(16.dp))
-            T("탑승 전에 배정된 기사님이 맞는지 확인해 주세요.", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
+            T(text(R.string.dispatch_check_driver), Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
             Spacer(Modifier.height(24.dp))
             // 출발하기 전에는 호출을 취소할 수 있다.
-            IviButton("호출 취소", onCancel, Modifier.appear(3), enabled = !restricted, loading = cancelling)
+            IviButton(text(R.string.main_cancel_call), onCancel, Modifier.appear(3), enabled = !restricted, loading = cancelling)
             Reveal(cancelMessage.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
                 T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
             }
         }, second = {
             Panel(Modifier.fillMaxWidth().appear(3)) {
-                T("기사님께", Type.labelLarge, color = Ivi.colors.textTertiary)
+                T(text(R.string.dispatch_to_driver), Type.labelLarge, color = Ivi.colors.textTertiary)
                 Spacer(Modifier.height(12.dp))
-                T("운행 기록 안내", Type.titleMedium)
+                T(text(R.string.dispatch_record_title), Type.titleMedium)
                 Spacer(Modifier.height(12.dp))
-                T("출발·종료 시각과 이동 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다. 운행 요약은 운행을 마친 뒤 따로 전달해 드립니다.", Type.bodyMedium, color = Ivi.colors.textSecondary)
+                T(text(R.string.dispatch_record_body), Type.bodyMedium, color = Ivi.colors.textSecondary)
                 Spacer(Modifier.height(16.dp))
                 T(
                     when {
-                        armed -> "D단으로 출발하면 운행 기록과 길 안내를 시작합니다."
-                        manualStart -> "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요."
-                        else -> "기사님과 차주님이 타시면 첫 화면에 출발하기가 나타납니다."
+                        armed -> text(R.string.screens_armed_hint)
+                        manualStart -> text(R.string.screens_manual_hint)
+                        else -> text(R.string.dispatch_auto_hint)
                     },
                     Type.bodyLarge,
                 )
                 // 좌석 신호로 탑승을 판정하는 차에서는 출발하기를 첫 화면에만 둔다.
                 if (manualStart || armed) {
                     Spacer(Modifier.height(20.dp))
-                    IviButton(if (armed) "출발 대기 중" else "출발하기", onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted && !armed)
+                    IviButton(if (armed) text(R.string.screens_depart_waiting) else text(R.string.screens_depart), onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted && !armed)
                     if (armed) {
                         Spacer(Modifier.height(12.dp))
-                        IviButton("출발 확인 취소", onStart, Modifier.fillMaxWidth(), quiet = true, enabled = !restricted)
+                        IviButton(text(R.string.screens_cancel_depart), onStart, Modifier.fillMaxWidth(), quiet = true, enabled = !restricted)
                     }
                 }
 

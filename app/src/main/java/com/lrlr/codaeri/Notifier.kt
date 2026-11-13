@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.lrlr.codaeri.app.Notices
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /**
  * 화면이 가려져 있을 때만 띄우는 알림 두 가지: 예약이 확인됐다는 것, 운행이 닫혔다는 것.
@@ -45,12 +47,12 @@ class Notifier(private val context: Context) : Notices {
 
     override fun booking(driverName: String, destination: String) {
         // 서비스가 차주에게 보내는 소식이므로 메시지로 알린다.
-        post(ID_BOOKING, "대리 운행 예약이 확인됐습니다", "$driverName 기사님 · $destination", Notification.CATEGORY_MESSAGE)
+        post(ID_BOOKING, text(R.string.notify_booking_title), text(R.string.notify_booking_text, driverName, destination), Notification.CATEGORY_MESSAGE)
     }
 
     override fun closed(headline: String) {
         // 상태를 남기는 알림이라 화면 위로 띄우지 않고 알림 센터에 둔다.
-        post(ID_CLOSED, "대리 운행이 종료됐습니다", headline, Notification.CATEGORY_STATUS)
+        post(ID_CLOSED, text(R.string.notify_closed_title), headline, Notification.CATEGORY_STATUS)
     }
 
     /** 화면을 열면 알림은 할 일을 다했다 */

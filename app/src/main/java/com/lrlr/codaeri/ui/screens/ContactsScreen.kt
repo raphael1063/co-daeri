@@ -1,5 +1,7 @@
 package com.lrlr.codaeri.ui.screens
 
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,10 +26,10 @@ import com.lrlr.codaeri.domain.ContactKind
 import com.lrlr.codaeri.domain.Emergency
 import com.lrlr.codaeri.ui.*
 
-private val RELATIONS = listOf("배우자", "부모님", "자녀", "형제자매", "친구", "직장 동료")
+private val RELATIONS get() = listOf(text(R.string.contacts_relation_spouse), text(R.string.contacts_relation_parents), text(R.string.contacts_relation_child), text(R.string.contacts_relation_siblings), text(R.string.contacts_relation_friend), text(R.string.contacts_relation_coworker))
 /** 직접 적는 관계의 길이(서비스가 받는 길이와 같다) */
 private const val LABEL_MAX = 12
-private val KEYS = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "지우기")
+private val KEYS get() = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", text(R.string.shared_erase))
 
 /** 010-1234-5678 꼴로 끊어 적는다(다 치기 전에도). */
 internal fun dialing(digits: String): String = when {
@@ -61,23 +63,23 @@ fun ContactsScreen(
     val c = Ivi.colors
     // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
     Column(page) {
-        TopBar(if (kind == ContactKind.EMERGENCY) "비상연락처" else "운행 상태를 공유할 연락처", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
+        TopBar(if (kind == ContactKind.EMERGENCY) text(R.string.main_emergency_title) else text(R.string.contacts_title_share), onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
         Spacer(Modifier.height(16.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
         T(
-            if (kind == ContactKind.EMERGENCY) "운행 중 유사시에 기사님이 연락할 분입니다. 3명까지 등록합니다."
-            else "출발과 도착을 알릴 분입니다. 3명까지 등록합니다. 시연용이라 실제 문자는 보내지 않습니다.",
+            if (kind == ContactKind.EMERGENCY) text(R.string.contacts_desc_emergency)
+            else text(R.string.contacts_desc_share),
             Type.labelLarge, color = c.textTertiary,
         )
         Spacer(Modifier.height(24.dp))
         Panel(Modifier.fillMaxWidth().appear(1)) {
-            if (contacts.isEmpty()) T("등록된 연락처가 없습니다", Type.titleSmall, color = c.textSecondary)
+            if (contacts.isEmpty()) T(text(R.string.contacts_empty), Type.titleSmall, color = c.textSecondary)
             contacts.forEachIndexed { i, contact ->
                 if (i > 0) { Spacer(Modifier.height(12.dp)); Divider(); Spacer(Modifier.height(12.dp)) }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     T(contact.label, Type.titleSmall, Modifier.width(FACT_LABEL))
                     T(contact.masked, Type.titleSmall, Modifier.weight(1f))
-                    IviButton("삭제", { onRemove(i) }, size = ButtonSize.SMALL)
+                    IviButton(text(R.string.shared_delete), { onRemove(i) }, size = ButtonSize.SMALL)
                 }
             }
         }
@@ -88,29 +90,29 @@ fun ContactsScreen(
         Reveal(contacts.size < Emergency.MAX) {
             Spacer(Modifier.height(20.dp))
             Panel(Modifier.fillMaxWidth().appear(2)) {
-                T("연락처 추가", Type.labelLarge, color = c.textTertiary)
+                T(text(R.string.contacts_add_title), Type.labelLarge, color = c.textTertiary)
                 Spacer(Modifier.height(16.dp))
                 FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
                     RELATIONS.forEach { r -> Choice(r, !custom && label == r, { label = if (!custom && label == r) "" else r; custom = false }) }
-                    Choice("직접 입력", custom, { custom = !custom; label = "" })
+                    Choice(text(R.string.contacts_custom_relation), custom, { custom = !custom; label = "" })
                 }
                 Reveal(custom) {
                     Spacer(Modifier.height(16.dp))
-                    Field("관계 (예: 이모, 이웃)", label, Modifier.width(640.dp)) { label = it.take(LABEL_MAX) }
+                    Field(text(R.string.contacts_relation_field), label, Modifier.width(640.dp)) { label = it.take(LABEL_MAX) }
                 }
                 Spacer(Modifier.height(24.dp))
-                T(dialing(digits).ifEmpty { "전화번호" }, Type.headlineSmall, color = if (digits.isEmpty()) c.textTertiary else c.textPrimary)
+                T(dialing(digits).ifEmpty { text(R.string.contacts_phone_placeholder) }, Type.headlineSmall, color = if (digits.isEmpty()) c.textTertiary else c.textPrimary)
                 Spacer(Modifier.height(16.dp))
                 FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
-                    KEYS.forEach { k -> Choice(k, false, { digits = if (k == "지우기") digits.dropLast(1) else (digits + k).take(11) }) }
+                    KEYS.forEach { k -> Choice(k, false, { digits = if (k == text(R.string.shared_erase)) digits.dropLast(1) else (digits + k).take(11) }) }
                 }
                 Spacer(Modifier.height(24.dp))
                 IviButton(
-                    "추가", { onAdd(label.trim(), digits) }, Modifier.fillMaxWidth(), filled = true, size = ButtonSize.LARGE,
+                    text(R.string.contacts_add), { onAdd(label.trim(), digits) }, Modifier.fillMaxWidth(), filled = true, size = ButtonSize.LARGE,
                     enabled = label.isNotBlank() && digits.length >= 9, loading = busy,
                 )
                 Spacer(Modifier.height(12.dp))
-                T("번호는 서비스에만 저장하고, 차 화면에는 가려서 보여 줍니다.", Type.labelSmall, color = c.textTertiary)
+                T(text(R.string.contacts_masked_note), Type.labelSmall, color = c.textTertiary)
             }
         }
     }

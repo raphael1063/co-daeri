@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -89,18 +90,18 @@ fun HomeScreen(
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
                 Spacer(Modifier.height(20.dp))
                 HeroButton(
-                    if (armed) "출발 대기 중" else "출발하기", if (armed) "D단으로 출발하면 운행을 시작해요" else "목적지와 요금을 확인하고 출발해요",
+                    if (armed) text(R.string.screens_depart_waiting) else text(R.string.screens_depart), if (armed) text(R.string.homescreen_armed_sub) else text(R.string.homescreen_depart_sub),
                     R.drawable.ic_home_call, onStart, Modifier.fillMaxWidth().appear(1), filled = !armed, enabled = !armed && !restricted,
                 )
                 Spacer(Modifier.height(20.dp))
                 T(
-                    if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다." else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
+                    if (armed) text(R.string.screens_armed_hint) else text(R.string.screens_manual_hint),
                     Type.labelLarge, color = Ivi.colors.textTertiary, align = TextAlign.Center,
                 )
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    if (armed) IviButton("출발 확인 취소", onStart, enabled = !restricted)
-                    IviButton("호출 취소", onCancel, enabled = !restricted, loading = cancelling)
+                    if (armed) IviButton(text(R.string.screens_cancel_depart), onStart, enabled = !restricted)
+                    IviButton(text(R.string.main_cancel_call), onCancel, enabled = !restricted, loading = cancelling)
                 }
                 Reveal(cancelMessage.isNotEmpty()) {
                     Spacer(Modifier.height(12.dp))
@@ -108,13 +109,13 @@ fun HomeScreen(
                 }
             } else {
                 val hero: @Composable (Modifier) -> Unit = { m ->
-                    if (booked) HeroButton("배차 현황", "배정된 기사님과 목적지를 확인해요", R.drawable.ic_home_status, onStatus, m)
-                    else HeroButton("대리 부르기", "목적지와 요금을 확인하고 불러요", R.drawable.ic_home_call, onCall, m, enabled = !restricted && canCall)
+                    if (booked) HeroButton(text(R.string.screens_dispatch_status), text(R.string.homescreen_status_sub), R.drawable.ic_home_status, onStatus, m)
+                    else HeroButton(text(R.string.homescreen_call), text(R.string.homescreen_call_sub), R.drawable.ic_home_call, onCall, m, enabled = !restricted && canCall)
                 }
                 val sides: @Composable (Modifier) -> Unit = { m ->
                     Column(m, verticalArrangement = Arrangement.spacedBy(HOME_GAP)) {
-                        SideButton("이용 내역", R.drawable.ic_home_records, onRecords, enabled = !restricted)
-                        SideButton("설정", R.drawable.ic_home_settings, onSettings, enabled = !restricted)
+                        SideButton(text(R.string.screens_records), R.drawable.ic_home_records, onRecords, enabled = !restricted)
+                        SideButton(text(R.string.screens_settings), R.drawable.ic_home_settings, onSettings, enabled = !restricted)
                     }
                 }
                 // 넓은 창: 왼쪽에 가장 많이 쓰는 버튼을 크게, 오른쪽에 나머지 둘. 좁은 창: 위에서 아래로 쌓는다.
@@ -128,12 +129,12 @@ fun HomeScreen(
             }
             if (startLine == null && (restricted || (!canCall && !booked))) {
                 Spacer(Modifier.height(20.dp))
-                T("정차 중에만 이용할 수 있습니다.", Type.labelLarge, color = Ivi.colors.textTertiary)
+                T(text(R.string.homescreen_parked_only), Type.labelLarge, color = Ivi.colors.textTertiary)
             }
         }
         // 앱 이름은 워드마크 그림으로 왼쪽 위에 작게 둔다(밝은 화면은 검은 글자, 어두운 화면은 흰 글자).
-        Image(painterResource(R.drawable.wordmark), contentDescription = "코-대리", modifier = Modifier.align(Alignment.TopStart).height(56.dp).appear(0))
-        T("버전 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.align(Alignment.TopEnd), color = Ivi.colors.textTertiary)
+        Image(painterResource(R.drawable.wordmark), contentDescription = text(R.string.app_name), modifier = Modifier.align(Alignment.TopStart).height(56.dp).appear(0))
+        T(text(R.string.homescreen_version, BuildConfig.VERSION_NAME), Type.labelSmall, Modifier.align(Alignment.TopEnd), color = Ivi.colors.textTertiary)
     }
 }
 
@@ -236,8 +237,8 @@ fun RecordsScreen(
     var calling by remember { mutableStateOf<String?>(null) }
     Box(Modifier.fillMaxSize()) {
     Column(page) {
-        TopBar("이용 내역", onBack, Modifier.appear(0))
-        T("최근 30일의 이용 내역을 최대 20건 보관합니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
+        TopBar(text(R.string.screens_records), onBack, Modifier.appear(0))
+        T(text(R.string.records_retention), Type.labelSmall, color = Ivi.colors.textTertiary)
         Reveal(regularMessage.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             T(regularMessage, Type.labelLarge, color = Ivi.colors.negative)
@@ -246,9 +247,9 @@ fun RecordsScreen(
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (state.history.isEmpty()) {
             Panel(Modifier.fillMaxWidth().appear(1)) {
-                T("아직 이용 내역이 없습니다", Type.titleSmall)
+                T(text(R.string.records_empty_title), Type.titleSmall)
                 Spacer(Modifier.height(12.dp))
-                T("대리 이용을 마치면 시간, 요금, 주차 위치를 확인할 수 있습니다.", Type.bodySmall, color = Ivi.colors.textSecondary)
+                T(text(R.string.records_empty_body), Type.bodySmall, color = Ivi.colors.textSecondary)
             }
         }
         state.history.forEachIndexed { i, card ->
@@ -274,20 +275,20 @@ fun RecordsScreen(
         IviPopup(
             onDismiss = { starring = null },
             buttons = {
-                IviButton("닫기", { starring = null }, Modifier.weight(1f), size = ButtonSize.LARGE)
-                IviButton(if (isRegular) "해제" else "설정", { onSetRegular(if (isRegular) null else id); starring = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+                IviButton(text(R.string.main_close), { starring = null }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                IviButton(if (isRegular) text(R.string.records_unset) else text(R.string.screens_settings), { onSetRegular(if (isRegular) null else id); starring = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
             },
         ) {
-            if (isRegular) PopupTitle("$name 기사님의 우선 요청을 해제할까요?", "해제하면 대리를 부를 때 기사님을 따로 정하지 않고 요청합니다.")
-            else PopupTitle("$name 기사님을 우선 요청 기사님으로 설정할까요?", "대리를 부를 때 이 기사님께 먼저 요청합니다. 배정을 보장하지는 않습니다.")
+            if (isRegular) PopupTitle(text(R.string.records_unset_title, name), text(R.string.records_unset_body))
+            else PopupTitle(text(R.string.records_set_title, name), text(R.string.records_set_body))
         }
     }
     Fading(calling) { name ->
         IviPopup(
             onDismiss = { calling = null },
-            buttons = { IviButton("닫기", { calling = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
+            buttons = { IviButton(text(R.string.main_close), { calling = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE) },
         ) {
-            PopupTitle("$name 기사님께 전화하기", "서비스가 기사님께 전화를 연결합니다. 서로의 휴대폰 번호는 보이지 않습니다. 시연용이라 실제 전화는 걸지 않습니다.")
+            PopupTitle(text(R.string.records_call_title, name), text(R.string.records_call_body))
         }
     }
     }
@@ -317,54 +318,54 @@ fun SettingsScreen(
 ) {
     // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
     Column(page) {
-        TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
+        TopBar(text(R.string.screens_settings), onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
         Spacer(Modifier.height(20.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (!locationAllowed) SettingRow(
-            "차 위치 권한", "허용되지 않음 · 출발지 확인과 집 근처 주차 안내에 사용합니다", "허용", onAskLocation, Modifier.appear(1),
+            text(R.string.settings_location_title), text(R.string.settings_location_value), text(R.string.settings_allow), onAskLocation, Modifier.appear(1),
         )
         SettingRow(
-            "집 주차 안내", when {
-                state.card.isUsable -> "등록됨 · 집 근처에서 기사님께 안내해 드립니다"
-                state.card.hasLocation -> "집 위치만 등록됨 · 주차할 위치를 적으면 기사님께 안내해 드립니다"
-                else -> "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다"
+            text(R.string.screens_home_parking), when {
+                state.card.isUsable -> text(R.string.settings_card_usable)
+                state.card.hasLocation -> text(R.string.settings_card_location_only)
+                else -> text(R.string.settings_card_none)
             },
-            if (state.card.isUsable || state.card.hasLocation) "수정" else "등록", onEditCard, Modifier.appear(1),
+            if (state.card.isUsable || state.card.hasLocation) text(R.string.screens_edit) else text(R.string.screens_register), onEditCard, Modifier.appear(1),
         )
         SettingRow(
-            "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
-            if (state.server.emergencyList.isEmpty()) "등록" else "수정", { onEditContacts(com.lrlr.codaeri.domain.ContactKind.EMERGENCY) }, Modifier.appear(1),
-            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 수정할 수 있습니다.",
+            text(R.string.main_emergency_title), if (state.server.emergencyList.isEmpty()) text(R.string.screens_none) else "",
+            if (state.server.emergencyList.isEmpty()) text(R.string.screens_register) else text(R.string.screens_edit), { onEditContacts(com.lrlr.codaeri.domain.ContactKind.EMERGENCY) }, Modifier.appear(1),
+            note = text(R.string.settings_emergency_note),
             pairs = state.server.emergencyList.map { it.label to it.masked },
         )
         // 공유받을 사람은 비상연락처와 따로 둔다. 실제 발송은 아직 하지 않는다(시연용).
         val share = state.server.share
         SettingRow(
-            "운행 상태 자동 공유",
+            text(R.string.settings_share_title),
             when {
-                share.auto && share.contacts.isEmpty() -> "공유할 연락처가 없습니다"
-                share.auto -> "출발과 도착을 아래 연락처에 알립니다"
-                else -> "공유하지 않습니다"
+                share.auto && share.contacts.isEmpty() -> text(R.string.settings_share_no_contacts)
+                share.auto -> text(R.string.settings_share_on)
+                else -> text(R.string.settings_share_off)
             },
             null, onToggleShare, Modifier.appear(2), checked = share.auto,
-            note = shareMessage.ifBlank { "공유할 연락처는 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
+            note = shareMessage.ifBlank { text(R.string.settings_share_note) },
             pairs = share.contacts.map { it.label to it.masked },
-            second = "연락처 수정" to { onEditContacts(com.lrlr.codaeri.domain.ContactKind.SHARE) },
+            second = text(R.string.settings_edit_contacts) to { onEditContacts(com.lrlr.codaeri.domain.ContactKind.SHARE) },
         )
         SettingRow(
-            "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
+            text(R.string.settings_regular_title), state.server.regular?.let { text(R.string.screens_driver_name, it.name) } ?: text(R.string.screens_none),
             // 고를 기사님이 없으면 버튼을 두지 않는다(눌러도 등록할 수 없는 버튼은 만들지 않는다).
-            when { state.server.regular != null -> "수정"; canPickRegular -> "등록"; else -> null }, onEditRegular, Modifier.appear(2),
-            note = if (state.server.regular == null && !canPickRegular) "대리를 부를 때 이 기사님께 먼저 요청합니다. 대리를 이용한 뒤에 그 기사님을 등록할 수 있습니다."
-            else "대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.",
+            when { state.server.regular != null -> text(R.string.screens_edit); canPickRegular -> text(R.string.screens_register); else -> null }, onEditRegular, Modifier.appear(2),
+            note = if (state.server.regular == null && !canPickRegular) text(R.string.settings_regular_note_empty)
+            else text(R.string.settings_regular_note),
         )
         SettingRow(
-            "이용 알림", if (noticeOn) "기사님 배정과 운행 종료를 알립니다" else "알리지 않습니다",
+            text(R.string.settings_notice_title), if (noticeOn) text(R.string.settings_notice_on) else text(R.string.settings_notice_off),
             null, onToggleNotice, Modifier.appear(2), checked = noticeOn,
-            note = "다른 화면을 보고 있을 때 기사님이 배정되거나 운행이 종료되면 차의 알림으로 알려 드립니다.",
+            note = text(R.string.settings_notice_note),
         )
-        SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
-        T("코-대리 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
+        SettingRow(text(R.string.settings_phone), state.server.phone ?: text(R.string.screens_none), text(R.string.main_unbind), onUnbind, Modifier.appear(3))
+        T(text(R.string.settings_app_version, BuildConfig.VERSION_NAME), Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
         }
     }
 }

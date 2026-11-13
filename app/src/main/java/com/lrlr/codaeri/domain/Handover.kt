@@ -1,5 +1,6 @@
 package com.lrlr.codaeri.domain
 
+import com.lrlr.codaeri.R
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -19,9 +20,9 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         val d = Instant.ofEpochMilli(at).atZone(zone).toLocalDate()
         val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
         val prefix = when (d) {
-            today -> "오늘"
-            today.minusDays(1) -> "어제"
-            else -> "${d.monthValue}월 ${d.dayOfMonth}일"
+            today -> text(R.string.handover_day_today)
+            today.minusDays(1) -> text(R.string.handover_day_yesterday)
+            else -> text(R.string.handover_day_month_date, d.monthValue, d.dayOfMonth)
         }
         return "$prefix ${time(at)}"
     }
@@ -56,12 +57,12 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         return when (result.source) {
             ResultSource.DRIVER_CONFIRMED -> {
                 val where = listOf(card.floorLabel, card.spotLabel).filter { it.isNotBlank() }.joinToString(" ")
-                if (where.isEmpty()) "기사님 확인: 안내한 위치 근처" else "기사님 확인: $where 근처"
+                if (where.isEmpty()) text(R.string.handover_driver_confirmed_guided) else text(R.string.handover_driver_confirmed_near, where)
             }
             ResultSource.DRIVER_INPUT -> {
                 val floor = when (result.choice) {
                     SpotChoice.SAME_FLOOR_OTHER -> result.floor.ifBlank { card.floorLabel }
-                    SpotChoice.OUTDOOR -> "지상"
+                    SpotChoice.OUTDOOR -> text(R.string.handover_outdoor)
                     else -> result.floor
                 }
                 // 지상에는 기둥 번호가 없다. 같은 층인데 기둥을 안 적었으면 "다른 자리"임을 남긴다.
@@ -69,11 +70,11 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
                 val parts = listOf(floor, pillar).filter { it.isNotBlank() }
                 when {
                     result.choice == SpotChoice.SAME_FLOOR_OTHER && pillar.isBlank() && floor.isNotBlank() ->
-                        "기사님 입력: $floor 다른 자리"
-                    parts.isNotEmpty() -> "기사님 입력: " + parts.joinToString(" ")
-                    result.choice == SpotChoice.SAME_FLOOR_OTHER -> "기사님 입력: 같은 층 다른 자리"
-                    result.choice == SpotChoice.OTHER_FLOOR -> "기사님 입력: 다른 층"
-                    else -> "기사님 입력: 안내와 다른 자리"
+                        text(R.string.handover_driver_input_floor_other_spot, floor)
+                    parts.isNotEmpty() -> text(R.string.handover_driver_input, parts.joinToString(" "))
+                    result.choice == SpotChoice.SAME_FLOOR_OTHER -> text(R.string.handover_driver_input_same_floor_other)
+                    result.choice == SpotChoice.OTHER_FLOOR -> text(R.string.handover_driver_input_other_floor)
+                    else -> text(R.string.handover_driver_input_other_spot)
                 }
             }
             ResultSource.UNCONFIRMED -> unconfirmedLine(card)
@@ -83,7 +84,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
     /** 기사가 고르지 않았으면 주인이 적어 둔 희망 위치일 뿐이다. 실제 주차 결과처럼 적지 않는다. */
     private fun unconfirmedLine(card: ParkingCard): String {
         val guided = guidedLine(card)
-        return if (guided.isBlank()) "주차 위치를 확인하지 못함" else "안내한 주차 위치: $guided (기사님이 확인하지 않음)"
+        return if (guided.isBlank()) text(R.string.handover_parking_unconfirmed) else text(R.string.handover_parking_guided_unconfirmed, guided)
     }
 
     /** 거리: 누적 주행거리 차이. 줄었거나 못 읽었으면 null(산출 불가). */
@@ -97,13 +98,13 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
     /** "판교 삼평동으로", "집으로", "서울로": 받침이 없거나 ㄹ 받침이면 "로", 아니면 "으로". 한글로 끝나지 않으면 "(으)로". */
     fun toward(place: String): String {
         val last = place.trim().lastOrNull() ?: return place
-        if (last !in '가'..'힣') return "${place.trim()}(으)로"
+        if (last !in '가'..'힣') return text(R.string.handover_toward_unknown, place.trim())
         val jong = (last - '가') % 28
-        return place.trim() + if (jong == 0 || jong == 8) "로" else "으로"
+        return text(if (jong == 0 || jong == 8) R.string.handover_toward_ro else R.string.handover_toward_euro, place.trim())
     }
 
     fun distanceText(km: Float?): String = when {
-        km == null -> "이동 거리 정보 없음"
+        km == null -> text(R.string.handover_distance_unknown)
         km < 10f -> "${(km * 10).roundToInt() / 10.0}km".replace(".0km", "km")
         else -> "${km.roundToInt()}km"
     }
@@ -113,14 +114,14 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         (endedAt / 60_000 - startedAt / 60_000).coerceAtLeast(0)
 
     fun elapsedText(minutes: Long): String =
-        if (minutes >= 60) "${minutes / 60}시간 ${minutes % 60}분" else "${minutes}분"
+        if (minutes >= 60) text(R.string.handover_elapsed_hm, minutes / 60, minutes % 60) else text(R.string.handover_elapsed_m, minutes)
 
     fun windowLine(obs: Observed<WindowState>?): String {
         val state = obs?.value
-        if (obs?.at == null || state == null || state.readCount == 0) return "창문 상태를 확인하지 못함"
+        if (obs?.at == null || state == null || state.readCount == 0) return text(R.string.handover_window_unconfirmed)
         val t = time(obs.at)
-        return if (state.openWindows.isEmpty()) "$t 마무리 당시 모두 닫힘"
-        else "$t 마무리 당시 열림: ${state.openWindows.joinToString(", ")}"
+        return if (state.openWindows.isEmpty()) text(R.string.handover_at_wrap_all_closed, t)
+        else text(R.string.handover_at_wrap_open, t, state.openWindows.joinToString(", "))
     }
 
     /**
@@ -130,24 +131,24 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
     fun lockLines(atWrap: Observed<Boolean>?, after: Observed<Boolean>?): List<String> {
         val lines = mutableListOf<String>()
         if (atWrap?.at != null && atWrap.value != null) {
-            lines += "${time(atWrap.at)} 마무리 당시 ${lockWord(atWrap.value)}"
+            lines += text(R.string.handover_at_wrap_state, time(atWrap.at), lockWord(atWrap.value))
         } else {
-            lines += "마무리 당시 잠금 상태를 확인하지 못함"
+            lines += text(R.string.handover_lock_at_wrap_unconfirmed)
         }
         if (after?.at != null && after.value != null) {
-            lines += "${time(after.at)}에 받은 신호: ${lockWord(after.value)}"
+            lines += text(R.string.handover_lock_after, time(after.at), lockWord(after.value))
         }
-        lines += "그 뒤는 확인하지 못함"
+        lines += text(R.string.handover_lock_unknown_after)
         return lines
     }
 
-    private fun lockWord(locked: Boolean) = if (locked) "잠김" else "열림"
+    private fun lockWord(locked: Boolean) = if (locked) text(R.string.handover_locked) else text(R.string.handover_unlocked)
 
     fun gapNote(gaps: List<Gap>): String? {
         if (gaps.isEmpty()) return null
         return gaps.sortedBy { it.from }.joinToString("; ") { g ->
-            if (g.to == null) "${time(g.from)}부터 수집 중단(${g.reason})"
-            else "${time(g.from)}~${time(g.to)} 수집 중단(${g.reason})"
+            if (g.to == null) text(R.string.handover_gap_open, time(g.from), g.reason)
+            else text(R.string.handover_gap_range, time(g.from), time(g.to), g.reason)
         }
     }
 
@@ -179,9 +180,9 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
             compare = compareLines(trip),
             shareId = trip.shareId,
             closedBy = when (trip.closedBy) {
-                ClosedBy.SEAT_EMPTY -> "운전석 하차"
-                ClosedBy.BUTTON -> "종료 버튼"
-                ClosedBy.POWER_OFF -> "차 전원 꺼짐"
+                ClosedBy.SEAT_EMPTY -> text(R.string.handover_closed_seat_empty)
+                ClosedBy.BUTTON -> text(R.string.handover_closed_button)
+                ClosedBy.POWER_OFF -> text(R.string.handover_closed_power_off)
                 null -> ""
             },
             lockedAt = TripRules.lockedAt(trip),
@@ -200,12 +201,12 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         }
         // 주행거리와 배터리·연료는 운행하면 당연히 달라지는 값이라 나란히 견주지 않고, 이번 운행에서 얼마나 달라졌는지를 한 줄로 적는다.
         // 누적 거리와 남은 양은 계기판에 있으니 적지 않는다. 이번 운행에서 달린 거리와 쓴 양만 적는다.
-        distanceKm(trip.startOdometerKm, trip.endOdometerKm)?.let { lines += CompareLine("주행거리", "", distanceText(it)) }
-        usedLine(trip.startCheck?.batteryPercent, trip.endCheck?.batteryPercent)?.let { lines += CompareLine("배터리 사용", "", it) }
-        usedLine(trip.startCheck?.fuelPercent, trip.endCheck?.fuelPercent)?.let { lines += CompareLine("연료 사용", "", it) }
-        add("문·트렁크", trip.startCheck?.openDoors?.let(::openText), trip.endCheck?.openDoors?.let(::openText))
-        add("문 잠금", trip.lockAtStart?.value?.let(::lockWord), trip.lockAtWrap?.value?.let(::lockWord))
-        add("창문", windowText(trip.windowsAtStart), windowText(trip.windowsAtWrap))
+        distanceKm(trip.startOdometerKm, trip.endOdometerKm)?.let { lines += CompareLine(text(R.string.handover_compare_distance), "", distanceText(it)) }
+        usedLine(trip.startCheck?.batteryPercent, trip.endCheck?.batteryPercent)?.let { lines += CompareLine(text(R.string.handover_compare_battery), "", it) }
+        usedLine(trip.startCheck?.fuelPercent, trip.endCheck?.fuelPercent)?.let { lines += CompareLine(text(R.string.handover_compare_fuel), "", it) }
+        add(text(R.string.handover_label_doors), trip.startCheck?.openDoors?.let(::openText), trip.endCheck?.openDoors?.let(::openText))
+        add(text(R.string.handover_compare_lock), trip.lockAtStart?.value?.let(::lockWord), trip.lockAtWrap?.value?.let(::lockWord))
+        add(text(R.string.handover_compare_windows), windowText(trip.windowsAtStart), windowText(trip.windowsAtWrap))
         return lines
     }
 
@@ -213,12 +214,12 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
     private fun usedLine(before: Int?, after: Int?): String? = when {
         before == null || after == null -> null
         after < before -> "${before - after}%"
-        after > before -> "충전됨 (+${after - before}%)"
+        after > before -> text(R.string.handover_used_charged, after - before)
         else -> "0%"
     }
 
     private fun odometerText(km: Float): String = "%,d km".format(km.roundToInt())
-    private fun openText(open: List<String>): String = if (open.isEmpty()) "모두 닫힘" else "열림: ${open.joinToString(", ")}"
+    private fun openText(open: List<String>): String = if (open.isEmpty()) text(R.string.handover_all_closed) else text(R.string.handover_open_list, open.joinToString(", "))
     private fun windowText(obs: Observed<WindowState>?): String? {
         val state = obs?.value ?: return null
         if (state.readCount == 0) return null
@@ -230,15 +231,15 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
      * 차는 누가 운전했는지 확인하지 못한다. 이름은 서비스가 배정한 정보다.
      */
     fun headline(c: HomecomingCard, now: Long): String =
-        if (c.driverName.isBlank()) "${dayTime(c.endedAt, now)} 도착"
-        else "${dayTime(c.endedAt, now)} 도착 · 배정된 기사님 ${c.driverName}"
+        if (c.driverName.isBlank()) text(R.string.handover_arrived, dayTime(c.endedAt, now))
+        else text(R.string.handover_arrived_driver, dayTime(c.endedAt, now), c.driverName)
 
-    fun fareText(won: Int): String = "%,d원".format(won)
+    fun fareText(won: Int): String = text(R.string.handover_fare_won, "%,d".format(won))
 
     /** 카드에 적힌 안내 위치. 휴대폰 페이지에 "기사 확인 전"으로 보인다. */
     fun guidedLine(card: ParkingCard): String {
         val where = listOf(card.floorLabel, card.spotLabel).filter { it.isNotBlank() }.joinToString(" ")
-        return if (where.isEmpty()) "" else "$where 근처"
+        return if (where.isEmpty()) "" else text(R.string.handover_near, where)
     }
 
     /**
@@ -254,7 +255,7 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
             endedAt = now,
             elapsedMinutes = elapsedMinutes(trip.startedAt, now),
             distanceKm = null,
-            parkingLine = "주차 결과 전송 전",
+            parkingLine = text(R.string.handover_parking_pending),
             parkingSource = ResultSource.UNCONFIRMED,
             memo = "",
             windowLine = "",
@@ -281,16 +282,16 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
         val t = time(end.at)
         val lines = mutableListOf<CheckLine>()
         end.lightsOn?.let {
-            lines += CheckLine("조명", if (it.isEmpty()) "$t 마무리 당시 모두 꺼짐" else "$t 마무리 당시 켜짐: ${it.joinToString(", ")}")
+            lines += CheckLine(text(R.string.handover_check_lights), if (it.isEmpty()) text(R.string.handover_at_wrap_all_off, t) else text(R.string.handover_at_wrap_on, t, it.joinToString(", ")))
         }
         end.openDoors?.let {
-            lines += CheckLine("문·트렁크", if (it.isEmpty()) "$t 마무리 당시 모두 닫힘" else "$t 마무리 당시 열림: ${it.joinToString(", ")}")
+            lines += CheckLine(text(R.string.handover_label_doors), if (it.isEmpty()) text(R.string.handover_at_wrap_all_closed, t) else text(R.string.handover_at_wrap_open, t, it.joinToString(", ")))
         }
         val before = start?.warnings
         val after = end.warnings
         if (before != null && after != null) {
             val fresh = after.filter { it !in before }
-            lines += CheckLine("경고등", if (fresh.isEmpty()) "시작 때와 비교해 새로 켜진 경고등 없음" else "시작 때 없던 경고등: ${fresh.joinToString(", ")}")
+            lines += CheckLine(text(R.string.handover_check_warnings), if (fresh.isEmpty()) text(R.string.handover_warnings_none_new) else text(R.string.handover_warnings_new, fresh.joinToString(", ")))
         }
         // 연료와 배터리의 남은 양은 적지 않는다(계기판에서 보이는 값). 이번 운행에서 쓴 양만 compareLines에 적는다.
         return lines
@@ -301,18 +302,18 @@ class Handover(private val zone: ZoneId = ZoneId.of("Asia/Seoul")) {
      * 집 주소, 동·호수, 진입 방법, 가족 연락처는 넣지 않는다.
      */
     fun driverQrText(c: HomecomingCard): String = buildString {
-        appendLine("[코-대리 운행 요약]")
-        if (c.driverName.isNotBlank()) appendLine("배정된 기사님 ${c.driverName} · ${c.destination}")
-        if (c.fare > 0) appendLine("확정 요금 ${fareText(c.fare)}")
-        appendLine("시작 ${time(c.startedAt)} / 마무리 ${time(c.endedAt)}")
-        appendLine("이용 시간 ${elapsedText(c.elapsedMinutes)}")
+        appendLine(text(R.string.handover_qr_title))
+        if (c.driverName.isNotBlank()) appendLine(text(R.string.handover_qr_driver, c.driverName, c.destination))
+        if (c.fare > 0) appendLine(text(R.string.handover_qr_fare, fareText(c.fare)))
+        appendLine(text(R.string.handover_qr_times, time(c.startedAt), time(c.endedAt)))
+        appendLine(text(R.string.handover_qr_elapsed, elapsedText(c.elapsedMinutes)))
         appendLine(distanceText(c.distanceKm))
-        if (c.parkingLine.isNotBlank()) appendLine("주차: ${c.parkingLine}")
-        append("이 기록은 차의 신호로 남긴 것입니다.")
+        if (c.parkingLine.isNotBlank()) appendLine(text(R.string.handover_qr_parking, c.parkingLine))
+        append(text(R.string.handover_qr_footer))
     }
 
     companion object {
-        const val UNKNOWN = "확인하지 못함"
+        val UNKNOWN: String get() = text(R.string.handover_unknown)
     }
 }
 

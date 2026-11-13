@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 
 /** 비상연락처 확인창. contacts가 비어 있고 message가 있으면 불러오는 중이거나 실패한 것이다. */
 data class EmergencyUi(val contacts: List<EmergencyContact> = emptyList(), val message: String = "")
@@ -21,13 +23,13 @@ class EmergencyViewer(private val store: AppStateStore, private val service: Dae
     fun show() {
         val link = store.value.phoneLink ?: return
         val booking = store.value.trip?.booking ?: return
-        _ui.value = EmergencyUi(message = "비상연락처를 불러오는 중입니다")
+        _ui.value = EmergencyUi(message = text(R.string.emergency_loading))
         env.scope.launch {
             val contacts = withContext(env.io) { service.viewEmergency(link, booking.id) }
             if (_ui.value == null) return@launch
             _ui.value = when {
-                contacts == null -> EmergencyUi(message = "연락처를 불러오지 못했습니다. 닫은 뒤 다시 시도해 주세요.")
-                contacts.isEmpty() -> EmergencyUi(message = "등록된 비상연락처가 없습니다.")
+                contacts == null -> EmergencyUi(message = text(R.string.emergency_load_failed))
+                contacts.isEmpty() -> EmergencyUi(message = text(R.string.emergency_none))
                 else -> EmergencyUi(contacts)
             }
         }

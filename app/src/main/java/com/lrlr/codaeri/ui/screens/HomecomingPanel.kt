@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import com.lrlr.codaeri.R
+import com.lrlr.codaeri.domain.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,9 +62,9 @@ import kotlinx.coroutines.delay
 import com.lrlr.codaeri.ui.*
 
 internal fun deliveryLine(state: AppState, uploading: Boolean): String? = when {
-    state.phoneLink == null -> "이 내역은 차에만 저장돼 있습니다."
-    uploading -> "휴대폰에서 볼 수 있도록 이용 내역을 저장하고 있습니다."
-    state.uploadPending -> "차에 저장했습니다. 연결되면 휴대폰에서도 확인할 수 있습니다."
+    state.phoneLink == null -> text(R.string.homecoming_delivery_car_only)
+    uploading -> text(R.string.homecoming_delivery_uploading)
+    state.uploadPending -> text(R.string.homecoming_delivery_pending)
     else -> null
 }
 
@@ -114,7 +115,7 @@ fun HomecomingPanel(
             }
             if (onToggle != null) {
                 Image(
-                    painterResource(R.drawable.ic_expand), contentDescription = if (expanded) "접기" else "펼치기",
+                    painterResource(R.drawable.ic_expand), contentDescription = if (expanded) text(R.string.homecoming_collapse) else text(R.string.homecoming_expand),
                     modifier = Modifier.size(64.dp).graphicsLayer { rotationZ = turn },
                     colorFilter = ColorFilter.tint(Ivi.colors.textSecondary),
                 )
@@ -124,32 +125,32 @@ fun HomecomingPanel(
         Spacer(Modifier.height(20.dp))
         Divider()
         if (card.fare > 0) {
-            val payment = if (paidAt != null) "결제 완료" else "결제 대기"
-            Fact("요금", "${h.fareText(card.fare)} · $payment (시연용)")
+            val payment = if (paidAt != null) text(R.string.homecoming_paid) else text(R.string.homecoming_unpaid)
+            Fact(text(R.string.homecoming_fare_label), text(R.string.homecoming_fare_value, h.fareText(card.fare), payment))
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Fact("주차 위치", parking.location, Modifier.weight(1f), valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
-            if (onEditParking != null) IviButton("수정", onEditParking, size = ButtonSize.SMALL)
+            Fact(text(R.string.guide_label_zone), parking.location, Modifier.weight(1f), valueColor = if (card.parkingSource == ResultSource.UNCONFIRMED) Ivi.colors.textTertiary else Ivi.colors.textPrimary)
+            if (onEditParking != null) IviButton(text(R.string.screens_edit), onEditParking, size = ButtonSize.SMALL)
         }
         // 이름표 칸만큼 들여 값과 같은 줄에 맞춘다.
         parking.note?.let { T(it, Type.labelSmall, Modifier.padding(start = FACT_LABEL), color = Ivi.colors.textTertiary) }
-        if (card.memo.isNotBlank()) Fact("기사님 메모", TripPresentation.parkingMemo(card.memo))
-        Fact("문 잠금", TripPresentation.lockStatus(card, h))
+        if (card.memo.isNotBlank()) Fact(text(R.string.homecoming_memo), TripPresentation.parkingMemo(card.memo))
+        Fact(text(R.string.handover_compare_lock), TripPresentation.lockStatus(card, h))
         // 기사님 줄에서 바로 전화할 수 있다(두고 내린 물건처럼 확인할 일이 있을 때).
         if (card.driverName.isNotBlank()) {
             Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                T("배정 기사님", Type.labelLarge, Modifier.width(FACT_LABEL), color = Ivi.colors.textTertiary)
-                T("${card.driverName} 기사님" + if (regular) " · 우선 요청" else "", Type.bodySmall, Modifier.weight(1f))
-                if (onCallDriver != null) IviButton("전화하기", onCallDriver, size = ButtonSize.SMALL, icon = R.drawable.ic_phone)
+                T(text(R.string.homecoming_driver_label), Type.labelLarge, Modifier.width(FACT_LABEL), color = Ivi.colors.textTertiary)
+                T(text(R.string.screens_driver_name, card.driverName) + if (regular) text(R.string.homecoming_regular_suffix) else "", Type.bodySmall, Modifier.weight(1f))
+                if (onCallDriver != null) IviButton(text(R.string.homecoming_call), onCallDriver, size = ButtonSize.SMALL, icon = R.drawable.ic_phone)
                 if (onStar != null) {
                     Spacer(Modifier.width(12.dp))
-                    IviButton("우선 요청", onStar, size = ButtonSize.SMALL, icon = if (regular) R.drawable.ic_star else R.drawable.ic_star_outline)
+                    IviButton(text(R.string.homecoming_regular), onStar, size = ButtonSize.SMALL, icon = if (regular) R.drawable.ic_star else R.drawable.ic_star_outline)
                 }
             }
         }
         if (card.gapNote != null) {
             Spacer(Modifier.height(10.dp))
-            T("운행 중 일부 정보를 기록하지 못했습니다. 차량 정보가 빠져 있을 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
+            T(text(R.string.homecoming_gap_note), Type.labelSmall, color = Ivi.colors.textTertiary)
         }
         // 저장 중 안내는 잠깐 떴다 사라지므로 아래 내용이 툭 밀리지 않게 펼치고 접는다.
         var lastDelivery by remember { mutableStateOf(delivery.orEmpty()) }
@@ -160,7 +161,7 @@ fun HomecomingPanel(
         }
         if (card.compare.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
-            IviButton(if (showDetails) "차량 상태 접기" else "차량 상태 자세히", { showDetails = !showDetails }, size = ButtonSize.SMALL, quiet = true)
+            IviButton(if (showDetails) text(R.string.homecoming_details_hide) else text(R.string.homecoming_details_show), { showDetails = !showDetails }, size = ButtonSize.SMALL, quiet = true)
             Reveal(showDetails) {
                 Spacer(Modifier.height(12.dp))
                 CompareTable(card, h)
@@ -175,7 +176,7 @@ internal fun CompareTable(card: HomecomingCard, h: Handover) {
     val c = Ivi.colors
     val label = FACT_LABEL
     // 문 잠금은 요약에서 마지막으로 확인한 시각과 함께 보여 주므로 종료 순간 값은 표에서 뺀다.
-    val states = card.compare.filter { it.before.isNotEmpty() && it.label != "문 잠금" }
+    val states = card.compare.filter { it.before.isNotEmpty() && it.label != text(R.string.handover_compare_lock) }
     Column {
         TripPresentation.usageDetails(card.compare).forEach { (name, value) ->
             Divider()
@@ -188,8 +189,8 @@ internal fun CompareTable(card: HomecomingCard, h: Handover) {
             Divider()
             Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 8.dp)) {
                 Spacer(Modifier.width(label))
-                T("출발 시 ${h.time(card.startedAt)}", Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
-                T("종료 시 ${h.time(card.endedAt)}", Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
+                T(text(R.string.homecoming_at_start, h.time(card.startedAt)), Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
+                T(text(R.string.homecoming_at_end, h.time(card.endedAt)), Type.labelSmall, Modifier.weight(1f), color = c.textTertiary)
             }
         }
         states.forEach { line ->
