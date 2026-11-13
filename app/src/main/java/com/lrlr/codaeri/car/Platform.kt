@@ -418,6 +418,41 @@ class Navigator(private val context: Context) : RouteGuide {
         }
     }
 
+    /** 내비게이션이 아는 지금 자리의 주소. 한 번만 답한다. */
+    override fun currentPlace(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) {
+        val main = Handler(Looper.getMainLooper())
+        fun ask(h: ai.pleos.playground.navi.helper.NaviHelper) = try {
+            var answered = false
+            val listener = object : ai.pleos.playground.navi.helper.listener.NaviHelperEventListener {
+                override fun onCurrentLocationInfo(info: ai.pleos.playground.navi.data.CurrentLocationInfo) {
+                    if (answered) return
+                    answered = true
+                    runCatching { h.removeListener(this) }
+                    // 주소가 왔는지만 남긴다(주소와 좌표는 적지 않는다).
+                    Log.i(TAG, "current place hasAddress=${!info.address.isNullOrBlank()}")
+                    main.post { onResult(com.lrlr.codaeri.domain.HomeBookmark("", info.address.orEmpty(), info.latitude, info.longitude)) }
+                }
+            }
+            h.addListener(listener)
+            h.getCurrentLocationInfo()
+        } catch (t: Throwable) {
+            Log.w(TAG, "current place request failed", t)
+            main.post { onResult(null) }
+        }
+        helper?.takeIf { ready }?.let { ask(it); return }
+        try {
+            val h = ai.pleos.playground.navi.helper.NaviHelper(context.applicationContext)
+            helper = h
+            h.initialize({ ready = true; ask(h) }, { t ->
+                Log.w(TAG, "navi init failed", t)
+                main.post { onResult(null) }
+            })
+        } catch (t: Throwable) {
+            Log.w(TAG, "navi unavailable", t)
+            onResult(null)
+        }
+    }
+
     /** 즐겨찾기 가운데 분류가 "집"인 것 하나. 내비게이션이 목록을 돌려주면 한 번만 답한다. */
     override fun homeBookmark(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) {
         val main = Handler(Looper.getMainLooper())

@@ -19,6 +19,18 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
     private val _ui = MutableStateFlow(HomeImportUi())
     val ui: StateFlow<HomeImportUi> = _ui
     private var waiting: Job? = null
+    private val _hereAddress = MutableStateFlow("")
+    /** "현재 위치를 집으로 설정"으로 고른 자리의 주소. 내비게이션이 알려 주지 않으면 빈 글자다. */
+    val hereAddress: StateFlow<String> = _hereAddress
+
+    /** 고른 자리(lat, lng)의 주소를 내비게이션에 묻는다. 내비게이션이 아는 자리가 그 자리와 멀면 쓰지 않는다. */
+    fun lookUpHere(lat: Double, lng: Double) {
+        _hereAddress.value = ""
+        routeGuide.currentPlace { place ->
+            val near = place != null && place.address.isNotBlank() && com.lrlr.codaeri.domain.VoiceCall.straightKm(lat, lng, place.lat, place.lng) <= SAME_PLACE_KM
+            _hereAddress.value = if (near) place!!.address.trim() else ""
+        }
+    }
 
     fun fetch() {
         if (_ui.value.busy) return
@@ -38,10 +50,12 @@ class HomeImport(private val routeGuide: RouteGuide, private val env: Env) {
     fun clear() {
         waiting?.cancel()
         _ui.value = HomeImportUi()
+        _hereAddress.value = ""
     }
 
     companion object {
         const val TIMEOUT_MS = 5_000L
+        const val SAME_PLACE_KM = 0.3f
         const val NONE = "내비게이션 즐겨찾기에 집이 없습니다. 내비게이션에서 집을 등록한 뒤 다시 눌러 주세요."
         const val UNAVAILABLE = "내비게이션 즐겨찾기를 확인하지 못했습니다. 현재 위치로 설정할 수 있습니다."
         fun found(home: HomeBookmark): String {

@@ -386,6 +386,21 @@ class FlowsTest {
         assertEquals(HomeImport.UNAVAILABLE, r.c.homeImportUi.value.message)
     }
 
+    @Test fun currentLocationGetsItsAddressFromTheNavigation() = runTest {
+        val r = rig()
+        // 내비게이션이 모르면 주소 없이 둔다
+        r.c.lookUpHereAddress(37.4020, 127.1086); runCurrent()
+        assertEquals("", r.c.hereAddress.value)
+
+        r.route.here = com.lrlr.codaeri.domain.HomeBookmark("", "성남시 분당구 삼평동 1", 37.4021, 127.1087)
+        r.c.lookUpHereAddress(37.4020, 127.1086); runCurrent()
+        assertEquals("성남시 분당구 삼평동 1", r.c.hereAddress.value)
+
+        // 내비게이션이 아는 자리가 고른 자리와 멀면 그 주소를 쓰지 않는다
+        r.c.lookUpHereAddress(37.4563, 126.7052); runCurrent()
+        assertEquals("", r.c.hereAddress.value)
+    }
+
     @Test fun serviceStaysUpOnlyWhileADriverIsAwaitedOrATripIsRecorded() = runTest {
         val r = rig()
         // 번호만 연결된 차는 서비스를 띄우지 않는다

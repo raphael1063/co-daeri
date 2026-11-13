@@ -201,6 +201,9 @@ class FakeRoute : RouteGuide {
     var home: com.lrlr.codaeri.domain.HomeBookmark? = null
     var answers = true
     override fun homeBookmark(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) { if (answers) onResult(home) }
+    /** 내비게이션이 아는 지금 자리 */
+    var here: com.lrlr.codaeri.domain.HomeBookmark? = null
+    override fun currentPlace(onResult: (com.lrlr.codaeri.domain.HomeBookmark?) -> Unit) { if (answers) onResult(here) }
 }
 
 class FakeNotices : Notices {

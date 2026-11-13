@@ -67,6 +67,8 @@ fun CardEditorScreen(
     homeImport: HomeImportUi,
     onImportHome: () -> Unit,
     onNeedLocation: () -> Unit,
+    hereAddress: String,
+    onLookUpHere: (Double, Double) -> Unit,
     onSave: (ParkingCard) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -79,6 +81,10 @@ fun CardEditorScreen(
     // 내비게이션 즐겨찾기의 집을 가져오면 위치를 채우고, 장소 이름이 비어 있으면 이름도 채운다. 저장은 차주가 누른다.
     // 마지막으로 누른 버튼. 안내 문구는 방금 누른 버튼의 결과를 먼저 보여 준다.
     var lastTap by remember(initial) { mutableStateOf("") }
+    // 현재 위치의 주소를 받으면 비어 있는 장소 이름에 채운다.
+    LaunchedEffect(hereAddress) {
+        if (hereAddress.isNotBlank() && lastTap == "here") c = c.copy(placeName = c.placeName.ifBlank { hereAddress })
+    }
     LaunchedEffect(homeImport.found) {
         homeImport.found?.let { home ->
             c = c.copy(latitude = home.lat, longitude = home.lng, placeName = c.placeName.ifBlank { home.name })
@@ -104,7 +110,7 @@ fun CardEditorScreen(
                 {
                     val here = currentLocation
                     if (here == null) { lastTap = "here-missing"; onNeedLocation() }
-                    else { c = c.copy(latitude = here.first, longitude = here.second); lastTap = "here" }
+                    else { c = c.copy(latitude = here.first, longitude = here.second); lastTap = "here"; onLookUpHere(here.first, here.second) }
                 },
                 size = ButtonSize.SMALL,
             )
@@ -113,6 +119,7 @@ fun CardEditorScreen(
             when {
                 lastTap == "navi" && homeImport.busy -> "내비게이션 즐겨찾기를 확인하고 있습니다."
                 lastTap == "navi" && homeImport.message.isNotBlank() -> homeImport.message
+                lastTap == "here" && hereAddress.isNotBlank() -> "현재 위치($hereAddress)를 집으로 선택했습니다."
                 lastTap == "here" -> "현재 위치를 집으로 선택했습니다."
                 lastTap == "here-missing" && currentLocation == null -> "현재 위치를 아직 받지 못했습니다. 위치 권한을 허용했는지 확인하고 잠시 뒤 다시 눌러 주세요."
                 lastTap == "here-missing" -> "현재 위치를 받았습니다. 다시 눌러 주세요."
