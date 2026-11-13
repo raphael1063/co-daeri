@@ -101,11 +101,6 @@ fun DrivingScreen(
             Spacer(Modifier.height(12.dp))
             T(it, Type.bodyLarge, color = c.textTertiary)
         }
-        // 넓은 창으로 보고 있을 때만, 내비게이션과 나란히 두는 방법을 알린다.
-        if (booking != null && !isNarrow()) {
-            Spacer(Modifier.height(8.dp))
-            T(SPLIT_HINT, Type.labelLarge, color = c.textTertiary)
-        }
         // 길 안내는 내비게이션이 하므로, 이 화면을 열어 본 뒤 지도로 바로 돌아갈 수 있게 한다.
         if (booking != null && !(card.isUsable && guidance.started)) {
             Spacer(Modifier.height(40.dp))

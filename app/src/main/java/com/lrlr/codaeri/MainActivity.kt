@@ -43,6 +43,7 @@ import com.lrlr.codaeri.ui.PairColumns
 import com.lrlr.codaeri.ui.screens.CardEditorScreen
 import com.lrlr.codaeri.ui.screens.ClosedScreen
 import com.lrlr.codaeri.ui.screens.ParkingEditPopup
+import com.lrlr.codaeri.ui.screens.SplitTip
 import com.lrlr.codaeri.ui.screens.StartPinPopup
 import com.lrlr.codaeri.ui.DaeriTheme
 import com.lrlr.codaeri.ui.screens.DrivingScreen
@@ -269,6 +270,10 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+
+                    // 배차 현황과 운행 중 화면에서는 내비게이션과 나란히 보는 방법을 도움말로 한 번 알린다.
+                    val tipKey = (pending?.id ?: trip?.booking?.id)?.takeIf { screen == Screen.HANDOVER || screen == Screen.DRIVING }
+                    if (tipKey != null) SplitTip(tipKey, still = restricted)
 
                     // 출발하기를 누르면 기사님 PIN을 묻는다. 예약이 사라지거나 운행이 시작되면 창도 닫는다.
                     val startPin by c.startPin.collectAsStateWithLifecycle()

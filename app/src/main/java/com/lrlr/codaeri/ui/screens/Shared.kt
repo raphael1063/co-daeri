@@ -61,9 +61,6 @@ internal val page = Modifier.fillMaxSize().padding(horizontal = Gutter, vertical
 /** 시연에서는 대리운전 서비스의 예약 서버 대신 같은 모양의 시연용 서버를 쓴다. 화면에 늘 밝힌다. */
 const val DEMO_TAG = "시연용"
 
-/** 내비게이션과 나란히 보는 방법. Pleos에서는 사용자가 앱 영역의 손잡이로 창을 나눈다(앱이 대신 나눌 수 없다). */
-const val SPLIT_HINT = "화면 오른쪽 가장자리의 손잡이(⋮)를 왼쪽으로 끌면 내비게이션과 나란히 볼 수 있습니다."
-
 /** 주행 중(화면 제한)일 때 입력 화면 대신 보여 준다. */
 @Composable
 fun StopFirst(what: String) {

@@ -114,8 +114,6 @@ fun HandoverScreen(
                     },
                     Type.bodyLarge,
                 )
-                Spacer(Modifier.height(12.dp))
-                T(SPLIT_HINT, Type.labelLarge, color = Ivi.colors.textTertiary)
                 // 좌석 신호로 탑승을 판정하는 차에서는 출발하기를 첫 화면에만 둔다.
                 if (manualStart || armed) {
                     Spacer(Modifier.height(20.dp))
