@@ -78,6 +78,12 @@ class DaeriController(
     val pairing: StateFlow<Pairing> = pairingFlow.pairing
     val voice: StateFlow<CallUi> = voiceCall.ui
     val voicePartial: StateFlow<String> = ports.listener.partial
+    private val dictation = SpotDictation(ports.listener)
+    /** 주차한 자리를 말로 남기는 상태 */
+    val spotDictation: StateFlow<DictationState> = dictation.state
+    fun dictateSpot() = dictation.start()
+    fun stopDictation() = dictation.stop()
+    fun resetDictation() = dictation.reset()
     val emergency: StateFlow<EmergencyUi?> = emergencyViewer.ui
     val routed: StateFlow<String?> = router.routed
     val restricted: StateFlow<Boolean> = ports.restriction.restricted

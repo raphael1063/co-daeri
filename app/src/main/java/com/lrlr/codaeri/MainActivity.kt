@@ -152,8 +152,15 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             Screen.OTHER_SPOT -> {
-                                BackHandler { otherSpot = false }
-                                OtherSpotScreen(state.card, c.handover, { c.chooseParking(it); otherSpot = false }, { otherSpot = false })
+                                val dictation by c.spotDictation.collectAsStateWithLifecycle()
+                                val heard by c.voicePartial.collectAsStateWithLifecycle()
+                                BackHandler { c.resetDictation(); otherSpot = false }
+                                OtherSpotScreen(
+                                    state.card, c.handover, dictation, heard,
+                                    onDictate = c::dictateSpot, onStopDictation = c::stopDictation, onClearDictation = c::resetDictation,
+                                    onResult = { c.chooseParking(it); c.resetDictation(); otherSpot = false },
+                                    onBack = { c.resetDictation(); otherSpot = false },
+                                )
                             }
                             Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip) }
                             Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode)

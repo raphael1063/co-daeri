@@ -60,7 +60,18 @@ internal val MEMOS = listOf("요청하신 곳에 자리가 없어 근처에 주�
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun OtherSpotScreen(card: ParkingCard, handover: Handover, onResult: (ParkingResult) -> Unit, onBack: () -> Unit) {
+fun OtherSpotScreen(
+    card: ParkingCard,
+    handover: Handover,
+    /** 말로 남기기의 상태와 듣는 동안 알아들은 말 */
+    dictation: com.lrlr.codaeri.app.DictationState,
+    partial: String,
+    onDictate: () -> Unit,
+    onStopDictation: () -> Unit,
+    onClearDictation: () -> Unit,
+    onResult: (ParkingResult) -> Unit,
+    onBack: () -> Unit,
+) {
     var choice by rememberSaveable { mutableStateOf(SpotChoice.SAME_FLOOR_OTHER) }
     var floor by rememberSaveable { mutableStateOf("") }
     var pillar by rememberSaveable { mutableStateOf("") }
@@ -93,7 +104,29 @@ fun OtherSpotScreen(card: ParkingCard, handover: Handover, onResult: (ParkingRes
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
             MEMOS.forEach { m -> Choice(m, memo == m, { memo = if (memo == m) "" else m }) }
         }
-        val result = handover.driverInput(choice, floor, pillar, memo, System.currentTimeMillis())
+        // 말로 남기기: 알아들은 글자만 메모에 더한다. 소리는 저장하지 않는다.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            when {
+                dictation.listening -> {
+                    IviButton("듣기 그만", onStopDictation, size = ButtonSize.SMALL)
+                    T(partial.ifBlank { "듣고 있습니다. 주차한 자리를 말씀해 주세요." }, Type.bodyMedium, Modifier.weight(1f), color = Ivi.colors.textSecondary, maxLines = 2)
+                }
+                dictation.text.isNotEmpty() -> {
+                    IviButton("다시 말하기", onDictate, size = ButtonSize.SMALL)
+                    IviButton("지우기", onClearDictation, size = ButtonSize.SMALL)
+                    T("\"${dictation.text}\"", Type.bodyMedium, Modifier.weight(1f), maxLines = 2)
+                }
+                else -> {
+                    IviButton("말로 남기기", onDictate, size = ButtonSize.SMALL)
+                    T(
+                        if (dictation.failed) "듣지 못했습니다. 다시 눌러 말씀해 주세요." else "누르고 말하면 글로 적어 둡니다. 소리는 저장하지 않습니다.",
+                        Type.bodyMedium, Modifier.weight(1f), color = Ivi.colors.textTertiary, maxLines = 2,
+                    )
+                }
+            }
+        }
+        val fullMemo = listOf(memo, dictation.text).filter { it.isNotBlank() }.joinToString(" ")
+        val result = handover.driverInput(choice, floor, pillar, fullMemo, System.currentTimeMillis())
         T(TripPresentation.parkingLocation(handover.parkingLine(card, result)), Type.bodyMedium, color = Ivi.colors.positiveText)
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IviButton("취소", onBack, Modifier.weight(1f))

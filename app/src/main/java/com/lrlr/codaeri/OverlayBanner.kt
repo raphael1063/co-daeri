@@ -161,7 +161,12 @@ class OverlayBanner(private val context: Context) : TripBanner {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
-        ).apply { gravity = Gravity.TOP or Gravity.END; x = dp(160f); y = dp(24f) }
+        ).apply {
+            gravity = Gravity.TOP or Gravity.END; x = dp(160f); y = dp(24f)
+            // 접히고 펼칠 때 창이 미끄러지듯 움직여 보이지 않게, 창 이동과 등장 애니메이션을 끈다.
+            windowAnimations = 0
+            if (android.os.Build.VERSION.SDK_INT >= 34) setCanPlayMoveAnimation(false)
+        }
         wm.addView(v, p)
         root = v; icon = iconView; title = titleView; dots = dotsView; detail = detailView; params = p; night = dark
     }

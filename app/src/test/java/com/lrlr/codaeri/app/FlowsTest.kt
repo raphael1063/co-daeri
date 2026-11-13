@@ -182,6 +182,22 @@ class FlowsTest {
         assertFalse(r.banner.expanded) // 이미 알린 내용이므로 접힌 채로
     }
 
+    @Test fun parkedSpotCanBeLeftBySpeakingAndOnlyTheTextIsKept() = runTest {
+        val r = rig()
+        r.c.dictateSpot()
+        assertTrue(r.c.spotDictation.value.listening)
+        r.listener.hear(null); runCurrent()
+        assertTrue(r.c.spotDictation.value.failed) // 듣지 못하면 그렇다고 알린다
+        r.c.dictateSpot()
+        r.listener.hear(" 지하 3층 C 12 옆에 댔습니다 "); runCurrent()
+        assertEquals("지하 3층 C 12 옆에 댔습니다", r.c.spotDictation.value.text)
+        assertFalse(r.c.spotDictation.value.listening)
+        r.c.dictateSpot()
+        r.c.resetDictation() // 화면을 닫으면 마이크도 끈다
+        assertFalse(r.listener.listening)
+        assertEquals("", r.c.spotDictation.value.text)
+    }
+
     @Test fun bannerStaysOffWithoutThePermission() = runTest {
         val r = rig()
         r.banner.allowed = false
