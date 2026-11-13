@@ -206,8 +206,9 @@ fun IviButton(
             .padding(horizontal = size.pad),
         contentAlignment = Alignment.Center,
     ) {
+        // 기다리는 동안에도 글자의 자리는 그대로 둔다(버튼 크기가 줄었다 늘지 않게). 글자만 숨기고 그 위에 돌림 표시를 얹는다.
         if (loading) CircularProgressIndicator(Modifier.size(32.dp), color = c.textTertiary, strokeWidth = 3.dp)
-        else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             if (icon != null) Image(
                 painterResource(icon), contentDescription = null,
                 modifier = Modifier.size(when (size) { ButtonSize.SMALL -> 32.dp; ButtonSize.MEDIUM -> 40.dp; ButtonSize.LARGE -> 44.dp }),

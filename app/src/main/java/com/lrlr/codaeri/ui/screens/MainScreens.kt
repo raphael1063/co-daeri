@@ -193,7 +193,7 @@ fun RecordsScreen(
                     onToggle = { open = if (expanded) null else card.tripId },
                     regular = card.driverId.isNotBlank() && state.server.regular?.id == card.driverId,
                     onCallDriver = if (card.driverId.isNotBlank()) ({ calling = card.driverName }) else null,
-                    onStar = if (card.driverId.isNotBlank() && !regularBusy) ({ starring = card.driverId to card.driverName }) else null,
+                    onStar = if (card.driverId.isNotBlank()) ({ starring = card.driverId to card.driverName }) else null,
                 )
             }
         }

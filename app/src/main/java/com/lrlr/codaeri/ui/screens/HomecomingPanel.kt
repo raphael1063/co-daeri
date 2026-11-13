@@ -146,9 +146,12 @@ fun HomecomingPanel(
             Spacer(Modifier.height(10.dp))
             T("운행 중 일부 정보를 기록하지 못했습니다. 차량 정보가 빠져 있을 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
         }
-        delivery?.let {
+        // 저장 중 안내는 잠깐 떴다 사라지므로 아래 내용이 툭 밀리지 않게 펼치고 접는다.
+        var lastDelivery by remember { mutableStateOf(delivery.orEmpty()) }
+        if (delivery != null) lastDelivery = delivery
+        Reveal(delivery != null) {
             Spacer(Modifier.height(10.dp))
-            T(it, Type.labelSmall, color = Ivi.colors.textTertiary)
+            T(lastDelivery, Type.labelSmall, color = Ivi.colors.textTertiary)
         }
         if (card.compare.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))

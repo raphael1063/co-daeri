@@ -37,7 +37,7 @@ fun RegularScreen(
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     T(current?.let { "${it.name} 기사님" } ?: "없음", Type.titleSmall, Modifier.weight(1f))
-                    if (current != null) IviButton("삭제", onClear, size = ButtonSize.SMALL, enabled = !busy)
+                    if (current != null) IviButton("삭제", onClear, size = ButtonSize.SMALL)
                 }
             }
             Reveal(message.isNotEmpty()) {
@@ -54,7 +54,7 @@ fun RegularScreen(
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         T("${driver.name} 기사님", Type.titleSmall, Modifier.weight(1f))
                         val chosen = current?.id == driver.id
-                        IviButton(if (chosen) "설정됨" else "선택", { onPick(driver.id) }, size = ButtonSize.SMALL, filled = !chosen, enabled = !busy && !chosen)
+                        IviButton(if (chosen) "설정됨" else "선택", { onPick(driver.id) }, size = ButtonSize.SMALL, filled = !chosen, enabled = !chosen)
                     }
                 }
             }

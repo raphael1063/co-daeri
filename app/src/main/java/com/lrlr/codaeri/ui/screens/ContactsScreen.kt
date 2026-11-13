@@ -73,7 +73,7 @@ fun ContactsScreen(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     T(contact.label, Type.titleSmall, Modifier.width(FACT_LABEL))
                     T(contact.masked, Type.titleSmall, Modifier.weight(1f))
-                    IviButton("삭제", { onRemove(i) }, size = ButtonSize.SMALL, enabled = !busy)
+                    IviButton("삭제", { onRemove(i) }, size = ButtonSize.SMALL)
                 }
             }
         }
