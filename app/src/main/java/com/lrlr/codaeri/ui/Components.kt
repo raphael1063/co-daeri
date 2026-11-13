@@ -174,6 +174,8 @@ fun IviButton(
     quiet: Boolean = false,
     /** 되돌릴 수 없는 일(운행 종료)에 쓰는 붉은 버튼 */
     danger: Boolean = false,
+    /** 글자 앞에 붙이는 아이콘(글자색으로 칠한다) */
+    icon: Int? = null,
 ) {
     val c = Ivi.colors
     val source = remember { MutableInteractionSource() }
@@ -205,7 +207,14 @@ fun IviButton(
         contentAlignment = Alignment.Center,
     ) {
         if (loading) CircularProgressIndicator(Modifier.size(32.dp), color = c.textTertiary, strokeWidth = 3.dp)
-        else T(text, when (size) { ButtonSize.SMALL -> Type.bodySmall; ButtonSize.MEDIUM -> Type.bodyLarge; ButtonSize.LARGE -> Type.titleSmall }.copy(fontWeight = Type.labelLarge.fontWeight), color = fg, maxLines = 1)
+        else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            if (icon != null) Image(
+                painterResource(icon), contentDescription = null,
+                modifier = Modifier.size(when (size) { ButtonSize.SMALL -> 32.dp; ButtonSize.MEDIUM -> 40.dp; ButtonSize.LARGE -> 44.dp }),
+                colorFilter = ColorFilter.tint(fg),
+            )
+            T(text, when (size) { ButtonSize.SMALL -> Type.bodySmall; ButtonSize.MEDIUM -> Type.bodyLarge; ButtonSize.LARGE -> Type.titleSmall }.copy(fontWeight = Type.labelLarge.fontWeight), color = fg, maxLines = 1)
+        }
     }
 }
 
