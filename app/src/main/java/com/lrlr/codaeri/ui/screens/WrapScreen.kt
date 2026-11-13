@@ -77,14 +77,16 @@ fun WrapScreen(
     val c = Ivi.colors
     val booking = trip.booking
     Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
-        Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
+        // 제목은 위에, 운행 종료를 비롯한 버튼은 아래에 고정하고 가운데만 스크롤한다.
+        Column(Modifier.weight(1f).fillMaxHeight()) {
             T("정차 중", Type.headlineLarge, Modifier.appear(0))
             Spacer(Modifier.height(8.dp))
             T(
                 booking?.destination.orEmpty(),
                 Type.titleSmall, Modifier.appear(0), color = c.textSecondary,
             )
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(20.dp))
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
             Row(Modifier.appear(1), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Tile("이동 거리", handover.distanceText(handover.distanceKm(trip.startOdometerKm, trip.endOdometerKm)), Modifier.weight(1f))
                 Tile("이용 시간", handover.elapsedText(handover.elapsedMinutes(trip.startedAt, trip.parkedAt ?: now)), Modifier.weight(1f))
@@ -118,7 +120,8 @@ fun WrapScreen(
                     T("메모: ${TripPresentation.parkingMemo(lastMemo)}", Type.bodyMedium, color = c.textSecondary, maxLines = 2)
                 }
             }
-            Spacer(Modifier.height(40.dp))
+            }
+            Spacer(Modifier.height(20.dp))
             // 운행 종료는 되돌릴 수 없으니 붉은색으로 한 줄을 차지하게 하고, 나머지 단추는 그 아래 한 줄에 같은 높이로 놓는다.
             IviButton("운행 종료", onClose, Modifier.appear(3).fillMaxWidth(), danger = true, size = ButtonSize.LARGE, loading = busy)
             if (booking != null) {

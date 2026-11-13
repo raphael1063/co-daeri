@@ -65,12 +65,11 @@ fun CardEditorScreen(
     var c by remember(initial) { mutableStateOf(initial) }
     // 저장과 취소는 스크롤하지 않아도 보이도록 아래에 고정한다.
     Column(page, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // 제목은 위에, 저장과 취소는 아래에 고정한다.
+    T("집 주차 안내", Type.titleMedium)
     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            T("집 주차 안내", Type.titleMedium, Modifier.weight(1f))
-        }
         T(
-            "집 근처에 도착하면 기사님께 읽어 드리는 안내입니다. 이 내용은 차에만 저장됩니다.",
+            "집 근처에 도착하면 기사님께 안내해 드리는 내용입니다. 이 내용은 차에만 저장됩니다.",
             Type.labelLarge, color = Ivi.colors.textTertiary,
         )
         T("집 위치", Type.titleSmall)

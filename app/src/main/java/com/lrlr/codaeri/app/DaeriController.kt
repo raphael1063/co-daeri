@@ -47,7 +47,7 @@ class DaeriController(
         pairingShown = { pairingFlow.showing },
         onBound = { pairingFlow.clear() },
         // 화면이 가려져 있고 서 있을 때만 알린다. 달리는 동안에는 띄우지 않는다.
-        onNewBooking = { b -> if (hiddenAndParked() && store.value.trip == null) ports.notices.booking(b.driver.name, b.destination) },
+        onNewBooking = { b -> if (hiddenAndParked() && store.value.trip == null && !store.value.noticesOff) ports.notices.booking(b.driver.name, b.destination) },
     )
     private val outbox = CardOutbox(store, ports.service, handover, env, onConfirmed = { sync.refresh() })
     private val guide = ParkingGuide(store, ports.announcer, env.clock, onArrived = { outbox.queueProgress() })
@@ -58,14 +58,19 @@ class DaeriController(
     private val emergencyViewer = EmergencyViewer(store, ports.service, env)
     private val shareSwitch = ShareSwitch(store, ports.service, env)
     private val contactEditor = ContactEditor(store, ports.service, env)
+    private val regularEditor = RegularEditor(store, ports.service, env)
     private val router = DestinationRouter(ports.routeGuide)
     private val recorder = TripRecorder(
         store, ports.car, ports.location, ports.restriction, ports.announcer, ports.links,
         handover, guide, outbox, sync, router, env,
         onRecording = { ports.keepAlive.on() },
         onMoving = { if (voiceCall.active) voiceCall.cancel() },
-        onClosed = { card -> if (!visible.value) ports.notices.closed(handover.headline(card, env.clock())) },
+        onClosed = { card -> if (!visible.value && !store.value.noticesOff) ports.notices.closed(handover.headline(card, env.clock())) },
     )
+
+    private val parkingWatch = ParkingWatch(env)
+    /** 운행 중 R단을 넣어 주차하는 중인지 */
+    val parking: StateFlow<Boolean> = parkingWatch.parking
 
     private fun hiddenAndParked() = !visible.value && ports.car.gear.value == GearState.PARK
 
@@ -112,7 +117,7 @@ class DaeriController(
         env.scope.launch { ports.location.entered.collect { guide.onNearHome() } }
         env.scope.launch {
             var previous = ports.car.gear.value
-            ports.car.gear.collect { current -> recorder.onGear(previous, current); voiceCall.onGearChanged(); previous = current }
+            ports.car.gear.collect { current -> recorder.onGear(previous, current); voiceCall.onGearChanged(); parkingWatch.onGear(current); previous = current }
         }
         env.scope.launch { ports.car.driverSeated.collect { recorder.onSeatChanged() } }
         env.scope.launch { ports.car.passengerSeats.collect { recorder.onPassengersChanged() } }
@@ -121,7 +126,7 @@ class DaeriController(
         env.scope.launch { visible.collect { if (it) { ports.notices.clear(); sync.refresh() } } }
         // 내비게이션이 앞에 있는 동안 지도 위에 운행 중임을 한 줄로 보여 준다(권한이 있는 차에서만).
         BannerPresenter(ports.banner, env.scope, visible)
-            .start(combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.line(s, g, v, handover) })
+            .start(combine(store.state, guide.state, visible, parking) { s, g, v, p -> DrivingBanner.line(s, g, v, handover, p) })
         outbox.watch(ports.connectivity)
         outbox.send()
         sync.startPolling()
@@ -185,10 +190,17 @@ class DaeriController(
     fun addContact(kind: com.lrlr.codaeri.domain.ContactKind, label: String, phone: String) = contactEditor.add(kind, label, phone)
     fun removeContact(kind: com.lrlr.codaeri.domain.ContactKind, index: Int) = contactEditor.remove(kind, index)
     fun clearContactMessage() = contactEditor.clearMessage()
+    val regularBusy: StateFlow<Boolean> = regularEditor.busy
+    val regularMessage: StateFlow<String> = regularEditor.message
+    /** 우선 요청 기사님을 정한다. null이면 지운다. */
+    fun setRegular(driverId: String?) = regularEditor.set(driverId)
+    fun clearRegularMessage() = regularEditor.clearMessage()
     fun showEmergency() = emergencyViewer.show()
     fun hideEmergency() = emergencyViewer.hide()
 
     fun noticeAllowed(): Boolean = ports.notices.enabled()
+    /** 설정의 이용 알림 켜고 끄기 */
+    fun setNotices(on: Boolean) { store.update { it.copy(noticesOff = !on) } }
 
     /** 번호가 연결돼 있거나 운행 중이면 화면을 열지 않아도 예약을 묻고 운행을 기록한다. */
     fun needsKeepAlive(): Boolean {

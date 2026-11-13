@@ -72,6 +72,8 @@ fun DrivingScreen(
     /** 차주가 등록해 둔 비상연락처(가린 번호). 없으면 버튼을 보이지 않는다. */
     emergencies: List<Emergency> = emptyList(),
     onEmergency: () -> Unit = {},
+    /** R단을 넣어 주차하는 중 */
+    parking: Boolean = false,
 ) {
     val now = rememberNow()
     val c = Ivi.colors
@@ -79,17 +81,18 @@ fun DrivingScreen(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             Box(Modifier.size(16.dp).clip(CircleShape).background(c.positive))
             // 예약이 아직 확인되지 않은 주행은 P에서 버려지므로 "기록 중"이라고 하지 않는다
-            T(if (trip.booking != null) "운행 중" else "예약 확인 중", Type.bodyLarge, color = c.textSecondary)
+            T(if (trip.booking == null) "예약 확인 중" else if (parking) "주차 중" else "운행 중", Type.bodyLarge, color = c.textSecondary)
             if (trip.booking != null) T(handover.elapsedText(handover.elapsedMinutes(trip.startedAt, now)), Type.bodyLarge, color = c.textTertiary)
         }
         Spacer(Modifier.height(20.dp))
         val booking = trip.booking
         T(
-            if (booking != null) "${handover.toward(booking.destination)} 운행 중" else "예약을 확인하는 중입니다",
+            if (booking == null) "예약을 확인하는 중입니다" else if (parking) "주차 중입니다" else "${handover.toward(booking.destination)} 운행 중",
             Type.headlineLarge, maxLines = 2,
         )
         val description = when {
             booking == null -> "예약이 확인되면 이용 내역에 남깁니다."
+            parking -> "주차를 마치고 P단에 놓으면 운행 종료 버튼이 나옵니다."
             card.isUsable -> "등록한 집 근처에 도착하면 주차 안내를 들려드립니다."
             else -> null
         }

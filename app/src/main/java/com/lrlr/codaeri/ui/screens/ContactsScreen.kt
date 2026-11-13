@@ -55,8 +55,11 @@ fun ContactsScreen(
     LaunchedEffect(contacts.size) { label = ""; digits = "010" }
     val gap = Arrangement.spacedBy(12.dp)
     val c = Ivi.colors
-    Column(page.verticalScroll(rememberScrollState())) {
+    // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
+    Column(page) {
         TopBar(if (kind == ContactKind.EMERGENCY) "비상연락처" else "운행 상태를 공유할 연락처", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
+        Spacer(Modifier.height(16.dp))
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
         T(
             if (kind == ContactKind.EMERGENCY) "운행 중 유사시에 기사님이 연락할 분입니다. 3명까지 등록합니다."
             else "출발과 도착을 알릴 분입니다. 3명까지 등록합니다. 시연용이라 실제 문자는 보내지 않습니다.",
@@ -70,7 +73,7 @@ fun ContactsScreen(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     T(contact.label, Type.titleSmall, Modifier.width(FACT_LABEL))
                     T(contact.masked, Type.titleSmall, Modifier.weight(1f))
-                    IviButton("삭제", { onRemove(i) }, size = ButtonSize.SMALL, enabled = !busy)
+                    IviButton("삭제", { onRemove(i) }, size = ButtonSize.SMALL)
                 }
             }
         }
@@ -101,5 +104,6 @@ fun ContactsScreen(
                 T("번호는 서비스에만 저장하고, 차 화면에는 가려서 보여 줍니다.", Type.labelSmall, color = c.textTertiary)
             }
         }
+    }
     }
 }

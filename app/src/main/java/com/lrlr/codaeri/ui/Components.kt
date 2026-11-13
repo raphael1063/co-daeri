@@ -137,10 +137,10 @@ fun PairColumns(pairs: List<Pair<String, String>>, nameStyle: TextStyle, valueSt
 fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = Ivi.colors
     Box(
-        modifier.size(ButtonSize.SMALL.height).clip(RoundedCornerShape(ButtonSize.SMALL.radius)).background(c.buttonBasicEnabled).pressable(onClick = onClick),
+        modifier.size(112.dp).clip(RoundedCornerShape(28.dp)).background(c.buttonBasicEnabled).pressable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Image(painterResource(R.drawable.ic_back), contentDescription = "뒤로", modifier = Modifier.size(44.dp), colorFilter = ColorFilter.tint(c.textPrimary))
+        Image(painterResource(R.drawable.ic_back), contentDescription = "뒤로", modifier = Modifier.size(56.dp), colorFilter = ColorFilter.tint(c.textPrimary))
     }
 }
 
@@ -206,8 +206,9 @@ fun IviButton(
             .padding(horizontal = size.pad),
         contentAlignment = Alignment.Center,
     ) {
+        // 기다리는 동안에도 글자의 자리는 그대로 둔다(버튼 크기가 줄었다 늘지 않게). 글자만 숨기고 그 위에 돌림 표시를 얹는다.
         if (loading) CircularProgressIndicator(Modifier.size(32.dp), color = c.textTertiary, strokeWidth = 3.dp)
-        else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             if (icon != null) Image(
                 painterResource(icon), contentDescription = null,
                 modifier = Modifier.size(when (size) { ButtonSize.SMALL -> 32.dp; ButtonSize.MEDIUM -> 40.dp; ButtonSize.LARGE -> 44.dp }),
@@ -355,8 +356,8 @@ fun Panel(modifier: Modifier = Modifier, pad: Dp = 32.dp, content: @Composable C
 /** 작은 꼬리표. 시연용 서버임을 밝히는 데 쓴다. */
 @Composable
 fun Tag(text: String, modifier: Modifier = Modifier) {
-    Box(modifier.clip(RoundedCornerShape(12.dp)).background(Ivi.colors.surfaceHigh).padding(horizontal = 14.dp, vertical = 6.dp)) {
-        T(text, Type.labelSmall, color = Ivi.colors.textTertiary)
+    Box(modifier.clip(RoundedCornerShape(14.dp)).background(Ivi.colors.surfaceHigh).padding(horizontal = 20.dp, vertical = 10.dp)) {
+        T(text, Type.labelLarge, color = Ivi.colors.textTertiary)
     }
 }
 
@@ -376,4 +377,27 @@ fun Fact(label: String, value: String, modifier: Modifier = Modifier, valueColor
 @Composable
 fun Choice(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     IviButton(text, onClick, modifier, filled = selected, size = ButtonSize.SMALL)
+}
+
+/** 켜고 끄는 체크박스. 켜지면 채운 버튼과 같은 색으로 칠하고 체크 표시를 그린다. 색은 OS 버튼 색만 쓴다. */
+@Composable
+fun IviCheckBox(checked: Boolean, onChange: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val c = Ivi.colors
+    val fill by animateColorAsState(if (checked) c.buttonFilledEnabled else c.buttonBasicEnabled, tween(Motion.FOLD), label = "check")
+    val mark by animateFloatAsState(if (checked) 1f else 0f, tween(Motion.FOLD), label = "mark")
+    val ink = c.onButtonFilled
+    val edge = c.textQuaternary
+    // 누르는 자리는 넉넉하게(96dp), 네모는 그 안에 64dp로 그린다.
+    Box(modifier.size(96.dp).pressable(enabled = enabled, role = Role.Checkbox, onClick = onChange), contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.size(64.dp)) {
+            val r = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx())
+            drawRoundRect(fill, cornerRadius = r)
+            if (mark < 1f) drawRoundRect(edge.copy(alpha = edge.alpha * (1f - mark)), cornerRadius = r, style = androidx.compose.ui.graphics.drawscope.Stroke(3.dp.toPx()))
+            if (mark > 0f) {
+                val w = size.width
+                val path = androidx.compose.ui.graphics.Path().apply { moveTo(w * 0.24f, w * 0.52f); lineTo(w * 0.43f, w * 0.70f); lineTo(w * 0.77f, w * 0.32f) }
+                drawPath(path, ink.copy(alpha = mark), style = androidx.compose.ui.graphics.drawscope.Stroke(6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+        }
+    }
 }

@@ -72,12 +72,16 @@ fun HomeScreen(
     onStart: () -> Unit = {},
     /** P단에 서 있을 때만 대리를 부를 수 있다 */
     canCall: Boolean = true,
+    /** 출발 전에는 메인 화면에서도 호출을 취소할 수 있다 */
+    cancelling: Boolean = false, cancelMessage: String = "",
+    onCancel: () -> Unit = {},
 ) {
     Box(page) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Image(painterResource(R.drawable.ic_app_clear), contentDescription = null, modifier = Modifier.size(280.dp).appear(0, scaleFrom = 0.97f))
             Spacer(Modifier.height(20.dp))
-            T("코-대리", Type.headlineLarge, Modifier.appear(0))
+            // 앱 이름은 글자 대신 워드마크 그림으로 보여 준다(밝은 화면은 검은 글자, 어두운 화면은 흰 글자).
+            Image(painterResource(R.drawable.wordmark), contentDescription = "코-대리", modifier = Modifier.height(110.dp).appear(0))
             Spacer(Modifier.height(48.dp))
             if (startLine != null) {
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
@@ -90,7 +94,15 @@ fun HomeScreen(
                     if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다." else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
                     Type.labelLarge, color = Ivi.colors.textTertiary, align = TextAlign.Center,
                 )
-                if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
+                Spacer(Modifier.height(20.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (armed) IviButton("출발 확인 취소", onStart, enabled = !restricted)
+                    IviButton("호출 취소", onCancel, enabled = !restricted, loading = cancelling)
+                }
+                Reveal(cancelMessage.isNotEmpty()) {
+                    Spacer(Modifier.height(12.dp))
+                    T(cancelMessage, Type.labelLarge, color = Ivi.colors.negative)
+                }
             } else Row(Modifier.fillMaxWidth().appear(1), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 if (booked) HomeButton("대리 현황", R.drawable.ic_home_status, onStatus, Modifier.weight(1f), filled = true)
                 else HomeButton("대리 부르기", R.drawable.ic_home_call, onCall, Modifier.weight(1f), filled = true, enabled = !restricted && canCall)
@@ -127,9 +139,10 @@ internal fun HomeButton(text: String, icon: Int, onClick: () -> Unit, modifier: 
 /** 화면 위쪽의 제목 줄: 뒤로 단추와 제목 */
 @Composable
 internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modifier, trailing: @Composable () -> Unit = {}) {
-    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+    // 제목 줄은 크게, 아래 내용과는 넉넉히 띄운다.
+    Row(modifier.fillMaxWidth().padding(bottom = 28.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(36.dp)) {
         BackButton(onBack)
-        T(title, Type.titleLarge, Modifier.weight(1f))
+        T(title, Type.headlineSmall, Modifier.weight(1f), maxLines = 1)
         trailing()
     }
 }
@@ -139,7 +152,16 @@ internal fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modi
  * 화면 제목은 위에 고정하고 카드만 스크롤한다. 카드는 제목 줄을 눌러 접고 펼친다(가장 최근 것만 펼쳐 둔다).
  */
 @Composable
-fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBack: () -> Unit) {
+fun RecordsScreen(
+    state: AppState, handover: Handover, uploading: Boolean,
+    /** 우선 요청 기사님을 바꾸는 중과 실패했을 때의 한 줄 */
+    regularBusy: Boolean = false, regularMessage: String = "",
+    /** 우선 요청 기사님을 정한다. null이면 해제한다. */
+    onSetRegular: (String?) -> Unit = {},
+    onBack: () -> Unit,
+) {
+    // 별 버튼을 누른 기사님(번호, 이름). 팝업에서 한 번 더 묻는다.
+    var starring by remember { mutableStateOf<Pair<String, String>?>(null) }
     val now = rememberNow()
     var open by rememberSaveable { mutableStateOf(state.history.firstOrNull()?.tripId) }
     // 전화할 기사님의 이름. 시연에는 실제 기사님이 없어 전화를 걸지 않고 안내만 한다.
@@ -148,6 +170,10 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
     Column(page) {
         TopBar("이용 내역", onBack, Modifier.appear(0))
         T("최근 30일의 이용 내역을 최대 20건 보관합니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
+        Reveal(regularMessage.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            T(regularMessage, Type.labelLarge, color = Ivi.colors.negative)
+        }
         Spacer(Modifier.height(28.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (state.history.isEmpty()) {
@@ -169,9 +195,23 @@ fun RecordsScreen(state: AppState, handover: Handover, uploading: Boolean, onBac
                     onToggle = { open = if (expanded) null else card.tripId },
                     regular = card.driverId.isNotBlank() && state.server.regular?.id == card.driverId,
                     onCallDriver = if (card.driverId.isNotBlank()) ({ calling = card.driverName }) else null,
+                    onStar = if (card.driverId.isNotBlank()) ({ starring = card.driverId to card.driverName }) else null,
                 )
             }
         }
+        }
+    }
+    Fading(starring) { (id, name) ->
+        val isRegular = state.server.regular?.id == id
+        IviPopup(
+            onDismiss = { starring = null },
+            buttons = {
+                IviButton("닫기", { starring = null }, Modifier.weight(1f), size = ButtonSize.LARGE)
+                IviButton(if (isRegular) "해제" else "설정", { onSetRegular(if (isRegular) null else id); starring = null }, Modifier.weight(1f), filled = true, size = ButtonSize.LARGE)
+            },
+        ) {
+            if (isRegular) PopupTitle("$name 기사님의 우선 요청을 해제할까요?", "해제하면 대리를 부를 때 기사님을 따로 정하지 않고 요청합니다.")
+            else PopupTitle("$name 기사님을 우선 요청 기사님으로 설정할까요?", "대리를 부를 때 이 기사님께 먼저 요청합니다. 배정을 보장하지는 않습니다.")
         }
     }
     Fading(calling) { name ->
@@ -192,23 +232,29 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onEditCard: () -> Unit,
     onUnbind: () -> Unit,
-    /** 알림을 아직 허용하지 않았을 때만 단추가 보인다 */
-    onAllowNotice: (() -> Unit)?,
+    /** 이용 알림이 켜져 있는지(차의 알림 허용과 이 설정이 모두 켜짐) */
+    noticeOn: Boolean,
+    onToggleNotice: () -> Unit,
     shareMessage: String = "",
     onToggleShare: (() -> Unit)? = null,
     /** 비상연락처, 공유 연락처를 고치는 화면을 연다 */
     onEditContacts: (com.lrlr.codaeri.domain.ContactKind) -> Unit = {},
+    /** 우선 요청 기사님을 정하는 화면을 연다 */
+    onEditRegular: () -> Unit = {},
 ) {
-    Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    // 제목 줄은 위에 고정하고 그 아래만 스크롤한다.
+    Column(page) {
         TopBar("설정", onBack, Modifier.appear(0)) { Tag(DEMO_TAG) }
+        Spacer(Modifier.height(20.dp))
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SettingRow(
-            "집 주차 안내", if (state.card.isUsable) "등록됨 · 집 근처에서 기사님께 읽어 드립니다" else "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다",
+            "집 주차 안내", if (state.card.isUsable) "등록됨 · 집 근처에서 기사님께 안내해 드립니다" else "없음 · 진입구, 주차 구역, 선호 위치를 적어 둡니다",
             if (state.card.isUsable) "수정" else "등록", onEditCard, Modifier.appear(1),
         )
         SettingRow(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
             if (state.server.emergencyList.isEmpty()) "등록" else "수정", { onEditContacts(com.lrlr.codaeri.domain.ContactKind.EMERGENCY) }, Modifier.appear(1),
-            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 고칠 수 있습니다.",
+            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 수정할 수 있습니다.",
             pairs = state.server.emergencyList.map { it.label to it.masked },
         )
         // 공유받을 사람은 비상연락처와 따로 둔다. 실제 발송은 아직 하지 않는다(시연용).
@@ -216,22 +262,28 @@ fun SettingsScreen(
         SettingRow(
             "운행 상태 자동 공유",
             when {
-                share.auto && share.contacts.isEmpty() -> "켜짐 · 공유할 연락처가 없습니다"
-                share.auto -> "켜짐 · 출발과 도착을 아래 연락처에 알립니다"
-                else -> "꺼짐"
+                share.auto && share.contacts.isEmpty() -> "공유할 연락처가 없습니다"
+                share.auto -> "출발과 도착을 아래 연락처에 알립니다"
+                else -> "공유하지 않습니다"
             },
-            if (share.auto) "끄기" else "켜기", onToggleShare, Modifier.appear(2),
+            null, onToggleShare, Modifier.appear(2), checked = share.auto,
             note = shareMessage.ifBlank { "공유할 연락처는 3명까지 등록합니다. 비상연락처와 따로 관리합니다. 시연용: 실제 문자는 보내지 않습니다." },
             pairs = share.contacts.map { it.label to it.masked },
             second = "연락처 수정" to { onEditContacts(com.lrlr.codaeri.domain.ContactKind.SHARE) },
         )
         SettingRow(
             "우선 요청 기사님", state.server.regular?.let { "${it.name} 기사님" } ?: "없음",
-            null, null, Modifier.appear(2), note = "연결한 휴대폰의 차주 페이지에서 설정합니다.",
+            if (state.server.regular != null) "수정" else "등록", onEditRegular, Modifier.appear(2),
+            note = "대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.",
         )
-        SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
+        SettingRow(
+            "이용 알림", if (noticeOn) "기사님 배정과 운행 종료를 알립니다" else "알리지 않습니다",
+            null, onToggleNotice, Modifier.appear(2), checked = noticeOn,
+            note = "다른 화면을 보고 있을 때 기사님이 배정되거나 운행이 종료되면 차의 알림으로 알려 드립니다.",
+        )
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
         T("코-대리 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
+        }
     }
 }
 
@@ -240,6 +292,8 @@ internal fun SettingRow(
     title: String, value: String, action: String?, onClick: (() -> Unit)?, modifier: Modifier = Modifier, note: String? = null, pairs: List<Pair<String, String>> = emptyList(),
     /** 둘째 버튼(이름과 할 일) */
     second: Pair<String, () -> Unit>? = null,
+    /** 켜고 끄는 설정이면 버튼 대신 체크박스를 둔다 */
+    checked: Boolean? = null,
 ) {
     Panel(modifier.fillMaxWidth(), pad = 32.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -253,7 +307,8 @@ internal fun SettingRow(
                 }
             }
             if (second != null) IviButton(second.first, second.second)
-            if (action != null && onClick != null) IviButton(action, onClick)
+            if (checked != null && onClick != null) IviCheckBox(checked, onClick)
+            else if (action != null && onClick != null) IviButton(action, onClick)
         }
     }
 }

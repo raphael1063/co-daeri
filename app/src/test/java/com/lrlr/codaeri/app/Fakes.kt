@@ -108,6 +108,12 @@ class FakeService(private val clock: () -> Long) : DaeriService {
         return server
     }
 
+    override fun setRegular(link: PhoneLink, driverId: String?): ServerState? {
+        if (!online) return null
+        server = server.copy(regular = driverId?.let { com.lrlr.codaeri.domain.Driver(it, "박○○") })
+        return server
+    }
+
     override fun unlinkAll(link: PhoneLink): Boolean {
         if (online) unlinked++
         return online

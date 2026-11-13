@@ -77,8 +77,10 @@ fun OtherSpotScreen(
     var pillar by rememberSaveable { mutableStateOf("") }
     var memo by rememberSaveable { mutableStateOf("") }
     val gap = Arrangement.spacedBy(12.dp)
-    Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    // 제목은 위에, 고른 결과와 취소·저장은 아래에 고정한다.
+    Column(page, verticalArrangement = Arrangement.spacedBy(20.dp)) {
         T("주차한 자리", Type.titleMedium)
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         // 고른 것에 따라 나타나는 칸은 아래 내용을 밀며 펼쳐진다. 접힌 칸이 빈 간격을 남기지 않게 한 묶음으로 둔다.
         Column {
         FlowRow(horizontalArrangement = gap, verticalArrangement = gap) {
@@ -130,6 +132,7 @@ fun OtherSpotScreen(
                     )
                 }
             }
+        }
         }
         val fullMemo = listOf(memo, dictation.text).filter { it.isNotBlank() }.joinToString(" ")
         val result = handover.driverInput(choice, floor, pillar, fullMemo, System.currentTimeMillis())

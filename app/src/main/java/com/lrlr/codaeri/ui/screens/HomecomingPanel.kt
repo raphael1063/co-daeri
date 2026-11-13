@@ -84,6 +84,8 @@ fun HomecomingPanel(
     regular: Boolean = false,
     /** 있으면 기사님 줄에 "전화하기"가 보인다 */
     onCallDriver: (() -> Unit)? = null,
+    /** 별 버튼: 이 기사님을 우선 요청 기사님으로 정하거나 해제한다 */
+    onStar: (() -> Unit)? = null,
 ) {
     var showDetails by rememberSaveable(card.tripId) { mutableStateOf(false) }
     val parking = TripPresentation.parking(card)
@@ -134,15 +136,22 @@ fun HomecomingPanel(
                 T("배정 기사님", Type.labelLarge, Modifier.width(FACT_LABEL), color = Ivi.colors.textTertiary)
                 T("${card.driverName} 기사님" + if (regular) " · 우선 요청" else "", Type.bodySmall, Modifier.weight(1f))
                 if (onCallDriver != null) IviButton("전화하기", onCallDriver, size = ButtonSize.SMALL, icon = R.drawable.ic_phone)
+                if (onStar != null) {
+                    Spacer(Modifier.width(12.dp))
+                    IviButton("우선 요청", onStar, size = ButtonSize.SMALL, icon = if (regular) R.drawable.ic_star else R.drawable.ic_star_outline)
+                }
             }
         }
         if (card.gapNote != null) {
             Spacer(Modifier.height(10.dp))
             T("운행 중 일부 정보를 기록하지 못했습니다. 차량 정보가 빠져 있을 수 있습니다.", Type.labelSmall, color = Ivi.colors.textTertiary)
         }
-        delivery?.let {
+        // 저장 중 안내는 잠깐 떴다 사라지므로 아래 내용이 툭 밀리지 않게 펼치고 접는다.
+        var lastDelivery by remember { mutableStateOf(delivery.orEmpty()) }
+        if (delivery != null) lastDelivery = delivery
+        Reveal(delivery != null) {
             Spacer(Modifier.height(10.dp))
-            T(it, Type.labelSmall, color = Ivi.colors.textTertiary)
+            T(lastDelivery, Type.labelSmall, color = Ivi.colors.textTertiary)
         }
         if (card.compare.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))

@@ -74,15 +74,29 @@ class MainActivity : ComponentActivity() {
         noticeAllowed.value = controller.noticeAllowed()
     }
 
+    // 화면이 켜져 있어도 다른 창(후방 카메라, 내비게이션)에 가려져 초점이 없으면 보이지 않는 것으로 본다.
+    // 그래야 가려진 동안 지도 위 표시가 뜬다.
+    private var started = false
+    private var focused = false
+    private fun syncVisible() { controller.visible.value = started && focused }
+
     override fun onStart() {
         super.onStart()
-        controller.visible.value = true
+        started = true
+        syncVisible()
         noticeAllowed.value = controller.noticeAllowed()
     }
 
     override fun onStop() {
-        controller.visible.value = false
+        started = false
+        syncVisible()
         super.onStop()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        focused = hasFocus
+        syncVisible()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,10 +125,14 @@ class MainActivity : ComponentActivity() {
                 var editing by rememberSaveable { mutableStateOf(false) }
                 val canCall by c.canCall.collectAsStateWithLifecycle()
                 val cancellingBooking by c.cancellingBooking.collectAsStateWithLifecycle()
+                val parking by c.parking.collectAsStateWithLifecycle()
                 val cancelBookingMessage by c.cancelBookingMessage.collectAsStateWithLifecycle()
                 var confirmCancel by rememberSaveable { mutableStateOf(false) }
                 // 설정에서 고치고 있는 연락처 묶음
                 var contacts by rememberSaveable { mutableStateOf<com.lrlr.codaeri.domain.ContactKind?>(null) }
+                var regularOpen by rememberSaveable { mutableStateOf(false) }
+                val regularBusy by c.regularBusy.collectAsStateWithLifecycle()
+                val regularMessage by c.regularMessage.collectAsStateWithLifecycle()
                 val contactBusy by c.contactBusy.collectAsStateWithLifecycle()
                 val contactMessage by c.contactMessage.collectAsStateWithLifecycle()
                 var otherSpot by rememberSaveable { mutableStateOf(false) }
@@ -135,9 +153,9 @@ class MainActivity : ComponentActivity() {
                 // 예약이 잡히거나 기사님이 바뀌면 대리 현황을 연다
                 LaunchedEffect(pending?.id, pending?.driver?.id) { section = Route.onBookingChanged(section, pending != null, restricted) }
                 // 동승 신호가 있으면 메인의 "출발하기"를 크게 보여 준다
-                LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false; contacts = null } }
+                LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false; contacts = null; regularOpen = false } }
                 // 운행이 시작되면 메인에서 열어 둔 화면은 닫는다
-                LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false; contacts = null } }
+                LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false; contacts = null; regularOpen = false } }
                 if (screen != Screen.OTHER_SPOT && screen != Screen.WRAP && screen != Screen.STOP_FIRST) otherSpot = false
 
                 Box(Modifier.fillMaxSize().background(Ivi.colors.backgroundPrimary).systemBarsPadding()) {
@@ -152,7 +170,7 @@ class MainActivity : ComponentActivity() {
                     ) { target ->
                         when (target) {
                             Screen.DRIVING -> trip?.let {
-                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap, emergencies = state.server.emergencyList, onEmergency = c::showEmergency)
+                                DrivingScreen(it, state.card, guidance, c.handover, speaking, restricted, c::nextGuide, c::repeatGuide, onMap = ::backToMap, emergencies = state.server.emergencyList, onEmergency = c::showEmergency, parking = parking)
                             }
                             Screen.STOP_FIRST -> StopFirst(if (trip != null) "운행을 마무리해 주세요" else "번호를 연결해 주세요")
                             Screen.WRAP -> trip?.let {
@@ -190,7 +208,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Screen.RECORDS -> {
                                 BackHandler { section = Section.MAIN }
-                                RecordsScreen(state, c.handover, uploading) { section = Section.MAIN }
+                                RecordsScreen(state, c.handover, uploading, regularBusy, regularMessage, onSetRegular = { c.setRegular(it) }) { section = Section.MAIN }
                             }
                             Screen.SETTINGS -> contacts?.let { kind ->
                                 val close = { c.clearContactMessage(); contacts = null }
@@ -203,18 +221,33 @@ class MainActivity : ComponentActivity() {
                                     onRemove = { c.removeContact(kind, it) },
                                     onBack = close,
                                 )
-                            } ?: run {
+                            } ?: if (regularOpen) {
+                                val close = { c.clearRegularMessage(); regularOpen = false }
+                                BackHandler { close() }
+                                com.lrlr.codaeri.ui.screens.RegularScreen(
+                                    state.server.regular, com.lrlr.codaeri.app.RegularEditor.candidates(state), regularBusy, regularMessage,
+                                    onPick = { c.setRegular(it) }, onClear = { c.setRegular(null) }, onBack = close,
+                                )
+                            } else run {
                                 BackHandler { section = Section.MAIN }
                                 SettingsScreen(
                                     state = state,
                                     onBack = { section = Section.MAIN },
                                     onEditCard = { editing = true },
                                     onUnbind = { confirmUnbind = true },
-                                    onAllowNotice = if (noticeAllowed.value || Build.VERSION.SDK_INT < 33) null
-                                    else ({ askNotice.launch(Manifest.permission.POST_NOTIFICATIONS) }),
+                                    noticeOn = noticeAllowed.value && !state.noticesOff,
+                                    onToggleNotice = {
+                                        if (noticeAllowed.value && !state.noticesOff) c.setNotices(false)
+                                        else {
+                                            c.setNotices(true)
+                                            if (!noticeAllowed.value && Build.VERSION.SDK_INT >= 33) askNotice.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        }
+                                    },
                                     shareMessage = shareMessage,
-                                    onToggleShare = if (shareBusy || restricted) null else c::toggleShare,
+                                    // 바꾸는 동안에도 체크박스는 그대로 두고, 누른 것만 받지 않는다.
+                                    onToggleShare = { if (!restricted) c.toggleShare() },
                                     onEditContacts = { contacts = it },
+                                    onEditRegular = { regularOpen = true },
                                 )
                             }
                             Screen.HOME -> HomeScreen(
@@ -228,13 +261,15 @@ class MainActivity : ComponentActivity() {
                                 armed = pending != null && startArmed == pending.id,
                                 onStart = c::toggleStartByButton,
                                 canCall = canCall,
+                                cancelling = cancellingBooking, cancelMessage = cancelBookingMessage,
+                                onCancel = { confirmCancel = true },
                             )
                         }
                     }
 
                     // 호출 취소는 한 번 더 묻는다. 예약이 사라지면(취소됨, 출발함) 창도 닫는다.
                     LaunchedEffect(pending?.id, trip?.id) { if (pending == null || trip != null) confirmCancel = false }
-                    Fading(pending?.takeIf { confirmCancel && screen == Screen.HANDOVER }) { b ->
+                    Fading(pending?.takeIf { confirmCancel && (screen == Screen.HANDOVER || screen == Screen.HOME) }) { b ->
                         IviPopup(
                             onDismiss = { confirmCancel = false },
                             buttons = {

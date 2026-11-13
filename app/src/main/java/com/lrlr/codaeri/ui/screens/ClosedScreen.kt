@@ -58,7 +58,8 @@ import com.lrlr.codaeri.ui.*
 @Composable
 fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uploading: Boolean, onDone: () -> Unit) {
     val now = rememberNow()
-    Column(page.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+    // 제목과 "메인으로"는 위에 고정하고 내역만 스크롤한다.
+    Column(page, verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 T(if (card.confirmedAt != null) "운행을 마쳤습니다" else "운행 종료를 확인하고 있습니다", Type.titleLarge)
@@ -71,7 +72,9 @@ fun ClosedScreen(card: HomecomingCard, state: AppState, handover: Handover, uplo
             }
             IviButton("메인으로", onDone, filled = true)
         }
-        HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt)
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+            HomecomingPanel(card, handover, now, Modifier.fillMaxWidth().appear(1), delivery = deliveryLine(state, uploading), paidAt = state.lastPaidAt)
+        }
     }
 }
 

@@ -67,12 +67,12 @@ fun HandoverScreen(
 ) {
     Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
         Column(Modifier.weight(1.15f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
-            Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(36.dp)) {
                 BackButton(onBack)
-                T("대리 현황", Type.titleSmall)
+                T("대리 현황", Type.headlineSmall, maxLines = 1)
                 Tag("$DEMO_TAG · 가상의 기사님")
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(36.dp))
             T(
                 booking.reassignedAt?.let { "배정된 기사님 · ${handover.time(it)} 다시 배정됨" } ?: "배정된 기사님",
                 Type.bodyMedium, Modifier.appear(1), color = Ivi.colors.textSecondary,
