@@ -80,7 +80,8 @@ fun HomeScreen(
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Image(painterResource(R.drawable.ic_app_clear), contentDescription = null, modifier = Modifier.size(280.dp).appear(0, scaleFrom = 0.97f))
             Spacer(Modifier.height(20.dp))
-            T("코-대리", Type.headlineLarge, Modifier.appear(0))
+            // 앱 이름은 글자 대신 워드마크 그림으로 보여 준다(밝은 화면은 검은 글자, 어두운 화면은 흰 글자).
+            Image(painterResource(R.drawable.wordmark), contentDescription = "코-대리", modifier = Modifier.height(110.dp).appear(0))
             Spacer(Modifier.height(48.dp))
             if (startLine != null) {
                 T(startLine, Type.titleSmall, Modifier.appear(1), color = Ivi.colors.textSecondary, align = TextAlign.Center)
