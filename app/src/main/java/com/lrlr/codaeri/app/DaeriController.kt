@@ -12,6 +12,7 @@ import com.lrlr.codaeri.domain.ParkingResult
 import com.lrlr.codaeri.domain.TripPhase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -20,7 +21,7 @@ import kotlinx.coroutines.launch
 /**
  * 화면과 안드로이드 진입점이 쓰는 창구. 일은 흐름별 클래스가 한다:
  * PairingFlow(번호 연결), BookingSync(예약 조회), CallFlow(대리 부르기), TripRecorder(운행 기록),
- * ParkingGuide(집 주차 안내), EmergencyViewer(비상연락처), CardOutbox(귀가 카드 전송), DestinationRouter(내비게이션에 목적지 넘기기).
+ * ParkingGuide(집 주차 안내), EmergencyViewer(비상연락처), ShareSwitch(운행 상태 자동 공유), CardOutbox(귀가 카드 전송), DestinationRouter(내비게이션에 목적지 넘기기).
  * 이 클래스는 그것들을 이어 붙이고 차 신호를 나눠 준다.
  */
 class DaeriController(
@@ -54,6 +55,7 @@ class DaeriController(
         refresh = { sync.refresh() },
     )
     private val emergencyViewer = EmergencyViewer(store, ports.service, env)
+    private val shareSwitch = ShareSwitch(store, ports.service, env)
     private val router = DestinationRouter(ports.routeGuide)
     private val recorder = TripRecorder(
         store, ports.car, ports.location, ports.restriction, ports.announcer, ports.links,
@@ -108,6 +110,12 @@ class DaeriController(
         env.scope.launch { ports.car.lockChanges.collect { locked -> if (locked != null) recorder.onLockChanged(locked) } }
         // 화면이 다시 보이면 바로 한 번 묻는다
         env.scope.launch { visible.collect { if (it) { ports.notices.clear(); sync.refresh() } } }
+        // 내비게이션이 앞에 있는 동안 지도 위에 운행 중임을 한 줄로 보여 준다(권한이 있는 차에서만).
+        env.scope.launch {
+            combine(store.state, guide.state, visible) { s, g, v -> DrivingBanner.text(s, g, v, handover) }
+                .distinctUntilChanged()
+                .collect { text -> if (text != null && ports.banner.available()) ports.banner.show(text) else ports.banner.hide() }
+        }
         outbox.watch(ports.connectivity)
         outbox.send()
         sync.startPolling()
@@ -142,6 +150,11 @@ class DaeriController(
 
     fun chooseParking(result: ParkingResult?) = recorder.chooseParking(result)
     /** 예약이 있고, 서 있는 차에 기사님과 차주가 탄 것으로 판단되는가. 메인 화면이 단추 셋 대신 "운행 시작"을 보여 준다. */
+    /** 좌석 신호로 탑승을 판정할 수 있는 차인지. 아니면 대리 현황에 출발하기를 둔다. */
+    val judgesBoarding: StateFlow<Boolean> = combine(store.state, ports.car.driverSeated, ports.car.passengerSeats) { s, driver, others ->
+        TripRules.judgesBoarding(s.seatInverted, driver, others)
+    }.stateIn(env.scope, SharingStarted.Eagerly, false)
+
     val startReady: StateFlow<Boolean> = combine(store.state, ports.car.gear, ports.car.driverSeated, ports.car.passengerSeats) { s, gear, driver, others ->
         s.trip == null && gear == GearState.PARK && s.pendingBooking(env.clock()) != null && TripRules.readyToStart(s.seatInverted, driver, others)
     }.stateIn(env.scope, SharingStarted.Eagerly, false)
@@ -152,6 +165,9 @@ class DaeriController(
     fun closeTrip() = recorder.dismissClosed()
     fun seatCloses(): Boolean = recorder.seatCloses()
 
+    val shareBusy: StateFlow<Boolean> = shareSwitch.busy
+    val shareMessage: StateFlow<String> = shareSwitch.message
+    fun toggleShare() = shareSwitch.toggle()
     fun showEmergency() = emergencyViewer.show()
     fun hideEmergency() = emergencyViewer.hide()
 

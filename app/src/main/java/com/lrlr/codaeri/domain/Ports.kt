@@ -31,6 +31,9 @@ interface DaeriService {
     /** 운행 중 기사님이 비상연락처를 확인한다. 서버가 운행 중인 예약일 때만 번호를 준다. */
     fun viewEmergency(link: PhoneLink, bookingId: String): List<EmergencyContact>?
 
+    /** 운행 상태 자동 공유를 켜거나 끈다. 바뀐 상태를 돌려주고, 실패는 null. */
+    fun setShareAuto(link: PhoneLink, on: Boolean): ServerState?
+
     /** 연결한 휴대폰 브라우저를 모두 끊는다. */
     fun unlinkAll(link: PhoneLink): Boolean
 }

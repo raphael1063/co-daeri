@@ -80,7 +80,7 @@ fun DrivingScreen(
         Spacer(Modifier.height(20.dp))
         val booking = trip.booking
         T(
-            if (booking != null) "${booking.destination}까지 운행 중" else "예약을 확인하는 중입니다",
+            if (booking != null) "${handover.toward(booking.destination)} 운행 중" else "예약을 확인하는 중입니다",
             Type.headlineLarge, maxLines = 2,
         )
         val description = when {

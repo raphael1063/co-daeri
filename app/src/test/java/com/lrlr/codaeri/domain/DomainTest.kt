@@ -27,6 +27,22 @@ class DomainTest {
         spotLabel = "B-17",
     )
 
+    @Test fun towardPicksParticleByFinalConsonant() {
+        val h = Handover()
+        assertEquals("집으로", h.toward("집"))
+        assertEquals("판교 삼평동으로", h.toward("판교 삼평동"))
+        assertEquals("서울로", h.toward("서울"))
+        assertEquals("잠실 롯데타워로", h.toward("잠실 롯데타워"))
+        assertEquals("Gate 3(으)로", h.toward("Gate 3"))
+    }
+
+    @Test fun boardingIsJudgedOnlyWhenSeatSignalsAndDirectionAreKnown() {
+        assertTrue(TripRules.judgesBoarding(true, false, listOf(null, true)))
+        assertFalse(TripRules.judgesBoarding(null, false, listOf(true))) // 방향을 아직 모른다
+        assertFalse(TripRules.judgesBoarding(true, null, listOf(true))) // 운전석 신호가 없다
+        assertFalse(TripRules.judgesBoarding(true, false, listOf(null, null))) // 다른 좌석 신호가 없다
+    }
+
     // --- 안내 ---
 
     @Test fun basicGuidanceReadsOnlyEntranceAndEntryThenHintsMore() {
@@ -245,6 +261,8 @@ class DomainTest {
 
     @Test fun elapsedIsButtonToButton() {
         assertEquals(42, h.elapsedMinutes(at(23, 0), at(23, 42)))
+        // 22:58:10 → 23:39:50 은 화면의 시각 차와 같은 41분
+        assertEquals(41, h.elapsedMinutes(at(22, 58) + 10_000, at(23, 39) + 50_000))
         assertEquals("1시간 5분", h.elapsedText(65))
         assertEquals(0, h.elapsedMinutes(at(23, 42), at(23, 0)))
     }

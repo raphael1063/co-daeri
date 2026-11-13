@@ -23,3 +23,13 @@ interface KeepAlive {
 interface Connectivity {
     fun onAvailable(block: () -> Unit)
 }
+
+/**
+ * 다른 앱(내비게이션) 위에 한 줄을 띄운다. 운행 중 화면이 가려져 있을 때 "운행 중"임을 보여 주려는 것이다.
+ * 권한이 없는 차에서는 available()이 false이고 아무것도 하지 않는다.
+ */
+interface TripBanner {
+    fun available(): Boolean
+    fun show(text: String)
+    fun hide()
+}

@@ -29,4 +29,5 @@ class Adapters(
     val notices: Notices,
     val keepAlive: KeepAlive,
     val connectivity: Connectivity,
+    val banner: TripBanner,
 )

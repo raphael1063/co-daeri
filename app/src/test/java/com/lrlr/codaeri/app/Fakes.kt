@@ -75,6 +75,12 @@ class FakeService(private val clock: () -> Long) : DaeriService {
 
     override fun viewEmergency(link: PhoneLink, bookingId: String): List<EmergencyContact>? = if (online) emergency else null
 
+    override fun setShareAuto(link: PhoneLink, on: Boolean): ServerState? {
+        if (!online) return null
+        server = server.copy(share = server.share.copy(auto = on))
+        return server
+    }
+
     override fun unlinkAll(link: PhoneLink): Boolean {
         if (online) unlinked++
         return online
@@ -166,6 +172,14 @@ class FakeKeepAlive : KeepAlive {
     var isOn = false
     override fun on() { isOn = true }
     override fun off() { isOn = false }
+}
+
+class FakeBanner : TripBanner {
+    var allowed = true
+    var text: String? = null
+    override fun available(): Boolean = allowed
+    override fun show(text: String) { this.text = text }
+    override fun hide() { text = null }
 }
 
 class FakeConnectivity : Connectivity {

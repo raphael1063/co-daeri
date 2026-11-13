@@ -102,6 +102,9 @@ class MainActivity : ComponentActivity() {
                 val emergencyUi by c.emergency.collectAsStateWithLifecycle()
                 val startArmed by c.startArmed.collectAsStateWithLifecycle()
                 val startReady by c.startReady.collectAsStateWithLifecycle()
+                val shareBusy by c.shareBusy.collectAsStateWithLifecycle()
+                val shareMessage by c.shareMessage.collectAsStateWithLifecycle()
+                val judgesBoarding by c.judgesBoarding.collectAsStateWithLifecycle()
                 val voicePartial by c.voicePartial.collectAsStateWithLifecycle()
                 var editing by rememberSaveable { mutableStateOf(false) }
                 var otherSpot by rememberSaveable { mutableStateOf(false) }
@@ -165,7 +168,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Screen.HANDOVER -> {
                                 BackHandler { section = Section.MAIN }
-                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, onStart = c::toggleStartByButton) { section = Section.MAIN } }
+                                pending?.let { HandoverScreen(it, c.handover, state.server.phone, routed == it.id, armed = startArmed == it.id, restricted = restricted, manualStart = !judgesBoarding, onStart = c::toggleStartByButton) { section = Section.MAIN } }
                             }
                             Screen.RECORDS -> {
                                 BackHandler { section = Section.MAIN }
@@ -180,6 +183,8 @@ class MainActivity : ComponentActivity() {
                                     onUnbind = { confirmUnbind = true },
                                     onAllowNotice = if (noticeAllowed.value || Build.VERSION.SDK_INT < 33) null
                                     else ({ askNotice.launch(Manifest.permission.POST_NOTIFICATIONS) }),
+                                    shareMessage = shareMessage,
+                                    onToggleShare = if (shareBusy || restricted) null else c::toggleShare,
                                 )
                             }
                             Screen.HOME -> HomeScreen(

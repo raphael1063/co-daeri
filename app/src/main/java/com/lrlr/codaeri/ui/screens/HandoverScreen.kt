@@ -57,7 +57,7 @@ import com.lrlr.codaeri.ui.*
 
 /** 예약이 확인되면 뜬다. 왼쪽은 차주와 기사님이 함께 보는 예약 정보, 오른쪽은 기사님에게 하는 안내다. */
 @Composable
-fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed: Boolean, armed: Boolean, restricted: Boolean, onStart: () -> Unit, onBack: () -> Unit) {
+fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed: Boolean, armed: Boolean, restricted: Boolean, manualStart: Boolean, onStart: () -> Unit, onBack: () -> Unit) {
     Row(page, horizontalArrangement = Arrangement.spacedBy(56.dp)) {
         Column(Modifier.weight(1.15f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
             Row(Modifier.appear(0), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -94,13 +94,19 @@ fun HandoverScreen(booking: Booking, handover: Handover, phone: String?, routed:
                 T("출발·종료 시각과 이동 거리, 차량 상태를 기록합니다. 영상과 음성은 저장하지 않습니다. 운행 후 QR로 내역을 확인하실 수 있습니다.", Type.bodyMedium, color = Ivi.colors.textSecondary)
                 Spacer(Modifier.height(16.dp))
                 T(
-                    if (armed) "D단으로 출발하면 운행 기록과 길 안내를 시작합니다."
-                    else "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요.",
+                    when {
+                        armed -> "D단으로 출발하면 운행 기록과 길 안내를 시작합니다."
+                        manualStart -> "목적지와 요금을 확인한 뒤 출발하기를 눌러 주세요."
+                        else -> "기사님과 차주님이 타시면 첫 화면에 출발하기가 나타납니다."
+                    },
                     Type.bodyLarge,
                 )
-                Spacer(Modifier.height(20.dp))
-                IviButton(if (armed) "출발 대기 중" else "출발하기", onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted && !armed)
-                if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
+                // 좌석 신호로 탑승을 판정하는 차에서는 출발하기를 첫 화면에만 둔다.
+                if (manualStart || armed) {
+                    Spacer(Modifier.height(20.dp))
+                    IviButton(if (armed) "출발 대기 중" else "출발하기", onStart, Modifier.fillMaxWidth(), filled = !armed, size = ButtonSize.LARGE, enabled = !restricted && !armed)
+                    if (armed) IviButton("출발 확인 취소", onStart, size = ButtonSize.SMALL, quiet = true, enabled = !restricted)
+                }
 
             }
         }
