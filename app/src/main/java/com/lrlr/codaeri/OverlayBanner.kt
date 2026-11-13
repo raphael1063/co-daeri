@@ -166,7 +166,8 @@ class OverlayBanner(private val context: Context) : TripBanner {
             line.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, h, Gravity.BOTTOM)
             box.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (h * f).toInt())
             box.visibility = if (f > 0f) View.VISIBLE else View.GONE
-            line.alpha = f
+            // 옅은 글자라 그대로 비례해 줄이면 너무 일찍 안 보인다. 끝까지 보이다가 마지막에 옅어지게 한다.
+            line.alpha = kotlin.math.sqrt(f)
         }
     }
 
