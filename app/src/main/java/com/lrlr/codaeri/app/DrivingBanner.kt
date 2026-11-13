@@ -20,6 +20,10 @@ object DrivingBanner {
         if (visible || trip.phase != TripPhase.ACTIVE) return null
         val guide = guidance.current?.headline?.takeIf { it.isNotBlank() }
         return if (guide != null) BannerLine("주차 안내", guide, ongoing = false)
-        else BannerLine("대리 운행 중", handover.toward(booking.destination), ongoing = true)
+        else {
+            // 배정된 기사님 이름이 있으면 누가 운행 중인지 적는다. 차가 신원을 확인한 것은 아니고 예약에 배정된 이름이다.
+            val name = booking.driver.name.trim()
+            BannerLine(if (name.isEmpty()) "대리 운행 중" else "$name 기사님 운행 중", handover.toward(booking.destination), ongoing = true)
+        }
     }
 }
