@@ -26,6 +26,10 @@ data class CallUi(
     val stage: CallStage = CallStage.OFF, val place: Place? = null, val fare: Int? = null, val message: String = "", val retries: Int = 0,
     /** 목소리로 부르는 중인지. 눌러서 고를 때는 마이크를 쓰지 않는다. */
     val byVoice: Boolean = false,
+    /** 확인받을 때 보여 주는 출발지 이름과 직선 거리(km). 위치를 모르면 거리는 null */
+    val from: String = "", val km: Float? = null,
+    /** 확인받는 말(읽어 준 그대로). message가 이것과 다르면 다시 묻는 말이나 오류다. */
+    val asked: String = "",
 )
 
 /**
@@ -141,8 +145,10 @@ class CallFlow(
                 _ui.value = CallUi(CallStage.CONFIRM, null, byVoice = byVoice, message = "통신 문제로 요금을 확인하지 못했습니다. " + if (byVoice) "다시 말하기를 눌러 주세요." else "다른 방법을 눌러 다시 선택해 주세요.")
                 return@launch
             }
-            val line = VoiceCall.confirmLine(place, handover.fareText(fare))
-            _ui.value = CallUi(CallStage.CONFIRM, place, fare, line, byVoice = byVoice)
+            val origin = VoiceCall.originName(from?.lat, from?.lng, VoiceCall.home(store.value.card))
+            val km = from?.let { VoiceCall.straightKm(it.lat, it.lng, place.lat, place.lng) }
+            val line = VoiceCall.confirmLine(origin, place, km?.let(handover::distanceText), handover.fareText(fare))
+            _ui.value = CallUi(CallStage.CONFIRM, place, fare, line, byVoice = byVoice, from = origin, km = km, asked = line)
             announcer.say(line)
             if (!byVoice) return@launch
             // 읽기가 끝난 뒤에 대답을 듣는다(읽는 소리를 대답으로 듣지 않게)
