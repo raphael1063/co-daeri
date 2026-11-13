@@ -42,7 +42,7 @@ data class IviColors(
     val onButtonFilled: Color,
     val divider: Color,
     val dim: Color,
-    /** 활성 상태에만 쓰는 포인트 색. 연동하는 서비스(DON)의 강조색 주황에 맞췄다 */
+    /** 활성 상태에만 쓰는 포인트 색. 코-대리의 강조색 주황에 맞췄다 */
     val positive: Color,
     /** 포인트 색으로 쓰는 글자. 밝은 화면에서는 바탕과의 대비(4.5:1 이상)를 위해 더 진한 주황을 쓴다 */
     val positiveText: Color,
