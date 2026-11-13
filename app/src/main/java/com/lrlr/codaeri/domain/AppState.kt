@@ -38,6 +38,8 @@ data class AppState(
     val aliveAt: Long? = null,
     /** 마지막 출발 때 알아낸 운전석 값의 방향(Trip.seatInverted). 다음 예약의 착석 확인에 쓴다. */
     val seatInverted: Boolean? = null,
+    /** 설정에서 이용 알림을 껐는지. 꺼 두면 기사님 배정과 운행 종료를 차의 알림으로 알리지 않는다. */
+    val noticesOff: Boolean = false,
     /** 마지막 귀가 카드의 결제 시각과 그 예약. 다음 예약이 잡혀 서버 기록이 바뀌어도 카드에 남긴다. */
     val paidAt: Long? = null,
     val paidBookingId: String? = null,

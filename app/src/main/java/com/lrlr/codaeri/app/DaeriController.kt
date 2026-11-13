@@ -47,7 +47,7 @@ class DaeriController(
         pairingShown = { pairingFlow.showing },
         onBound = { pairingFlow.clear() },
         // 화면이 가려져 있고 서 있을 때만 알린다. 달리는 동안에는 띄우지 않는다.
-        onNewBooking = { b -> if (hiddenAndParked() && store.value.trip == null) ports.notices.booking(b.driver.name, b.destination) },
+        onNewBooking = { b -> if (hiddenAndParked() && store.value.trip == null && !store.value.noticesOff) ports.notices.booking(b.driver.name, b.destination) },
     )
     private val outbox = CardOutbox(store, ports.service, handover, env, onConfirmed = { sync.refresh() })
     private val guide = ParkingGuide(store, ports.announcer, env.clock, onArrived = { outbox.queueProgress() })
@@ -65,7 +65,7 @@ class DaeriController(
         handover, guide, outbox, sync, router, env,
         onRecording = { ports.keepAlive.on() },
         onMoving = { if (voiceCall.active) voiceCall.cancel() },
-        onClosed = { card -> if (!visible.value) ports.notices.closed(handover.headline(card, env.clock())) },
+        onClosed = { card -> if (!visible.value && !store.value.noticesOff) ports.notices.closed(handover.headline(card, env.clock())) },
     )
 
     private val parkingWatch = ParkingWatch(env)
@@ -199,6 +199,8 @@ class DaeriController(
     fun hideEmergency() = emergencyViewer.hide()
 
     fun noticeAllowed(): Boolean = ports.notices.enabled()
+    /** 설정의 이용 알림 켜고 끄기 */
+    fun setNotices(on: Boolean) { store.update { it.copy(noticesOff = !on) } }
 
     /** 번호가 연결돼 있거나 운행 중이면 화면을 열지 않아도 예약을 묻고 운행을 기록한다. */
     fun needsKeepAlive(): Boolean {

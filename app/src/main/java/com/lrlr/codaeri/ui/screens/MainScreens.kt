@@ -203,8 +203,9 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onEditCard: () -> Unit,
     onUnbind: () -> Unit,
-    /** 알림을 아직 허용하지 않았을 때만 단추가 보인다 */
-    onAllowNotice: (() -> Unit)?,
+    /** 이용 알림이 켜져 있는지(차의 알림 허용과 이 설정이 모두 켜짐) */
+    noticeOn: Boolean,
+    onToggleNotice: () -> Unit,
     shareMessage: String = "",
     onToggleShare: (() -> Unit)? = null,
     /** 비상연락처, 공유 연락처를 고치는 화면을 연다 */
@@ -224,7 +225,7 @@ fun SettingsScreen(
         SettingRow(
             "비상연락처", if (state.server.emergencyList.isEmpty()) "없음" else "",
             if (state.server.emergencyList.isEmpty()) "등록" else "수정", { onEditContacts(com.lrlr.codaeri.domain.ContactKind.EMERGENCY) }, Modifier.appear(1),
-            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 고칠 수 있습니다.",
+            note = "3명까지 등록할 수 있습니다. 연결한 휴대폰에서도 수정할 수 있습니다.",
             pairs = state.server.emergencyList.map { it.label to it.masked },
         )
         // 공유받을 사람은 비상연락처와 따로 둔다. 실제 발송은 아직 하지 않는다(시연용).
@@ -246,7 +247,11 @@ fun SettingsScreen(
             if (state.server.regular != null) "수정" else "등록", onEditRegular, Modifier.appear(2),
             note = "대리를 부를 때 이 기사님께 먼저 요청합니다. 이용한 기사님 가운데서 고릅니다.",
         )
-        SettingRow("이용 알림", if (onAllowNotice == null) "켜짐" else "꺼짐 · 기사님 배정과 운행 종료를 알립니다", if (onAllowNotice == null) null else "켜기", onAllowNotice, Modifier.appear(2))
+        SettingRow(
+            "이용 알림", if (noticeOn) "기사님 배정과 운행 종료를 알립니다" else "알리지 않습니다",
+            null, onToggleNotice, Modifier.appear(2), checked = noticeOn,
+            note = "다른 화면을 보고 있을 때 기사님이 배정되거나 운행이 종료되면 차의 알림으로 알려 드립니다.",
+        )
         SettingRow("연결된 번호", state.server.phone ?: "없음", "연결 해제", onUnbind, Modifier.appear(3))
         T("코-대리 ${BuildConfig.VERSION_NAME}", Type.labelSmall, Modifier.appear(3), color = Ivi.colors.textTertiary)
         }
