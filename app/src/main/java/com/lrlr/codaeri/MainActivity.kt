@@ -191,6 +191,8 @@ class MainActivity : ComponentActivity() {
                 // 동승 신호가 있으면 메인의 "출발하기"를 크게 보여 준다
                 LaunchedEffect(startReady) { if (startReady) { section = Section.MAIN; editing = false; contacts = null; regularOpen = false } }
                 // 운행이 시작되면 메인에서 열어 둔 화면은 닫는다
+                // 연결이 풀리면(차에서 해제했거나 서버에서 끊겼거나) 보던 화면을 잊는다. 다시 연결하면 메인 화면에서 시작한다.
+                LaunchedEffect(state.bound) { if (!state.bound) { section = Section.MAIN; editing = false; contacts = null; regularOpen = false } }
                 LaunchedEffect(trip?.id) { if (trip != null) { section = Section.MAIN; editing = false; contacts = null; regularOpen = false } }
                 if (screen != Screen.OTHER_SPOT && screen != Screen.WRAP && screen != Screen.STOP_FIRST) otherSpot = false
 

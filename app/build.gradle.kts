@@ -22,8 +22,8 @@ android {
         applicationId = "com.lrlr.codaeri"
         minSdk = 28
         targetSdk = 34
-        versionCode = 121
-        versionName = "0.8.90"
+        versionCode = 122
+        versionName = "0.8.91"
         buildConfigField("String", "CARD_SERVER", "\"https://lrlr-master.com\"")
     }
 
