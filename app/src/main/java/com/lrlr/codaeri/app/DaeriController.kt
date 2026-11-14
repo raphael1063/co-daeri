@@ -148,6 +148,8 @@ class DaeriController(
 
     // ---------- 화면이 부르는 일 ----------
 
+    /** 서버에서 이 차의 연결이 끊겼는지(연결 화면의 안내용) */
+    val linkCutOff: StateFlow<Boolean> get() = sync.cutOff
     fun agreeToCollection() = pairingFlow.agree()
     fun newPairCode() = pairingFlow.newCode()
     fun unbind() = pairingFlow.unbind()

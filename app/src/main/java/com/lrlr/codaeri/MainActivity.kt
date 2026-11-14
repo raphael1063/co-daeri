@@ -148,6 +148,7 @@ class MainActivity : ComponentActivity() {
                 val busy by c.busy.collectAsStateWithLifecycle()
                 val location by c.position.collectAsStateWithLifecycle()
                 val pairing by c.pairing.collectAsStateWithLifecycle()
+                val linkCutOff by c.linkCutOff.collectAsStateWithLifecycle()
                 val voice by c.voice.collectAsStateWithLifecycle()
                 val emergencyUi by c.emergency.collectAsStateWithLifecycle()
                 val startArmed by c.startArmed.collectAsStateWithLifecycle()
@@ -227,7 +228,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             Screen.CLOSED -> state.lastCard?.let { ClosedScreen(it, state, c.handover, uploading, c::closeTrip, onEditParking = { editParking = true }) }
-                            Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode)
+                            Screen.BIND -> BindScreen(state.consentAt != null, pairing.url, pairing.status, pairing.short, c::agreeToCollection, c::newPairCode, linkCutOff)
                             Screen.EDITOR -> {
                                 BackHandler { c.clearHomeImport(); editing = false }
                                 CardEditorScreen(

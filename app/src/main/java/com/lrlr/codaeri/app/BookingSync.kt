@@ -9,6 +9,7 @@ import com.lrlr.codaeri.domain.TripPhase
 import com.lrlr.codaeri.domain.TripRules
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,6 +38,13 @@ class BookingSync(
     private val turn = Mutex()
     private val bootAt = env.clock()
 
+    private val _cutOff = MutableStateFlow(false)
+    /**
+     * 차가 끊지 않았는데 서버에서 이 차의 연결이 사라졌다(같은 번호를 다른 차에 연결했거나 서버 기록이 지워졌다).
+     * 연결 화면이 까닭을 알려 줄 수 있게 다시 연결될 때까지 켜 둔다.
+     */
+    val cutOff: StateFlow<Boolean> = _cutOff
+
     suspend fun refresh() = turn.withLock {
         val link = store.value.phoneLink ?: return@withLock
         val report = report()
@@ -47,6 +55,8 @@ class BookingSync(
         store.update { s ->
             s.copy(server = fetched, checkedAt = env.clock(), trip = s.trip?.let { TripRules.attach(it, fetched.booking, env.clock()) }).rememberPaid()
         }
+        if (wasBound && !store.value.bound) _cutOff.value = true
+        if (store.value.bound) _cutOff.value = false
         if (!wasBound && store.value.bound) onBound()
         val now = store.value.pendingBooking(env.clock())
         if (now != null && now.id != before?.id) onNewBooking(now)

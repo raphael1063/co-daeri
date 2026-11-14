@@ -309,6 +309,26 @@ class FlowsTest {
         assertNull(r.state.lastCard)
     }
 
+    @Test fun linkCutByTheServerIsExplainedUntilLinkedAgain() = runTest {
+        val r = rig()
+        r.book()
+        assertTrue(r.state.bound)
+        assertFalse(r.c.linkCutOff.value)
+        // 같은 번호를 다른 차에 연결해 서버가 이 차의 연결을 끊었다: 번호도 예약도 사라진다
+        val linked = r.service.server
+        r.service.server = ServerState()
+        r.pass(BookingSync.POLL_MS)
+        assertFalse(r.state.bound)
+        assertNull(r.state.pendingBooking(r.clock()))
+        assertTrue(r.c.linkCutOff.value)
+        // 다시 연결되면 안내를 거둔다
+        r.service.server = linked.copy(booking = null)
+        r.c.newPairCode() // 연결 화면이 뜨며 새 코드를 청한다. 코드가 떠 있는 동안 차는 연결됐는지 자주 묻는다.
+        r.pass(60_000)
+        assertTrue(r.state.bound)
+        assertFalse(r.c.linkCutOff.value)
+    }
+
     @Test fun bookingFoundAtParkKeepsTheTrip() = runTest {
         val r = rig()
         r.gear(GearState.NOT_PARK)

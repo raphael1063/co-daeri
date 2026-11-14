@@ -59,7 +59,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import com.lrlr.codaeri.ui.*
 
 @Composable
-fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairShort: String?, onAgree: () -> Unit, onNewCode: () -> Unit) {
+fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairShort: String?, onAgree: () -> Unit, onNewCode: () -> Unit, cutOff: Boolean = false) {
     if (!consented) { ConsentScreen(onAgree); return }
     LaunchedEffect(Unit) { onNewCode() }
     val intro: @Composable ColumnScope.() -> Unit = {
@@ -69,6 +69,11 @@ fun BindScreen(consented: Boolean, pairUrl: String?, pairStatus: String, pairSho
             }
             Spacer(Modifier.height(20.dp))
             T(text(R.string.bind_title), Type.headlineSmall, Modifier.appear(1))
+            if (cutOff) {
+                // 차에서 끊지 않았는데 연결이 풀렸을 때만 까닭을 알린다
+                Spacer(Modifier.height(16.dp))
+                T(text(R.string.bind_cut_off), Type.bodyMedium, Modifier.appear(1), color = Ivi.colors.negative)
+            }
             Spacer(Modifier.height(24.dp))
             T(
                 text(R.string.bind_intro),
