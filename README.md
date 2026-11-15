@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | ![예약 인계 화면](docs/영상/screens/car_handover.png) | ![차주 휴대폰 페이지의 알림](docs/영상/screens/web_alert_box.png) | ![이용 내역](docs/영상/screens/car_card.png) |
 
-- **시연 영상(100초)**: [docs/영상/코-대리_시연영상.mp4](docs/영상/코-대리_시연영상.mp4)
+- **시연 영상(3분 37초)**: [docs/영상/코-대리_시연영상.mp4](docs/영상/코-대리_시연영상.mp4)
 - **직접 눌러 보기**: 심사용 콘솔 https://lrlr-master.com/daeri/console/ (아래 [빠른 시작](#심사위원용-빠른-시작-5분))
 - **단위 테스트 108개** (실행: `./gradlew testDebugUnitTest`), 에뮬레이터 확인 기록은 [docs/검증](docs/검증/README.md)
 
@@ -31,7 +31,7 @@
 | 에뮬레이터 버전과 화면 규격 | Pleos Connect Emulator 2.1.0 (Android 14, API 34), 가로 2560 x 1440 |
 | APK 위치 | [`apk/테오로빈_코-대리_release.apk`](apk/테오로빈_코-대리_release.apk) |
 
-기획서, 시연 영상과 콘티, 화면, 에뮬레이터 확인 기록, 조사 자료는 [docs/](docs/README.md)에 모았습니다. 포함된 APK·영상·화면은 기존 버전이며, 아래 문구와 화면 구성 변경은 소스에 반영되어 있습니다. 외부 차주·기사님 페이지는 이 레포의 수정 범위에 포함되지 않습니다.
+기획서, 시연 영상과 콘티, 화면, 에뮬레이터 확인 기록, 조사 자료는 [docs/](docs/README.md)에 모았습니다. 화면 캡처 일부는 이전 버전입니다. 외부 차주·기사님 페이지는 이 레포의 수정 범위에 포함되지 않습니다.
 
 ## 심사위원용 빠른 시작 (5분)
 
